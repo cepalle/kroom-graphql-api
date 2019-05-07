@@ -7,6 +7,104 @@
 # SDK/API deezer
 # google API
 
+type Artist {
+    id: Int
+    name: String
+    # url
+    link: String
+    # url
+    share: String
+    # url
+    pictre: String
+    # url
+    picture_small: String
+    # url
+    picture_medium: String
+    # url
+    picture_big: String
+    # url
+    picture_xl: String
+    nb_album: Int
+    nb_fan: Int
+    radio: Boolean
+    # url
+    tracklist: String
+    role: String
+}
+
+type Album {
+    id: Int
+    title: String
+    upc: String
+    # url
+    link: String
+    # url
+    share: String
+    # url
+    cover: String
+    # url
+    cover_smal: String
+    # url
+    cover_medium: String
+    # url
+    cover_big: String
+    # url
+    cover_xl: String
+    genre_id: Int
+    genres: [String]
+    label: String
+    nb_tracks: Int
+    duration: Int
+    fans: Int
+    rating: Int
+    # date
+    release_date: String
+    record_type: String
+    available: Boolean
+    alternative: Album
+    # url
+    tracklist: String
+    explicit_lyrics: Boolean
+    # TODO enum
+    explicit_content_lyrics: Int
+    explicit_content_cover: Int
+    contributors: [Artist]
+    artist: Artist
+    tracks: [Track]
+}
+
+type Track {
+    id: Int
+    readable: Boolean
+    title: String
+    title_short: String
+    title_version:String
+    unseen: Boolean
+    isrc: String
+    # url
+    link: String
+    # url
+    share: String
+    duration: Int
+    track_position: Int
+    disck_number: Int
+    rank: Int
+    # Date
+    release_date: String
+    explicit_lyrics: Boolean
+    explicit_content_lyrices: Int
+    explicit_content_cover: Int
+    # url
+    preview: String
+    bpm: Float
+    gain: Float
+    available_countries: [String]
+    alternative: Track
+    contributors: [Artist]
+    artist : Artist
+    album: Album
+}
+
 enum MusicGenre {
     POP
     ROCK
