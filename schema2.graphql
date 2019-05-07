@@ -1,0 +1,114 @@
+#   log
+#   identification application server
+#       - plateforme (Android, iOS)
+#       - Device (iPhone 6G, iPad Air)
+#       - Applcation Version
+
+# SDK/API deezer
+# google API
+
+enum MusicGenre {
+    POP
+    ROCK
+    CLASSIC
+    RAP
+}
+
+type Music {
+    name: String!
+    album: [String!]!
+}
+
+# Private, Amis, Public ?
+type User {
+    userName: String!
+    # Private.
+    email: String!
+    friends: [User!]!
+    prefMusical: [MusicGenre!]!
+}
+
+enum Access {
+    PRIVATE
+    AMIS
+    PUBLIC
+}
+
+type Horaire {
+
+}
+
+type Location {
+
+}
+
+type VoteResult {
+
+}
+
+# Vote up and Down
+type TrackVoteEvent {
+    access: Access
+    # user can go one event
+    users: [User!]!
+    # user can vote
+    voter: [User!]!
+    horaire: Horaire!
+    location: Location!
+    voteResult: VoteResult!
+    currentMuic: Music!
+}
+
+type PlaylistEditor {
+    access: Access
+
+}
+
+type Query {
+    TrackVoteEventsPublic: [TrackVoteEvent!]!
+    TrackVoteEventById(id: String!): TrackVoteEvent!
+    # get private event that the user can go one.
+    TrackVoteEventByUserName(userName: String!): TrackVoteEvent!
+
+    # appareil spécifique
+    ControlDelegation: String!
+
+    PlaylistEditorsPublic: [PlaylistEditor!]!
+    PlaylistEditorById(id: String): PlaylistEditor!
+    PlaylistEditorByUserName(userName: String!): PlaylistEditor!
+
+    UserById(id: String!) :User!
+}
+
+# Mutation
+
+type ConnectResult {
+    userName: String!
+    email: String!
+    success: Boolean!
+    token: String!
+}
+
+type SignUpResult {
+    userName: String!
+    email: String!
+    success: Boolean!
+    token: String!
+}
+
+type Mutation {
+    ConnectByUserName(userName: String!, pass: String!): ConnectResult!
+    ConnectByEmail(email: String!, pass: String!): ConnectResult!
+
+    # Verif email.
+    SignUp(email: String!, pass: String!): SignUpResult!
+    SignUpByGoogle(email: String!, pass: String!): SignUpResult!
+
+    TrackVoteEventVote(musicId: String, b:Boolean): VoteResult!
+
+    # on master that delegu to one or more ?
+    ControlDelegationDeleg(userId: String!, apareilId: String!, b:Boolean) : String!
+
+    PlaylistEditorMoveMusic(playlistId: String!, musicId: String!, pos:Int): String!
+
+}
