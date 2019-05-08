@@ -7,6 +7,28 @@ import scala.concurrent.Future
  * Defines a GraphQL schema for the current project
  */
 object SchemaDefinition {
+
+  val Artist = ObjectType(
+    "Artist",
+    "Artist description",
+    fields[CharacterRepo, Human](
+      Field("id", StringType,
+        Some("The id of the human."),
+        resolve = _.value.id),
+      Field("name", OptionType(StringType),
+        Some("The name of the human."),
+        resolve = _.value.name),
+      Field("friends", ListType(Character),
+        Some("The friends of the human, or an empty list if they have none."),
+        resolve = ctx ⇒ characters.deferSeqOpt(ctx.value.friends)),
+      Field("appearsIn", OptionType(ListType(OptionType(EpisodeEnum))),
+        Some("Which movies they appear in."),
+        resolve = _.value.appearsIn map (e ⇒ Some(e))),
+      Field("homePlanet", OptionType(StringType),
+        Some("The home planet of the human, or null if unknown."),
+        resolve = _.value.homePlanet)
+    ))
+
   /**
     * Resolves the lists of characters. These resolutions are batched and
     * cached for the duration of a query.
