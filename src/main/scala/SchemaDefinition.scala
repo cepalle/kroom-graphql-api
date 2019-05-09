@@ -1,6 +1,5 @@
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema._
-import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.concurrent.Future
 
@@ -14,11 +13,6 @@ object SchemaDefinition {
 
   val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ {
-
-      val request: HttpRequest = Http("https://api.deezer.com/track/3135556")
-      val res: HttpResponse[String] = request.asString
-
-      println(res.body)
 
       Future.successful(
         ids.map(id => ctx.getTrackById(id))

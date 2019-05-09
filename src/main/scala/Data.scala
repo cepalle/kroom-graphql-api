@@ -1,4 +1,6 @@
-import sangria.macros.derive.GraphQLField
+import scalaj.http.{Http, HttpRequest, HttpResponse}
+import io.circe.generic.auto._
+import io.circe.parser
 
 /*
 case class DeezerGenre(
@@ -221,7 +223,16 @@ class RootRepo {
 
   def getTracks: List[DeezerTrack] = Tracks
 
-  def getTrackById(id: Int): DeezerTrack = Tracks.head
+  def getTrackById(id: Int): DeezerTrack = {
+    val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
+    val res: HttpResponse[String] = request.asString
+
+    val decodingResult = parser.decode[DeezerTrack](res.body)
+    decodingResult match {
+      case Right(track) => track
+      case Left(error) => Tracks.head
+    }
+  }
 }
 
 object RootRepo {
