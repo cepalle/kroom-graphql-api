@@ -11,7 +11,7 @@ object SchemaDefinition {
   val Artist = ObjectType(
     "Artist",
     "Artist description",
-    fields[CharacterRepo, Human](
+    fields[CharacterRepo, DeezerTrack](
       Field("id", StringType,
         Some("The id of the human."),
         resolve = _.value.id),
@@ -128,7 +128,7 @@ object SchemaDefinition {
       Field("hero", Character,
         arguments = EpisodeArg :: Nil,
         deprecationReason = Some("Use `human` or `droid` fields instead"),
-        resolve = (ctx) ⇒ ctx.ctx.getHero(ctx.arg(EpisodeArg))),
+        resolve = ctx ⇒ ctx.ctx.getHero(ctx.arg(EpisodeArg))),
       Field("human", OptionType(Human),
         arguments = ID :: Nil,
         resolve = ctx ⇒ ctx.ctx.getHuman(ctx arg ID)),
