@@ -76,6 +76,21 @@ case class Id(id: Int)
 
 case class DataListId(data: List[Id])
 
+case class DeezerGenre(
+                        id: Int,
+                        name: String,
+                        // url,
+                        picture: String,
+                        // url,
+                        picture_small: String,
+                        // url,
+                        picture_medium: String,
+                        // url,
+                        picture_big: String,
+                        // url,
+                        picture_xl: String,
+                      )
+
 case class DeezerAlbum(
                         id: Int,
                         title: String,
@@ -119,8 +134,6 @@ case class DeezerAlbum(
                         tracks: DataListId,
                       )
 
-// --
-
 case class DeezerArtist(
                          id: Int,
                          name: String,
@@ -143,8 +156,6 @@ case class DeezerArtist(
                          // url
                          tracklist: String
                        )
-
-// --
 
 case class DeezerTrack(
                         id: Int,
@@ -197,7 +208,7 @@ class RootRepo {
 
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
-      case Right(track) => track
+      case Right(artist) => artist
       case Left(error) => throw error
     }
   }
@@ -208,11 +219,20 @@ class RootRepo {
 
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
-      case Right(track) => track
+      case Right(album) => album
       case Left(error) => throw error
     }
   }
 
+  def getGenreById(id: Int): DeezerGenre = {
+    val request: HttpRequest = Http(s"https://api.deezer.com/genre/$id")
+    val res: HttpResponse[String] = request.asString
+
+    val decodingResult = parser.decode[DeezerGenre](res.body)
+    decodingResult match {
+      case Right(genre) => genre
+      case Left(error) => throw error
+    }
+  }
 
 }
-

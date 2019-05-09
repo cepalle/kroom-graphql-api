@@ -26,7 +26,25 @@ object SchemaDefinition {
       Future.successful(ids.map(id => ctx.getAlbumById(id)))
     )(HasId(_.id))
 
+  val GenreFetcher: Fetcher[RootRepo, DeezerGenre, DeezerGenre, Int] =
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
+      Future.successful(ids.map(id => ctx.getGenreById(id)))
+    )(HasId(_.id))
+
   // Field
+
+  val GenreField = ObjectType(
+    "Genre",
+    "Genre description.",
+    fields[RootRepo, DeezerGenre](
+      Field("id", IntType, resolve = _.value.id),
+      Field("name", StringType, resolve = _.value.name),
+      Field("picture", StringType, resolve = _.value.picture),
+      Field("picture_small", StringType, resolve = _.value.picture_small),
+      Field("picture_medium", StringType, resolve = _.value.picture_medium),
+      Field("picture_big", StringType, resolve = _.value.picture_big),
+      Field("picture_xl", StringType, resolve = _.value.picture_xl),
+    ))
 
   val ArtistField = ObjectType(
     "Artist",
@@ -124,6 +142,9 @@ object SchemaDefinition {
       Field("album", AlbumField,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ AlbumFetcher.defer(ctx.arg[Int]("id"))),
+      Field("genre", GenreField,
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ GenreFetcher.defer(ctx.arg[Int]("id"))),
     ))
 
   val KroomSchema = Schema(Query)

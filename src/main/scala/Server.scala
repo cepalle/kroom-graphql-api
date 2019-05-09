@@ -37,6 +37,7 @@ object Server extends App with CorsSupport {
         SchemaDefinition.TrackFetcher,
         SchemaDefinition.ArtistFetcher,
         SchemaDefinition.AlbumFetcher,
+        SchemaDefinition.GenreFetcher,
       )
     )
       .map(OK → _)
