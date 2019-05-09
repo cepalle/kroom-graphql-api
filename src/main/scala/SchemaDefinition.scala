@@ -1,146 +1,80 @@
-import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema._
 
-import scala.concurrent.Future
 
 /**
- * Defines a GraphQL schema for the current project
- */
+  * Defines a GraphQL schema for the current project
+  */
 object SchemaDefinition {
-
-  val Artist = ObjectType(
-    "Artist",
-    "Artist description",
-    fields[CharacterRepo, DeezerTrack](
-      Field("id", StringType,
-        Some("The id of the human."),
-        resolve = _.value.id),
-      Field("name", OptionType(StringType),
-        Some("The name of the human."),
-        resolve = _.value.name),
-      Field("friends", ListType(Character),
-        Some("The friends of the human, or an empty list if they have none."),
-        resolve = ctx ⇒ characters.deferSeqOpt(ctx.value.friends)),
-      Field("appearsIn", OptionType(ListType(OptionType(EpisodeEnum))),
-        Some("Which movies they appear in."),
-        resolve = _.value.appearsIn map (e ⇒ Some(e))),
-      Field("homePlanet", OptionType(StringType),
-        Some("The home planet of the human, or null if unknown."),
-        resolve = _.value.homePlanet)
-    ))
-
   /**
     * Resolves the lists of characters. These resolutions are batched and
     * cached for the duration of a query.
     */
-  val characters = Fetcher.caching(
-    (ctx: CharacterRepo, ids: Seq[String]) ⇒
-      Future.successful(ids.flatMap(id ⇒ ctx.getHuman(id) orElse ctx.getDroid(id))))(HasId(_.id))
 
-  val EpisodeEnum = EnumType(
-    "Episode",
-    Some("One of the films in the Star Wars Trilogy"),
-    List(
-      EnumValue("NEWHOPE",
-        value = Episode.NEWHOPE,
-        description = Some("Released in 1977.")),
-      EnumValue("EMPIRE",
-        value = Episode.EMPIRE,
-        description = Some("Released in 1980.")),
-      EnumValue("JEDI",
-        value = Episode.JEDI,
-        description = Some("Released in 1983."))))
-
-  val Character: InterfaceType[CharacterRepo, Character] =
-    InterfaceType(
-      "Character",
-      "A character in the Star Wars Trilogy",
-      () ⇒ fields[CharacterRepo, Character](
-        Field("id", StringType,
-          Some("The id of the character."),
-          resolve = _.value.id),
-        Field("name", OptionType(StringType),
-          Some("The name of the character."),
-          resolve = _.value.name),
-        Field("friends", ListType(Character),
-          Some("The friends of the character, or an empty list if they have none."),
-          resolve = ctx ⇒ characters.deferSeqOpt(ctx.value.friends)),
-        Field("appearsIn", OptionType(ListType(OptionType(EpisodeEnum))),
-          Some("Which movies they appear in."),
-          resolve = _.value.appearsIn map (e ⇒ Some(e)))
-      ))
-
-  val Human =
-    ObjectType(
-      "Human",
-      "A humanoid creature in the Star Wars universe.",
-      interfaces[CharacterRepo, Human](Character),
-      fields[CharacterRepo, Human](
-        Field("id", StringType,
-          Some("The id of the human."),
-          resolve = _.value.id),
-        Field("name", OptionType(StringType),
-          Some("The name of the human."),
-          resolve = _.value.name),
-        Field("friends", ListType(Character),
-          Some("The friends of the human, or an empty list if they have none."),
-          resolve = ctx ⇒ characters.deferSeqOpt(ctx.value.friends)),
-        Field("appearsIn", OptionType(ListType(OptionType(EpisodeEnum))),
-          Some("Which movies they appear in."),
-          resolve = _.value.appearsIn map (e ⇒ Some(e))),
-        Field("homePlanet", OptionType(StringType),
-          Some("The home planet of the human, or null if unknown."),
-          resolve = _.value.homePlanet)
-      ))
-
-  val Droid = ObjectType(
-    "Droid",
-    "A mechanical creature in the Star Wars universe.",
-    interfaces[CharacterRepo, Droid](Character),
-    fields[CharacterRepo, Droid](
-      Field("id", StringType,
-        Some("The id of the droid."),
-        resolve = _.value.id),
-      Field("name", OptionType(StringType),
-        Some("The name of the droid."),
-        resolve = ctx ⇒ Future.successful(ctx.value.name)),
-      Field("friends", ListType(Character),
-        Some("The friends of the droid, or an empty list if they have none."),
-        resolve = ctx ⇒ characters.deferSeqOpt(ctx.value.friends)),
-      Field("appearsIn", OptionType(ListType(OptionType(EpisodeEnum))),
-        Some("Which movies they appear in."),
-        resolve = _.value.appearsIn map (e ⇒ Some(e))),
-      Field("primaryFunction", OptionType(StringType),
-        Some("The primary function of the droid."),
-        resolve = _.value.primaryFunction)
+  val ArtistField = ObjectType(
+    "Artist",
+    "Artist description.",
+    fields[RootRepo, DeezerTrackArtist](
+      Field("id", IntType, resolve = _.value.id),
+      Field("name", StringType, resolve = _.value.name),
+      Field("link", StringType, resolve = _.value.link),
+      Field("share", StringType, resolve = _.value.share),
+      Field("picture", StringType, resolve = _.value.picture),
+      Field("picture_small", StringType, resolve = _.value.picture_small),
+      Field("picture_medium", StringType, resolve = _.value.picture_medium),
+      Field("picture_big", StringType, resolve = _.value.picture_big),
+      Field("picture_xl", StringType, resolve = _.value.picture_xl),
+      Field("radio", BooleanType, resolve = _.value.radio),
+      Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  val ID = Argument("id", StringType, description = "id of the character")
+  val AlbumField = ObjectType(
+    "Album",
+    "Album description.",
+    fields[RootRepo, DeezerTrackAlbum](
+      Field("id", IntType, resolve = _.value.id),
+      Field("title", StringType, resolve = _.value.title),
+      Field("link", StringType, resolve = _.value.link),
+      Field("cover", StringType, resolve = _.value.cover),
+      Field("cover_small", StringType, resolve = _.value.cover_small),
+      Field("cover_medium", StringType, resolve = _.value.cover_medium),
+      Field("cover_big", StringType, resolve = _.value.cover_big),
+      Field("cover_xl", StringType, resolve = _.value.cover_xl),
+      Field("release_date", StringType, resolve = _.value.release_date),
+    ))
 
-  val EpisodeArg = Argument("episode", OptionInputType(EpisodeEnum),
-    description = "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode.")
-
-  val LimitArg = Argument("limit", OptionInputType(IntType), defaultValue = 20)
-  val OffsetArg = Argument("offset", OptionInputType(IntType), defaultValue = 0)
+  val TrackField = ObjectType(
+    "Track",
+    "Track description.",
+    fields[RootRepo, DeezerTrack](
+      Field("id", IntType, resolve = _.value.id),
+      Field("readable", BooleanType, resolve = _.value.readable),
+      Field("title", StringType, resolve = _.value.title),
+      Field("title_short", StringType, resolve = _.value.title_short),
+      Field("title_version", StringType, resolve = _.value.title_version),
+      Field("isrc", StringType, resolve = _.value.isrc),
+      Field("link", StringType, resolve = _.value.link),
+      Field("share", StringType, resolve = _.value.share),
+      Field("duration", IntType, resolve = _.value.duration),
+      Field("track_position", IntType, resolve = _.value.track_position),
+      Field("disk_number", IntType, resolve = _.value.disk_number),
+      Field("rank", IntType, resolve = _.value.rank),
+      Field("release_date", StringType, resolve = _.value.release_date),
+      Field("explicit_lyrics", BooleanType, resolve = _.value.explicit_lyrics),
+      Field("explicit_content_lyrics", IntType, resolve = _.value.explicit_content_lyrics),
+      Field("explicit_content_cover", IntType, resolve = _.value.explicit_content_cover),
+      Field("preview", StringType, resolve = _.value.preview),
+      Field("bpm", FloatType, resolve = _.value.bpm),
+      Field("gain", FloatType, resolve = _.value.gain),
+      Field("available_countries", ListType(StringType), resolve = _.value.available_countries),
+      Field("contributors", ListType(ArtistField), resolve = _.value.contributors),
+      Field("artist", ArtistField, resolve = _.value.artist),
+      Field("album", AlbumField, resolve = _.value.album),
+    ))
 
   val Query = ObjectType(
-    "Query", fields[CharacterRepo, Unit](
-      Field("hero", Character,
-        arguments = EpisodeArg :: Nil,
-        deprecationReason = Some("Use `human` or `droid` fields instead"),
-        resolve = ctx ⇒ ctx.ctx.getHero(ctx.arg(EpisodeArg))),
-      Field("human", OptionType(Human),
-        arguments = ID :: Nil,
-        resolve = ctx ⇒ ctx.ctx.getHuman(ctx arg ID)),
-      Field("droid", Droid,
-        arguments = ID :: Nil,
-        resolve = ctx ⇒ ctx.ctx.getDroid(ctx arg ID).get),
-      Field("humans", ListType(Human),
-        arguments = LimitArg :: OffsetArg :: Nil,
-        resolve = ctx ⇒ ctx.ctx.getHumans(ctx arg LimitArg, ctx arg OffsetArg)),
-      Field("droids", ListType(Droid),
-        arguments = LimitArg :: OffsetArg :: Nil,
-        resolve = ctx ⇒ ctx.ctx.getDroids(ctx arg LimitArg, ctx arg OffsetArg))
+    "Query", fields[RootRepo, Unit](
+      Field("tracks", ListType(TrackField),
+        resolve = ctx ⇒ ctx.ctx.getTracks),
     ))
 
   val StarWarsSchema = Schema(Query)

@@ -1,102 +1,6 @@
+import sangria.macros.derive.GraphQLField
 
-case class DeezerArtist(
-                         id: Int,
-                         name: String,
-                         // url,
-                         link: String,
-                         // url,
-                         share: String,
-                         // url,
-                         picture: String,
-                         // url,
-                         picture_small: String,
-                         // url,
-                         picture_medium: String,
-                         // url,
-                         picture_big: String,
-                         // url,
-                         picture_xl: String,
-                         nb_album: Int,
-                         nb_fan: Int,
-                         radio: Boolean,
-                         // url,
-                         tracklist: String,
-                         role: Option[String],
-                       )
-
-case class DeezerTrack(
-                        id: Int,
-                        readable: Boolean,
-                        title: String,
-                        title_short: String,
-                        title_version: String,
-                        unseen: Boolean,
-                        isrc: String,
-                        // url,
-                        link: String,
-                        // url,
-                        share: String,
-                        duration: Int,
-                        track_position: Int,
-                        disck_number: Int,
-                        rank: Int,
-                        // Date,
-                        release_date: String,
-                        explicit_lyrics: Boolean,
-                        explicit_content_lyrices: Int,
-                        explicit_content_cover: Int,
-                        // url,
-                        preview: String,
-                        bpm: Float,
-                        gain: Float,
-                        available_countries: Array[String],
-                        alternative: DeezerTrack,
-                        contributors: Array[DeezerArtist],
-                        artist: DeezerArtist,
-                        album: DeezerAlbum,
-                      )
-
-case class DeezerAlbum(
-                        id: Int,
-                        title: String,
-                        upc: String,
-                        // url,
-                        link: String,
-                        // url,
-                        share: String,
-                        // url,
-                        cover: String,
-                        // url,
-                        cover_smal: String,
-                        // url,
-                        cover_medium: String,
-                        // url,
-                        cover_big: String,
-                        // url,
-                        cover_xl: String,
-                        genre_id: Int,
-                        genres: Array[DeezerGenre],
-                        label: String,
-                        nb_tracks: Int,
-                        duration: Int,
-                        fans: Int,
-                        rating: Int,
-                        // date,
-                        release_date: String,
-                        record_type: String,
-                        available: Boolean,
-                        alternative: DeezerAlbum,
-                        // url,
-                        tracklist: String,
-                        explicit_lyrics: Boolean,
-                        // TODO enum,
-                        explicit_content_lyrics: Int,
-                        explicit_content_cover: Int,
-                        contributors: Array[DeezerArtist],
-                        artist: DeezerArtist,
-                        tracks: Array[DeezerTrack],
-                      )
-
+/*
 case class DeezerGenre(
                         id: Int,
                         name: String,
@@ -141,7 +45,7 @@ case class DeezerUser(
                        is_kid: Boolean,
                        explicit_content_level: String,
                        // explicit_display, explicit_no_recommendation and explicit_hide
-                       explicit_content_levels_available: Array[String],
+                       explicit_content_levels_available: List[String],
                        // url
                        tracklist: String,
                      )
@@ -164,99 +68,225 @@ case class DeezerSearchTrackResult(
                                     // no complet
                                     album: DeezerAlbum,
                                   )
+*/
+
+case class DeezerTrackArtist(
+                              id: Int,
+                              name: String,
+                              // url,
+                              link: String,
+                              // url,
+                              share: String,
+                              // url,
+                              picture: String,
+                              // url,
+                              picture_small: String,
+                              // url,
+                              picture_medium: String,
+                              // url,
+                              picture_big: String,
+                              // url,
+                              picture_xl: String,
+                              radio: Boolean,
+                              // url,
+                              tracklist: String,
+                            )
+
+case class DeezerTrackAlbum(
+                             id: Int,
+                             title: String,
+                             // url,
+                             link: String,
+                             // url,
+                             cover: String,
+                             // url,
+                             cover_small: String,
+                             // url,
+                             cover_medium: String,
+                             // url,
+                             cover_big: String,
+                             // url,
+                             cover_xl: String,
+                             // date,
+                             release_date: String,
+                           )
+
+case class DeezerTrack(
+                        id: Int,
+                        readable: Boolean,
+                        title: String,
+                        title_short: String,
+                        title_version: String,
+                        isrc: String,
+                        // url,
+                        link: String,
+                        // url,
+                        share: String,
+                        duration: Int,
+                        track_position: Int,
+                        disk_number: Int,
+                        rank: Int,
+                        // Date,
+                        release_date: String,
+                        explicit_lyrics: Boolean,
+                        explicit_content_lyrics: Int,
+                        explicit_content_cover: Int,
+                        // url,
+                        preview: String,
+                        bpm: Double,
+                        gain: Double,
+                        available_countries: List[String],
+                        contributors: List[DeezerTrackArtist],
+                        artist: DeezerTrackArtist,
+                        album: DeezerTrackAlbum,
+                      )
 
 // --
+/*
+{
+  "id": "3135556",
+  "readable": true,
+  "title": "Harder Better Faster Stronger",
+  "title_short": "Harder Better Faster Stronger",
+  "title_version": "",
+  "isrc": "GBDUW0000059",
+  "link": "https://www.deezer.com/track/3135556",
+  "share": "https://www.deezer.com/track/3135556?utm_source=deezer&utm_content=track-3135556&utm_term=0_1557388355&utm_medium=web",
+  "duration": "224",
+  "track_position": 4,
+  "disk_number": 1,
+  "rank": "728714",
+  "release_date": "2001-03-07",
+  "explicit_lyrics": false,
+  "explicit_content_lyrics": 0,
+  "explicit_content_cover": 0,
+  "preview": "https://cdns-preview-d.dzcdn.net/stream/c-deda7fa9316d9e9e880d2c6207e92260-5.mp3",
+  "bpm": 123.4,
+  "gain": -12.4,
+  "available_countries": [
+    "AE",
+    "WS",
+  ],
+  "contributors": [
+    {
+      "id": 27,
+      "name": "Daft Punk",
+      "link": "https://www.deezer.com/artist/27",
+      "share": "https://www.deezer.com/artist/27?utm_source=deezer&utm_content=artist-27&utm_term=0_1557388355&utm_medium=web",
+      "picture": "https://api.deezer.com/artist/27/image",
+      "picture_small": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/56x56-000000-80-0-0.jpg",
+      "picture_medium": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/250x250-000000-80-0-0.jpg",
+      "picture_big": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/500x500-000000-80-0-0.jpg",
+      "picture_xl": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/1000x1000-000000-80-0-0.jpg",
+      "radio": true,
+      "tracklist": "https://api.deezer.com/artist/27/top?limit=50",
+      "type": "artist",
+      "role": "Main"
+    }
+  ],
+  "artist": {
+    "id": "27",
+    "name": "Daft Punk",
+    "link": "https://www.deezer.com/artist/27",
+    "share": "https://www.deezer.com/artist/27?utm_source=deezer&utm_content=artist-27&utm_term=0_1557388355&utm_medium=web",
+    "picture": "https://api.deezer.com/artist/27/image",
+    "picture_small": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/56x56-000000-80-0-0.jpg",
+    "picture_medium": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/250x250-000000-80-0-0.jpg",
+    "picture_big": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/500x500-000000-80-0-0.jpg",
+    "picture_xl": "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/1000x1000-000000-80-0-0.jpg",
+    "radio": true,
+    "tracklist": "https://api.deezer.com/artist/27/top?limit=50",
+    "type": "artist"
+  },
+  "album": {
+    "id": "302127",
+    "title": "Discovery",
+    "link": "https://www.deezer.com/album/302127",
+    "cover": "https://api.deezer.com/album/302127/image",
+    "cover_small": "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/56x56-000000-80-0-0.jpg",
+    "cover_medium": "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/250x250-000000-80-0-0.jpg",
+    "cover_big": "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/500x500-000000-80-0-0.jpg",
+    "cover_xl": "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/1000x1000-000000-80-0-0.jpg",
+    "release_date": "2001-03-07",
+    "tracklist": "https://api.deezer.com/album/302127/tracks",
+    "type": "album"
+  },
+  "type": "track"
+}
+*/
 
-object Episode extends Enumeration {
-  val NEWHOPE, EMPIRE, JEDI = Value
+class RootRepo {
+
+  import RootRepo._
+
+  def getTracks: List[DeezerTrack] = Tracks
 }
 
-trait Character {
-  def id: String
-
-  def name: Option[String]
-
-  def friends: List[String]
-
-  def appearsIn: List[Episode.Value]
-}
-
-case class Human(
-                  id: String,
-                  name: Option[String],
-                  friends: List[String],
-                  appearsIn: List[Episode.Value],
-                  homePlanet: Option[String]) extends Character
-
-case class Droid(
-                  id: String,
-                  name: Option[String],
-                  friends: List[String],
-                  appearsIn: List[Episode.Value],
-                  primaryFunction: Option[String]) extends Character
-
-class CharacterRepo {
-
-  import CharacterRepo._
-
-  def getHero(episode: Option[Episode.Value]) =
-    episode flatMap (_ ⇒ getHuman("1000")) getOrElse droids.last
-
-  def getHuman(id: String): Option[Human] = humans.find(c ⇒ c.id == id)
-
-  def getDroid(id: String): Option[Droid] = droids.find(c ⇒ c.id == id)
-
-  def getHumans(limit: Int, offset: Int): List[Human] = humans.drop(offset).take(limit)
-
-  def getDroids(limit: Int, offset: Int): List[Droid] = droids.drop(offset).take(limit)
-}
-
-object CharacterRepo {
-  val humans = List(
-    Human(
-      id = "1000",
-      name = Some("Luke Skywalker"),
-      friends = List("1002", "1003", "2000", "2001"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      homePlanet = Some("Tatooine")),
-    Human(
-      id = "1001",
-      name = Some("Darth Vader"),
-      friends = List("1004"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      homePlanet = Some("Tatooine")),
-    Human(
-      id = "1002",
-      name = Some("Han Solo"),
-      friends = List("1000", "1003", "2001"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      homePlanet = None),
-    Human(
-      id = "1003",
-      name = Some("Leia Organa"),
-      friends = List("1000", "1002", "2000", "2001"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      homePlanet = Some("Alderaan")),
-    Human(
-      id = "1004",
-      name = Some("Wilhuff Tarkin"),
-      friends = List("1001"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      homePlanet = None)
-  )
-
-  val droids = List(
-    Droid(
-      id = "2000",
-      name = Some("C-3PO"),
-      friends = List("1000", "1002", "1003", "2001"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      primaryFunction = Some("Protocol")),
-    Droid(
-      id = "2001",
-      name = Some("R2-D2"),
-      friends = List("1000", "1002", "1003"),
-      appearsIn = List(Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI),
-      primaryFunction = Some("Astromech"))
+object RootRepo {
+  val Tracks = List(
+    DeezerTrack(
+      id = 3135556,
+      readable = true,
+      title = "Harder Better Faster Stronger",
+      title_short = "Harder Better Faster Stronger",
+      title_version = "",
+      isrc = "GBDUW0000059",
+      link = "https://www.deezer.com/track/3135556",
+      share = "https://www.deezer.com/track/3135556?utm_source=deezer&utm_content=track-3135556&utm_term=0_1557388355&utm_medium=web",
+      duration = 224,
+      track_position = 4,
+      disk_number = 1,
+      rank = 728714,
+      release_date = "2001-03-07",
+      explicit_lyrics = false,
+      explicit_content_lyrics = 0,
+      explicit_content_cover = 0,
+      preview = "https://cdns-preview-d.dzcdn.net/stream/c-deda7fa9316d9e9e880d2c6207e92260-5.mp3",
+      bpm = 123.4,
+      gain = -12.4,
+      available_countries = List(
+        "AE",
+        "WS",
+      ),
+      contributors = List(
+        DeezerTrackArtist(
+          id = 27,
+          name = "Daft Punk",
+          link = "https://www.deezer.com/artist/27",
+          share = "https://www.deezer.com/artist/27?utm_source=deezer&utm_content=artist-27&utm_term=0_1557388355&utm_medium=web",
+          picture = "https://api.deezer.com/artist/27/image",
+          picture_small = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/56x56-000000-80-0-0.jpg",
+          picture_medium = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/250x250-000000-80-0-0.jpg",
+          picture_big = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/500x500-000000-80-0-0.jpg",
+          picture_xl = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/1000x1000-000000-80-0-0.jpg",
+          radio = true,
+          tracklist = "https://api.deezer.com/artist/27/top?limit=50",
+        ),
+      ),
+      artist = DeezerTrackArtist(
+        id = 27,
+        name = "Daft Punk",
+        link = "https://www.deezer.com/artist/27",
+        share = "https://www.deezer.com/artist/27?utm_source=deezer&utm_content=artist-27&utm_term=0_1557388355&utm_medium=web",
+        picture = "https://api.deezer.com/artist/27/image",
+        picture_small = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/56x56-000000-80-0-0.jpg",
+        picture_medium = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/250x250-000000-80-0-0.jpg",
+        picture_big = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/500x500-000000-80-0-0.jpg",
+        picture_xl = "https://e-cdns-images.dzcdn.net/images/artist/f2bc007e9133c946ac3c3907ddc5d2ea/1000x1000-000000-80-0-0.jpg",
+        radio = true,
+        tracklist = "https://api.deezer.com/artist/27/top?limit=50",
+      ),
+      album = DeezerTrackAlbum(
+        id = 302127,
+        title = "Discovery",
+        link = "https://www.deezer.com/album/302127",
+        cover = "https://api.deezer.com/album/302127/image",
+        cover_small = "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/56x56-000000-80-0-0.jpg",
+        cover_medium = "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/250x250-000000-80-0-0.jpg",
+        cover_big = "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/500x500-000000-80-0-0.jpg",
+        cover_xl = "https://e-cdns-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/1000x1000-000000-80-0-0.jpg",
+        release_date = "2001-03-07",
+      ),
+    )
   )
 }
