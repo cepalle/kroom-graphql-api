@@ -16,14 +16,14 @@ object SchemaDefinition {
       Future.successful(ids.map(id => ctx.getTrackById(id)))
     )(HasId(_.id))
 
-  val ArtistFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
+  val ArtistFetcher: Fetcher[RootRepo, DeezerArtist, DeezerArtist, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getTrackById(id)))
+      Future.successful(ids.map(id => ctx.getArtistById(id)))
     )(HasId(_.id))
 
-  val AlbumFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
+  val AlbumFetcher: Fetcher[RootRepo, DeezerAlbum, DeezerAlbum, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getTrackById(id)))
+      Future.successful(ids.map(id => ctx.getAlbumById(id)))
     )(HasId(_.id))
 
   // Field
@@ -41,7 +41,8 @@ object SchemaDefinition {
       Field("picture_medium", StringType, resolve = _.value.picture_medium),
       Field("picture_big", StringType, resolve = _.value.picture_big),
       Field("picture_xl", StringType, resolve = _.value.picture_xl),
-      Field("radio", BooleanType, resolve = _.value.radio),
+      Field("nb_album", IntType, resolve = _.value.nb_album),
+      Field("nb_fan", IntType, resolve = _.value.nb_fan),
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
@@ -57,7 +58,24 @@ object SchemaDefinition {
       Field("cover_medium", StringType, resolve = _.value.cover_medium),
       Field("cover_big", StringType, resolve = _.value.cover_big),
       Field("cover_xl", StringType, resolve = _.value.cover_xl),
+      Field("genre_id", IntType, resolve = _.value.genre_id),
+      // Field("genres", ListType(IntType), resolve = _.value.genres.map(_.id)),
+      Field("label", StringType, resolve = _.value.label),
+      Field("nb_tracks", IntType, resolve = _.value.nb_tracks),
+      Field("duration", IntType, resolve = _.value.duration),
+      Field("fans", IntType, resolve = _.value.fans),
+      Field("rating", IntType, resolve = _.value.rating),
       Field("release_date", StringType, resolve = _.value.release_date),
+      Field("record_type", StringType, resolve = _.value.record_type),
+      Field("available", BooleanType, resolve = _.value.available),
+      Field("tracklist", StringType, resolve = _.value.tracklist),
+      Field("explicit_lyrics", BooleanType, resolve = _.value.explicit_lyrics),
+      Field("explicit_content_lyrics", IntType, resolve = _.value.explicit_content_lyrics),
+      Field("explicit_content_cover", IntType, resolve = _.value.explicit_content_cover),
+      Field("contributors", ListType(IntType), resolve = _.value.contributors.map(_.id) /*TODO*/),
+      Field("artist_id", IntType, resolve = _.value.artist.id),
+      Field("artist", IntType, resolve = _.value.artist.id /*TODO*/),
+      // Field("tracks", ListType(IntType), resolve = _.value.tracks.map(_.id) /*TODO*/),
     ))
 
   val TrackField = ObjectType(
@@ -84,11 +102,11 @@ object SchemaDefinition {
       Field("bpm", FloatType, resolve = _.value.bpm),
       Field("gain", FloatType, resolve = _.value.gain),
       Field("available_countries", ListType(StringType), resolve = _.value.available_countries),
-      Field("contributors", ListType(ArtistField), resolve = _.value.contributors),
+      Field("contributors", ListType(IntType), resolve = _.value.contributors.map(_.id) /*TODO*/),
       Field("artist_id", IntType, resolve = _.value.artist.id),
       Field("album_id", IntType, resolve = _.value.album.id),
-      Field("artist", ArtistField, resolve = _.value.artist /*TODO*/),
-      Field("album", AlbumField, resolve = _.value.album /*TODO*/),
+      Field("artist", IntType, resolve = _.value.artist.id /*TODO*/),
+      Field("album", IntType, resolve = _.value.album.id /*TODO*/),
     ))
 
   // arguments
@@ -100,6 +118,12 @@ object SchemaDefinition {
       Field("track", TrackField,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ TrackFetcher.defer(ctx.arg[Int]("id"))),
+      Field("artist", ArtistField,
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ ArtistFetcher.defer(ctx.arg[Int]("id"))),
+      Field("album", AlbumField,
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ AlbumFetcher.defer(ctx.arg[Int]("id"))),
     ))
 
   val KroomSchema = Schema(Query)

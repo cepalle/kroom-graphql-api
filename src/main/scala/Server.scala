@@ -33,7 +33,11 @@ object Server extends App with CorsSupport {
       variables = if (variables.isNull) Json.obj() else variables,
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
-      deferredResolver = DeferredResolver.fetchers(SchemaDefinition.TrackFetcher)
+      deferredResolver = DeferredResolver.fetchers(
+        SchemaDefinition.TrackFetcher,
+        SchemaDefinition.ArtistFetcher,
+        SchemaDefinition.AlbumFetcher,
+      )
     )
       .map(OK → _)
       .recover {
