@@ -74,6 +74,8 @@ case class DeezerSearchTrackResult(
 
 case class Id(id: Int)
 
+case class DataListId(data: List[Id])
+
 case class DeezerAlbum(
                         id: Int,
                         title: String,
@@ -94,7 +96,7 @@ case class DeezerAlbum(
                         cover_xl: String,
                         // -1 not found
                         genre_id: Int,
-                        // genres: List[Id],
+                        genres: DataListId,
                         label: String,
                         nb_tracks: Int,
                         duration: Int,
@@ -114,7 +116,7 @@ case class DeezerAlbum(
                         explicit_content_cover: Int,
                         contributors: List[Id],
                         artist: Id,
-                        // tracks: List[Id],
+                        tracks: DataListId,
                       )
 
 // --

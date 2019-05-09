@@ -59,7 +59,7 @@ object SchemaDefinition {
       Field("cover_big", StringType, resolve = _.value.cover_big),
       Field("cover_xl", StringType, resolve = _.value.cover_xl),
       Field("genre_id", IntType, resolve = _.value.genre_id),
-      // Field("genres", ListType(IntType), resolve = _.value.genres.map(_.id)),
+      Field("genres", ListType(IntType), resolve = _.value.genres.data.map(_.id)),
       Field("label", StringType, resolve = _.value.label),
       Field("nb_tracks", IntType, resolve = _.value.nb_tracks),
       Field("duration", IntType, resolve = _.value.duration),
@@ -75,7 +75,7 @@ object SchemaDefinition {
       Field("contributors", ListType(IntType), resolve = _.value.contributors.map(_.id) /*TODO*/),
       Field("artist_id", IntType, resolve = _.value.artist.id),
       Field("artist", IntType, resolve = _.value.artist.id /*TODO*/),
-      // Field("tracks", ListType(IntType), resolve = _.value.tracks.map(_.id) /*TODO*/),
+      Field("tracks", ListType(IntType), resolve = _.value.tracks.data.map(_.id) /*TODO*/),
     ))
 
   val TrackField = ObjectType(
