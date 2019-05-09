@@ -12,12 +12,18 @@ object SchemaDefinition {
   // Fetcher
 
   val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ {
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
+      Future.successful(ids.map(id => ctx.getTrackById(id)))
+    )(HasId(_.id))
 
-      Future.successful(
-        ids.map(id => ctx.getTrackById(id))
-      )
-    }
+  val ArtistFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
+      Future.successful(ids.map(id => ctx.getTrackById(id)))
+    )(HasId(_.id))
+
+  val AlbumFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
+      Future.successful(ids.map(id => ctx.getTrackById(id)))
     )(HasId(_.id))
 
   // Field
@@ -25,7 +31,7 @@ object SchemaDefinition {
   val ArtistField = ObjectType(
     "Artist",
     "Artist description.",
-    fields[RootRepo, DeezerTrackArtist](
+    fields[RootRepo, DeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -42,7 +48,7 @@ object SchemaDefinition {
   val AlbumField = ObjectType(
     "Album",
     "Album description.",
-    fields[RootRepo, DeezerTrackAlbum](
+    fields[RootRepo, DeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -79,8 +85,10 @@ object SchemaDefinition {
       Field("gain", FloatType, resolve = _.value.gain),
       Field("available_countries", ListType(StringType), resolve = _.value.available_countries),
       Field("contributors", ListType(ArtistField), resolve = _.value.contributors),
-      Field("artist", ArtistField, resolve = _.value.artist),
-      Field("album", AlbumField, resolve = _.value.album),
+      Field("artist_id", IntType, resolve = _.value.artist.id),
+      Field("album_id", IntType, resolve = _.value.album.id),
+      Field("artist", ArtistField, resolve = _.value.artist /*TODO*/),
+      Field("album", AlbumField, resolve = _.value.album /*TODO*/),
     ))
 
   // arguments
