@@ -14,11 +14,14 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % "10.1.3",
   "de.heikoseeberger" %% "akka-http-circe" % "1.21.0",
 
-  "io.circe" %%	"circe-core" % "0.9.3",
-  "io.circe" %% "circe-parser" % "0.9.3",
-  "io.circe" %% "circe-optics" % "0.9.3",
+  "io.circe" %%	"circe-core" % "0.10.0",
+  "io.circe" %% "circe-parser" % "0.10.0",
+  "io.circe" %% "circe-optics" % "0.10.0",
 
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+
+  "org.scalaj" %% "scalaj-http" % "2.4.1"
+
 )
 
 Revolver.settings
