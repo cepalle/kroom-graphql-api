@@ -2,7 +2,7 @@ import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema._
 
 import scala.concurrent.Future
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Defines a GraphQL schema for the current project
@@ -12,23 +12,27 @@ object SchemaDefinition {
   // Fetcher
 
   val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getTrackById(id)))
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+      ids.map(id => ctx.getTrackById(id))
+    }
     )(HasId(_.id))
 
   val ArtistFetcher: Fetcher[RootRepo, DeezerArtist, DeezerArtist, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getArtistById(id)))
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+      ids.map(id => ctx.getArtistById(id))
+    }
     )(HasId(_.id))
 
   val AlbumFetcher: Fetcher[RootRepo, DeezerAlbum, DeezerAlbum, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getAlbumById(id)))
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+      ids.map(id => ctx.getAlbumById(id))
+    }
     )(HasId(_.id))
 
   val GenreFetcher: Fetcher[RootRepo, DeezerGenre, DeezerGenre, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
-      Future.successful(ids.map(id => ctx.getGenreById(id)))
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+      ids.map(id => ctx.getGenreById(id))
+    }
     )(HasId(_.id))
 
   // Field
