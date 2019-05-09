@@ -220,6 +220,8 @@ class RootRepo {
   import RootRepo._
 
   def getTracks: List[DeezerTrack] = Tracks
+
+  def getTrackById(id: Int): DeezerTrack = Tracks.head
 }
 
 object RootRepo {

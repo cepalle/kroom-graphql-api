@@ -1,14 +1,22 @@
+import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema._
+
+import scala.concurrent.Future
 
 
 /**
   * Defines a GraphQL schema for the current project
   */
 object SchemaDefinition {
-  /**
-    * Resolves the lists of characters. These resolutions are batched and
-    * cached for the duration of a query.
-    */
+
+  // Fetcher
+
+  val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
+    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒
+      Future.successful(ids.map(id => ctx.getTrackById(id)))
+    )(HasId(_.id))
+
+  // Field
 
   val ArtistField = ObjectType(
     "Artist",
@@ -71,10 +79,15 @@ object SchemaDefinition {
       Field("album", AlbumField, resolve = _.value.album),
     ))
 
+  // arguments
+
+  // root
+
   val Query = ObjectType(
     "Query", fields[RootRepo, Unit](
-      Field("tracks", ListType(TrackField),
-        resolve = ctx ⇒ ctx.ctx.getTracks),
+      Field("track", TrackField,
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ TrackFetcher.defer(ctx.arg[Int]("id"))),
     ))
 
   val StarWarsSchema = Schema(Query)
