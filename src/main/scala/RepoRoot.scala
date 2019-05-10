@@ -1,9 +1,9 @@
-
+import slick.jdbc.H2Profile
 // --
 
-class RootRepo {
+class RepoRoot(val db: H2Profile.backend.Database) {
 
-  val deezerRepo = new DeezerRepo()
+  val deezerRepo = new RepoDeezer(db)
 
   val getDeezerTrackById = deezerRepo.getTrackById _
 

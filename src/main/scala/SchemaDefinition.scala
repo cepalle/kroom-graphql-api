@@ -11,26 +11,26 @@ object SchemaDefinition {
 
   // Fetcher
 
-  val GenreFetcher: Fetcher[RootRepo, DeezerGenre, DeezerGenre, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+  val GenreFetcher: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
+    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerGenreById(id))
     }
     )(HasId(_.id))
 
-  val ArtistFetcher: Fetcher[RootRepo, DeezerArtist, DeezerArtist, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+  val ArtistFetcher: Fetcher[RepoRoot, DeezerArtist, DeezerArtist, Int] =
+    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerArtistById(id))
     }
     )(HasId(_.id))
 
-  val AlbumFetcher: Fetcher[RootRepo, DeezerAlbum, DeezerAlbum, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+  val AlbumFetcher: Fetcher[RepoRoot, DeezerAlbum, DeezerAlbum, Int] =
+    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerAlbumById(id))
     }
     )(HasId(_.id))
 
-  val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
-    Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
+  val TrackFetcher: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
+    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerTrackById(id))
     }
     )(HasId(_.id))
@@ -40,7 +40,7 @@ object SchemaDefinition {
   val GenreField = ObjectType(
     "Genre",
     "Genre description.",
-    fields[RootRepo, DeezerGenre](
+    fields[RepoRoot, DeezerGenre](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("picture", StringType, resolve = _.value.picture),
@@ -53,7 +53,7 @@ object SchemaDefinition {
   val ArtistField = ObjectType(
     "Artist",
     "Artist description.",
-    fields[RootRepo, DeezerArtist](
+    fields[RepoRoot, DeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -68,10 +68,10 @@ object SchemaDefinition {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumField: ObjectLikeType[RootRepo, DeezerAlbum] = ObjectType(
+  lazy val AlbumField: ObjectLikeType[RepoRoot, DeezerAlbum] = ObjectType(
     "Album",
     "Album description.",
-    fields[RootRepo, DeezerAlbum](
+    fields[RepoRoot, DeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -104,10 +104,10 @@ object SchemaDefinition {
       //Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcher.deferSeq(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackField: ObjectLikeType[RootRepo, DeezerTrack] = ObjectType(
+  lazy val TrackField: ObjectLikeType[RepoRoot, DeezerTrack] = ObjectType(
     "Track",
     "Track description.",
-    fields[RootRepo, DeezerTrack](
+    fields[RepoRoot, DeezerTrack](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
@@ -142,7 +142,7 @@ object SchemaDefinition {
   // root
 
   val Query = ObjectType(
-    "Query", fields[RootRepo, Unit](
+    "Query", fields[RepoRoot, Unit](
       Field("track", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ TrackFetcher.deferOpt(ctx.arg[Int]("id"))),
