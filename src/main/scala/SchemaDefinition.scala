@@ -13,25 +13,25 @@ object SchemaDefinition {
 
   val GenreFetcher: Fetcher[RootRepo, DeezerGenre, DeezerGenre, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getGenreById(id))
+      ids.flatMap(id => ctx.getDeezerGenreById(id))
     }
     )(HasId(_.id))
 
   val ArtistFetcher: Fetcher[RootRepo, DeezerArtist, DeezerArtist, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getArtistById(id))
+      ids.flatMap(id => ctx.getDeezerArtistById(id))
     }
     )(HasId(_.id))
 
   val AlbumFetcher: Fetcher[RootRepo, DeezerAlbum, DeezerAlbum, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getAlbumById(id))
+      ids.flatMap(id => ctx.getDeezerAlbumById(id))
     }
     )(HasId(_.id))
 
   val TrackFetcher: Fetcher[RootRepo, DeezerTrack, DeezerTrack, Int] =
     Fetcher((ctx: RootRepo, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getTrackById(id))
+      ids.flatMap(id => ctx.getDeezerTrackById(id))
     }
     )(HasId(_.id))
 

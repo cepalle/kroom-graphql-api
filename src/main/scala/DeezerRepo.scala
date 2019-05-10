@@ -119,7 +119,7 @@ case class DeezerTrack(
 
 // --
 
-class RootRepo {
+class DeezerRepo {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
     val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
