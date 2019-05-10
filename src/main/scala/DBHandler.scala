@@ -79,6 +79,10 @@ object DBHandler {
       )
     )
 
-    db.run(setup).onComplete(_ => println("Done"))
+    val f = db.run(setup)
+
+    val result = Await.ready(f, Duration.Inf).value.get
+
+    println(result)
   }
 }
