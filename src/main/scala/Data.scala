@@ -128,7 +128,11 @@ class RootRepo {
     val decodingResult = parser.decode[DeezerTrack](res.body)
     decodingResult match {
       case Right(track) => Some(track)
-      case Left(error) => None
+      case Left(error) => {
+        print("getTrackById: ")
+        println(error)
+        None
+      }
     }
   }
 
@@ -139,7 +143,11 @@ class RootRepo {
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
       case Right(artist) => Some(artist)
-      case Left(error) => None
+      case Left(error) => {
+        print("getArtistById: ")
+        println(error)
+        None
+      }
     }
   }
 
@@ -150,7 +158,11 @@ class RootRepo {
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
       case Right(album) => Some(album)
-      case Left(error) => None
+      case Left(error) => {
+        print("getAlbumById: ")
+        println(error)
+        None
+      }
     }
   }
 
@@ -161,7 +173,11 @@ class RootRepo {
     val decodingResult = parser.decode[DeezerGenre](res.body)
     decodingResult match {
       case Right(genre) => Some(genre)
-      case Left(error) => None
+      case Left(error) => {
+        print("getGenreById: ")
+        println(error)
+        None
+      }
     }
   }
 
