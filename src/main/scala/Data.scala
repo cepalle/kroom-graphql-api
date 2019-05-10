@@ -2,76 +2,6 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 import io.circe.generic.auto._
 import io.circe.parser
 
-/*
-case class DeezerGenre(
-                        id: Int,
-                        name: String,
-                        // url,
-                        picture: String,
-                        // url,
-                        picture_small: String,
-                        // url,
-                        picture_medium: String,
-                        // url,
-                        picture_big: String,
-                        // url,
-                        picture_xl: String,
-                      )
-
-case class DeezerUser(
-                       id: Int,
-                       name: String,
-                       lastname: String,
-                       firstname: String,
-                       email: String,
-                       status: Int,
-                       // date
-                       birthday: String,
-                       inscription_date: String,
-                       // F or M
-                       gender: String,
-                       // url
-                       link: String,
-                       // url,
-                       picture: String,
-                       // url,
-                       picture_small: String,
-                       // url,
-                       picture_medium: String,
-                       // url,
-                       picture_big: String,
-                       // url,
-                       picture_xl: String,
-                       country: String,
-                       lang: String,
-                       is_kid: Boolean,
-                       explicit_content_level: String,
-                       // explicit_display, explicit_no_recommendation and explicit_hide
-                       explicit_content_levels_available: List[String],
-                       // url
-                       tracklist: String,
-                     )
-
-case class DeezerSearchTrackResult(
-                                    id: Int,
-                                    readable: Boolean,
-                                    title: String,
-                                    title_short: String,
-                                    title_version: String,
-                                    // url
-                                    link: String,
-                                    duration: Int,
-                                    rank: Int,
-                                    explicit_lyrics: Boolean,
-                                    // url
-                                    preview: String,
-                                    // no complet
-                                    artist: DeezerArtist,
-                                    // no complet
-                                    album: DeezerAlbum,
-                                  )
-*/
-
 case class Id(id: Int)
 
 case class DataListId(data: List[Id])
@@ -111,7 +41,7 @@ case class DeezerAlbum(
                         cover_xl: String,
                         // -1 not found
                         genre_id: Int,
-                        genres: DataListId,
+                        // genres: DataListId,
                         label: String,
                         nb_tracks: Int,
                         duration: Int,
@@ -131,7 +61,7 @@ case class DeezerAlbum(
                         explicit_content_cover: Int,
                         contributors: List[Id],
                         artist: Id,
-                        tracks: DataListId,
+                        // tracks: DataListId,
                       )
 
 case class DeezerArtist(
@@ -191,47 +121,47 @@ case class DeezerTrack(
 
 class RootRepo {
 
-  def getTrackById(id: Int): DeezerTrack = {
+  def getTrackById(id: Int): Option[DeezerTrack] = {
     val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerTrack](res.body)
     decodingResult match {
-      case Right(track) => track
-      case Left(error) => throw error
+      case Right(track) => Some(track)
+      case Left(error) => None
     }
   }
 
-  def getArtistById(id: Int): DeezerArtist = {
+  def getArtistById(id: Int): Option[DeezerArtist] = {
     val request: HttpRequest = Http(s"https://api.deezer.com/artist/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
-      case Right(artist) => artist
-      case Left(error) => throw error
+      case Right(artist) => Some(artist)
+      case Left(error) => None
     }
   }
 
-  def getAlbumById(id: Int): DeezerAlbum = {
+  def getAlbumById(id: Int): Option[DeezerAlbum] = {
     val request: HttpRequest = Http(s"https://api.deezer.com/album/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
-      case Right(album) => album
-      case Left(error) => throw error
+      case Right(album) => Some(album)
+      case Left(error) => None
     }
   }
 
-  def getGenreById(id: Int): DeezerGenre = {
+  def getGenreById(id: Int): Option[DeezerGenre] = {
     val request: HttpRequest = Http(s"https://api.deezer.com/genre/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerGenre](res.body)
     decodingResult match {
-      case Right(genre) => genre
-      case Left(error) => throw error
+      case Right(genre) => Some(genre)
+      case Left(error) => None
     }
   }
 
