@@ -1,10 +1,17 @@
-import slick.dbio.DBIO
-import slick.jdbc.H2Profile
-
 import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+
+class DBHandler {
+
+  import DBHandler._
+
+  def print(): Unit = {
+    println("Coffees:")
+    db.run(coffees.result).map(println(_))
+  }
+
+}
 
 object DBHandler {
 
@@ -44,37 +51,28 @@ object DBHandler {
 
   val coffees = TableQuery[Coffees]
 
-  private val setup = DBIO.seq(
-    // Create the tables, including primary and foreign keys
-    (suppliers.schema ++ coffees.schema).create,
+  val db = {
+    val todo = Database.forConfig("h2mem1")
 
-  )
+    val setup = DBIO.seq(
+      (suppliers.schema ++ coffees.schema).create,
 
-  val db: H2Profile.backend.Database = Database.forConfig("h2mem1")
-  private val setupFuture: Future[Unit] = db.run(setup)
+      suppliers += (101, "Acme, Inc.", "99 Market Street", "Groundsville", "CA", "95199"),
+      suppliers += (49, "Superior Coffee", "1 Party Place", "Mendocino", "CA", "95460"),
+      suppliers += (150, "The High Ground", "100 Coffee Lane", "Meadows", "CA", "93966"),
 
+      coffees ++= Seq(
+        ("Colombian", 101, 7.99, 0, 0),
+        ("French_Roast", 49, 8.99, 0, 0),
+        ("Espresso", 150, 9.99, 0, 0),
+        ("Colombian_Decaf", 101, 8.99, 0, 0),
+        ("French_Roast_Decaf", 49, 9.99, 0, 0)
+      )
+    )
 
-  // Insert some coffees (using JDBC's batch insert feature)
-  val insertAction: DBIO[Option[Int]] = coffees ++= Seq(
-    ("Colombian", 101, 7.99, 0, 0),
-    ("French_Roast", 49, 8.99, 0, 0),
-    ("Espresso", 150, 9.99, 0, 0),
-    ("Colombian_Decaf", 101, 8.99, 0, 0),
-    ("French_Roast_Decaf", 49, 9.99, 0, 0)
-  )
+    val setupFuture = todo.run(setup)
 
-  val insertAndPrintAction: DBIO[Unit] = insertAction.map { coffeesInsertResult =>
-    // Print the number of rows inserted
-    coffeesInsertResult foreach { numRows =>
-      println(s"Inserted $numRows rows into the Coffees table")
-    }
+    todo
   }
-
-
-  println("Coffees:")
-  db.run(coffees.result).map(_.foreach {
-    case (name, supID, price, sales, total) =>
-      println("  " + name + "\t" + supID + "\t" + price + "\t" + sales + "\t" + total)
-  })
 
 }

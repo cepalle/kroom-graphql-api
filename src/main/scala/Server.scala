@@ -29,7 +29,7 @@ object Server extends App with CorsSupport {
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean) =
     complete(Executor.execute(
-      SchemaDefinition.KroomSchema, query, new RepoRoot(DBHandler.db),
+      SchemaDefinition.KroomSchema, query, new RepoRoot(new DBHandler),
       variables = if (variables.isNull) Json.obj() else variables,
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,

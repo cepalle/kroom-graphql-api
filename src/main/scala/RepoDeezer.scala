@@ -2,6 +2,7 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 import io.circe.generic.auto._
 import io.circe.parser
 import slick.jdbc.H2Profile
+import slick.lifted.LiteralColumn
 
 case class Id(id: Int)
 
@@ -120,9 +121,12 @@ case class DeezerTrack(
 
 // --
 
-class RepoDeezer(val db: H2Profile.backend.Database) {
+class RepoDeezer(val dbh: DBHandler) {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
+
+    dbh.print()
+
     val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
     val res: HttpResponse[String] = request.asString
 
