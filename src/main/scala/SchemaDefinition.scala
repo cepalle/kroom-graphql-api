@@ -31,7 +31,6 @@ object SchemaDefinition {
 
   val TrackFetcher: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      println("coucou")
       ids.flatMap(id => ctx.getDeezerTrackById(id))
     }
     )(HasId(_.id))

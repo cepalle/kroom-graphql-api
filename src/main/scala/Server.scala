@@ -115,5 +115,6 @@ object Server extends App with CorsSupport {
         redirect("/graphql", PermanentRedirect)
       }
 
+  DBHandler.init()
   Http().bindAndHandle(corsHandler(route), "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
 }

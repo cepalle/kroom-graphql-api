@@ -1,6 +1,9 @@
 import slick.jdbc.H2Profile.api._
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
 
 class DBHandler {
 
@@ -8,7 +11,11 @@ class DBHandler {
 
   def print(): Unit = {
     println("Coffees:")
-    db.run(coffees.result).map(println(_))
+    val f = db.run(coffees.result)
+
+    val result = Await.ready(f, Duration.Inf).value.get
+
+    println(result)
   }
 
 }
@@ -51,8 +58,10 @@ object DBHandler {
 
   val coffees = TableQuery[Coffees]
 
-  val db = {
-    val todo = Database.forConfig("h2mem1")
+  val db = Database.forConfig("h2mem1")
+
+  def init(): Unit = {
+    println("Init started")
 
     val setup = DBIO.seq(
       (suppliers.schema ++ coffees.schema).create,
@@ -70,9 +79,6 @@ object DBHandler {
       )
     )
 
-    val setupFuture = todo.run(setup)
-
-    todo
+    db.run(setup).onComplete(_ => println("Done"))
   }
-
 }
