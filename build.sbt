@@ -21,8 +21,11 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
 
-  "org.scalaj" %% "scalaj-http" % "2.4.1"
+  "org.scalaj" %% "scalaj-http" % "2.4.1",
 
+  "com.typesafe.slick" %% "slick" % "3.3.0",
+  "org.slf4j" % "slf4j-nop" % "1.6.4",
+  "com.typesafe.slick" %% "slick-hikaricp" % "3.3.0"
 )
 
 Revolver.settings

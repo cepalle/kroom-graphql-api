@@ -8,18 +8,6 @@
 # google API
 
 
-enum MusicGenre {
-    POP
-    ROCK
-    CLASSIC
-    RAP
-}
-
-type Music {
-    name: String!
-    album: [String!]!
-}
-
 # Private, Amis, Public ?
 type User {
     userName: String!

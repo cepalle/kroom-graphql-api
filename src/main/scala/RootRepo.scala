@@ -5,12 +5,12 @@ class RootRepo {
 
   val deezerRepo = new DeezerRepo()
 
-  def getDeezerTrackById(id: Int): Option[DeezerTrack] = deezerRepo.getTrackById(id)
+  val getDeezerTrackById = deezerRepo.getTrackById _
 
-  def getDeezerArtistById(id: Int): Option[DeezerArtist] = deezerRepo.getArtistById(id)
+  val getDeezerArtistById = deezerRepo.getArtistById _
 
-  def getDeezerAlbumById(id: Int): Option[DeezerAlbum] = deezerRepo.getAlbumById(id)
+  val getDeezerAlbumById = deezerRepo.getAlbumById _
 
-  def getDeezerGenreById(id: Int): Option[DeezerGenre] = deezerRepo.getGenreById(id)
+  val getDeezerGenreById = deezerRepo.getGenreById _
 
 }
