@@ -16,9 +16,8 @@ class DBHandler {
     val query = tabDeezerGenre.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
-      val (id, json) = e
-      parser.decode[DeezerGenre](json).toOption
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
+      case (id, json) => parser.decode[DeezerGenre](json).toOption
     })
   }
 
@@ -32,9 +31,8 @@ class DBHandler {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
-      val (id, json) = e
-      parser.decode[DeezerAlbum](json).toOption
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
+      case (id, json) => parser.decode[DeezerAlbum](json).toOption
     })
   }
 
@@ -48,9 +46,8 @@ class DBHandler {
     val query = tabDeezerArtist.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
-      val (id, json) = e
-      parser.decode[DeezerArtist](json).toOption
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
+      case (id, json) => parser.decode[DeezerArtist](json).toOption
     })
   }
 
@@ -64,9 +61,8 @@ class DBHandler {
     val query = tabDeezerTrack.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
-      val (id, json) = e
-      parser.decode[DeezerTrack](json).toOption
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
+      case (id, json) => parser.decode[DeezerTrack](json).toOption
     })
   }
 
@@ -138,14 +134,14 @@ object DBHandler {
 
     def email = column[String]("EMAIL")
 
-    def location = column[String]("JSON")
+    def location = column[String]("LOCATION")
 
     def * = (id, name, email, location)
   }
 
   val tabUser = TableQuery[TabUser]
 
-  class JoinFriend(tag: Tag) extends Table[(Int, Int, Int)](tag, "USER") {
+  class JoinFriend(tag: Tag) extends Table[(Int, Int, Int)](tag, "JOIN_FRIEND") {
 
     def id = column[Int]("ID", O.PrimaryKey)
 
@@ -158,7 +154,7 @@ object DBHandler {
 
   val joinFriend = TableQuery[JoinFriend]
 
-  class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int, Int)](tag, "USER") {
+  class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int, Int)](tag, "JOIN_MUSICAL_PREFERENCES") {
 
     def id = column[Int]("ID", O.PrimaryKey)
 
@@ -232,6 +228,10 @@ object DBHandler {
         tabDeezerAlbum.schema ++
         tabDeezerArtist.schema ++
         tabDeezerTrack.schema ++
+
+        tabUser.schema ++
+        joinFriend.schema ++
+        joinMusicalPreferences.schema ++
 
         tabTrackVoteEvent.schema ++
         joinTrackVoteEventUserInvited.schema ++
