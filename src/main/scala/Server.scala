@@ -34,10 +34,10 @@ object Server extends App with CorsSupport {
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
       deferredResolver = DeferredResolver.fetchers(
-        SchemaDefinition.TrackFetcher,
-        SchemaDefinition.ArtistFetcher,
-        SchemaDefinition.AlbumFetcher,
-        SchemaDefinition.GenreFetcher,
+        SchemaDefinition.TrackFetcherId,
+        SchemaDefinition.ArtistFetcherId,
+        SchemaDefinition.AlbumFetcherId,
+        SchemaDefinition.GenreFetcherId,
       )
     )
       .map(OK → _)

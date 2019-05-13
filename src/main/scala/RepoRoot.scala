@@ -1,5 +1,10 @@
-import slick.jdbc.H2Profile
-// --
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+case class TrackVoteEvent(
+                           id: Int,
+                         )
+
 
 class RepoRoot(val dbh: DBHandler) {
 
@@ -12,5 +17,16 @@ class RepoRoot(val dbh: DBHandler) {
   val getDeezerAlbumById = deezerRepo.getAlbumById _
 
   val getDeezerGenreById = deezerRepo.getGenreById _
+
+  def getTrackVoteEventById(id: Int): Option[TrackVoteEvent] = {
+    None
+  }
+
+  def getTrackVoteEventPublic(): Future[List[TrackVoteEvent]] = {
+    Future {
+      val l = List[TrackVoteEvent]()
+      l
+    }
+  }
 
 }

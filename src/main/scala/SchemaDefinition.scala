@@ -11,27 +11,33 @@ object SchemaDefinition {
 
   // Fetcher
 
-  val GenreFetcher: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
+  val GenreFetcherId: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerGenreById(id))
     }
     )(HasId(_.id))
 
-  val ArtistFetcher: Fetcher[RepoRoot, DeezerArtist, DeezerArtist, Int] =
+  val ArtistFetcherId: Fetcher[RepoRoot, DeezerArtist, DeezerArtist, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerArtistById(id))
     }
     )(HasId(_.id))
 
-  val AlbumFetcher: Fetcher[RepoRoot, DeezerAlbum, DeezerAlbum, Int] =
+  val AlbumFetcherId: Fetcher[RepoRoot, DeezerAlbum, DeezerAlbum, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerAlbumById(id))
     }
     )(HasId(_.id))
 
-  val TrackFetcher: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
+  val TrackFetcherId: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerTrackById(id))
+    }
+    )(HasId(_.id))
+
+  val TrackVoteEventFetcherId: Fetcher[RepoRoot, TrackVoteEvent, TrackVoteEvent, Int] =
+    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.getTrackVoteEventById(id))
     }
     )(HasId(_.id))
 
@@ -81,7 +87,7 @@ object SchemaDefinition {
       Field("cover_big", StringType, resolve = _.value.cover_big),
       Field("cover_xl", StringType, resolve = _.value.cover_xl),
       Field("genre_id", IntType, resolve = _.value.genre_id),
-      Field("genre", OptionType(GenreField), resolve = ctx => GenreFetcher.deferOpt(ctx.value.genre_id)),
+      Field("genre", OptionType(GenreField), resolve = ctx => GenreFetcherId.deferOpt(ctx.value.genre_id)),
       // Field("genre_ids", ListType(IntType), resolve = _.value.contributors.map(_.id)),
       // Field("genres", ListType(GenreField),
       //  resolve = ctx => GenreFetcher.deferSeqOpt(ctx.value.contributors.map(_.id))
@@ -98,9 +104,9 @@ object SchemaDefinition {
       Field("explicit_lyrics", BooleanType, resolve = _.value.explicit_lyrics),
       Field("explicit_content_lyrics", IntType, resolve = _.value.explicit_content_lyrics),
       Field("explicit_content_cover", IntType, resolve = _.value.explicit_content_cover),
-      Field("contributors", ListType(ArtistField), resolve = ctx => ArtistFetcher.deferSeq(ctx.value.contributors.map(_.id))),
+      Field("contributors", ListType(ArtistField), resolve = ctx => ArtistFetcherId.deferSeq(ctx.value.contributors.map(_.id))),
       Field("artist_id", IntType, resolve = _.value.artist.id),
-      Field("artist", ArtistField, resolve = ctx => ArtistFetcher.defer(ctx.value.artist.id)),
+      Field("artist", ArtistField, resolve = ctx => ArtistFetcherId.defer(ctx.value.artist.id)),
       //Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcher.deferSeq(ctx.value.tracks.data.map(_.id))),
     ))
 
@@ -129,12 +135,19 @@ object SchemaDefinition {
       Field("gain", FloatType, resolve = _.value.gain),
       Field("available_countries", ListType(StringType), resolve = _.value.available_countries),
       Field("contributors", ListType(ArtistField),
-        resolve = ctx => ArtistFetcher.deferSeqOpt(ctx.value.contributors.map(_.id))
+        resolve = ctx => ArtistFetcherId.deferSeqOpt(ctx.value.contributors.map(_.id))
       ),
       Field("artist_id", IntType, resolve = _.value.artist.id),
       Field("album_id", IntType, resolve = _.value.album.id),
-      Field("artist", OptionType(ArtistField), resolve = ctx => ArtistFetcher.deferOpt(ctx.value.artist.id)),
-      Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcher.deferOpt(ctx.value.album.id)),
+      Field("artist", OptionType(ArtistField), resolve = ctx => ArtistFetcherId.deferOpt(ctx.value.artist.id)),
+      Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
+    ))
+
+  lazy val TrackVoteEventField: ObjectLikeType[RepoRoot, TrackVoteEvent] = ObjectType(
+    "TrackVoteEvent",
+    "TrackVoteEvent description.",
+    fields[RepoRoot, TrackVoteEvent](
+      Field("id", IntType, resolve = _.value.id),
     ))
 
   // arguments
@@ -145,16 +158,34 @@ object SchemaDefinition {
     "Query", fields[RepoRoot, Unit](
       Field("track", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ TrackFetcher.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ TrackFetcherId.deferOpt(ctx.arg[Int]("id"))),
       Field("artist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ArtistFetcher.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))),
       Field("album", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ AlbumFetcher.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))),
       Field("genre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ GenreFetcher.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ GenreFetcherId.deferOpt(ctx.arg[Int]("id"))),
+
+      Field("TrackVoteEventById", OptionType(TrackVoteEventField),
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ {
+          TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
+        }),
+
+      Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
+        arguments = Nil,
+        resolve = ctx ⇒ {
+          ctx.ctx.getTrackVoteEventPublic()
+        }),
+
+      Field("TrackVoteEventByUserId", ListInputType(TrackVoteEventField),
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ {
+          GenreFetcherId.deferOptSeq(ctx.arg[Int]("id"))
+        }),
     ))
 
   val KroomSchema = Schema(Query)
