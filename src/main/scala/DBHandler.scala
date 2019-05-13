@@ -4,9 +4,9 @@ import io.circe.syntax._
 import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
+
 
 class DBHandler {
 
@@ -78,10 +78,13 @@ class DBHandler {
 
 }
 
+// foreign key
 object DBHandler {
+  private val db = Database.forConfig("h2mem1")
 
-  class TabDeezerGenre(tag: Tag)
-    extends Table[(Int, String)](tag, "DEEZER_GENRE") {
+  // DEEZER
+
+  class TabDeezerGenre(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_GENRE") {
 
     def id = column[Int]("ID", O.PrimaryKey)
 
@@ -125,11 +128,76 @@ object DBHandler {
 
   val tabDeezerTrack = TableQuery[TabDeezerTrack]
 
-  private val db = Database.forConfig("h2mem1")
+  // -- TRACK VOTE EVENT
+
+  class TabTrackVoteEvent(tag: Tag)
+    extends Table[(Int, String, Boolean, Int, Int, String, String, String)](tag, "TRACK_VOTE_EVENT") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def name = column[String]("NAME")
+
+    def public = column[Boolean]("PUBLIC")
+
+    def currentTrackId = column[Int]("CURRENT_TRACK_ID")
+
+    def currentVotesId = column[Int]("CURRENT_VOTES_ID")
+
+    def horaire = column[String]("HORAIRE")
+
+    def location = column[String]("LOCATION")
+
+    def usersInvitedId = column[String]("USERS_INVITED_ID")
+
+    def * = (id, name, public, currentTrackId, currentVotesId, horaire, location, usersInvitedId)
+  }
+
+  val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
+
+  class JoinTrackVoteEventUserInvited(tag: Tag)
+    extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
+
+    def idUser = column[Int]("ID_USER")
+
+    def * = (id, idTrackVoteEvent, idUser)
+  }
+
+  val joinTrackVoteEventUserInvited = TableQuery[JoinTrackVoteEventUserInvited]
+
+  class JoinTrackVoteEventUserVoteTrack(tag: Tag)
+    extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
+
+    def idUser = column[Int]("ID_USER")
+
+    def idDeezerTrack = column[Int]("ID_DEEZER_TRACK")
+
+    def voteUp = column[Boolean]("VOTE_UP")
+
+    def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
+  }
+
+  val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
+
 
   def init(): Unit = {
     val setup = DBIO.seq(
-      (tabDeezerGenre.schema ++ tabDeezerAlbum.schema ++ tabDeezerArtist.schema ++ tabDeezerTrack.schema).create,
+      (tabDeezerGenre.schema ++
+        tabDeezerAlbum.schema ++
+        tabDeezerArtist.schema ++
+        tabDeezerTrack.schema ++
+
+        tabTrackVoteEvent.schema ++
+        joinTrackVoteEventUserInvited.schema ++
+        joinTrackVoteEventUserVoteTrack.schema
+        ).create,
     )
 
     val f = db.run(setup)

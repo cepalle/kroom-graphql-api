@@ -12,19 +12,11 @@
 type User {
     userId: String!
     userName: String!
-    # Private.
     email: String!
     friends: [User!]!
     musicalPreferences: [DeezerGenre!]!
-    location: TODO!
+    location: String
 }
-
-enum Access {
-    PRIVATE
-    AMIS
-    PUBLIC
-}
-
 
 type TrackWithVote {
     track: DeezerTrack
@@ -33,31 +25,17 @@ type TrackWithVote {
     nb_vote_down: Int
 }
 
-type ResultVote {
+interface TrackVoteEvent {
+    id: Int!
+    name: String!
+    public: Boolean!
+
     currentTrack: DeezerTrack!
     currentVotes: [TrackWithVote!]!
 
-}
-
-interface TrackVoteEvent {
-    name: String!
-    resultVote: ResultVote! # sort
-
-}
-
-type TrackVoteEventPublic implements TrackVoteEvent {
-    name: String!
-    resultVote: ResultVote!
-
-    horaire: TODO!
-    location: TODO!
-}
-
-type TrackVoteEventPrivate implements TrackVoteEvent {
-    name: String!
-    resultVote: ResultVote!
-
-    invited: [User!]!
+    horaire: String
+    location: String
+    invited: [User!]
 }
 
 # Vote up and Down
