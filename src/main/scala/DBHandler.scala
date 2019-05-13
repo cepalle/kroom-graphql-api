@@ -82,7 +82,7 @@ class DBHandler {
 object DBHandler {
   private val db = Database.forConfig("h2mem1")
 
-  // DEEZER
+  // -- DEEZER
 
   class TabDeezerGenre(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_GENRE") {
 
@@ -128,10 +128,53 @@ object DBHandler {
 
   val tabDeezerTrack = TableQuery[TabDeezerTrack]
 
+  // -- USER
+
+  class TabUser(tag: Tag) extends Table[(Int, String, String, String)](tag, "USER") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def name = column[String]("NAME")
+
+    def email = column[String]("EMAIL")
+
+    def location = column[String]("JSON")
+
+    def * = (id, name, email, location)
+  }
+
+  val tabUser = TableQuery[TabUser]
+
+  class JoinFriend(tag: Tag) extends Table[(Int, Int, Int)](tag, "USER") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def idUser1 = column[Int]("ID_USER_1")
+
+    def idUser2 = column[Int]("ID_USER_2")
+
+    def * = (id, idUser1, idUser2)
+  }
+
+  val joinFriend = TableQuery[JoinFriend]
+
+  class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int, Int)](tag, "USER") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def idUser = column[Int]("ID_USER")
+
+    def idDeezerTrack = column[Int]("ID_DEEZER_TRACK")
+
+    def * = (id, idUser, idDeezerTrack)
+  }
+
+  val joinMusicalPreferences = TableQuery[JoinMusicalPreferences]
+
   // -- TRACK VOTE EVENT
 
   class TabTrackVoteEvent(tag: Tag)
-    extends Table[(Int, String, Boolean, Int, Int, String, String, String)](tag, "TRACK_VOTE_EVENT") {
+    extends Table[(Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
 
     def id = column[Int]("ID", O.PrimaryKey)
 
@@ -141,15 +184,11 @@ object DBHandler {
 
     def currentTrackId = column[Int]("CURRENT_TRACK_ID")
 
-    def currentVotesId = column[Int]("CURRENT_VOTES_ID")
-
     def horaire = column[String]("HORAIRE")
 
     def location = column[String]("LOCATION")
 
-    def usersInvitedId = column[String]("USERS_INVITED_ID")
-
-    def * = (id, name, public, currentTrackId, currentVotesId, horaire, location, usersInvitedId)
+    def * = (id, name, public, currentTrackId, horaire, location)
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]

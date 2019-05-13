@@ -10,8 +10,8 @@
 
 # Private, Amis, Public ?
 type User {
-    userId: String!
-    userName: String!
+    id: String!
+    name: String!
     email: String!
     friends: [User!]!
     musicalPreferences: [DeezerGenre!]!
