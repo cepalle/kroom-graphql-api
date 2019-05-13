@@ -181,10 +181,10 @@ object SchemaDefinition {
           ctx.ctx.getTrackVoteEventPublic()
         }),
 
-      Field("TrackVoteEventByUserId", ListInputType(TrackVoteEventField),
+      Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ {
-          GenreFetcherId.deferOptSeq(ctx.arg[Int]("id"))
+          ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("id"))
         }),
     ))
 

@@ -29,4 +29,11 @@ class RepoRoot(val dbh: DBHandler) {
     }
   }
 
+  def getTrackVoteEventByUserId(userId: Int): Future[List[TrackVoteEvent]] = {
+    Future {
+      val l = List[TrackVoteEvent]()
+      l
+    }
+  }
+
 }
