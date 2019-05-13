@@ -126,7 +126,10 @@ class RepoDeezer(val dbh: DBHandler) {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
     dbh.getDeezerTrack(id) match {
-      case Some(d) => return Some(d)
+      case Some(d) => {
+        println("RepoDeezer: Track get from cached")
+        return Some(d)
+      }
       case _ => ()
     }
 
@@ -136,11 +139,12 @@ class RepoDeezer(val dbh: DBHandler) {
     val decodingResult = parser.decode[DeezerTrack](res.body)
     decodingResult match {
       case Right(track) => {
+        println("RepoDeezer: Track get from Deezer API")
         dbh.addDeezerTrack(track)
         Some(track)
       }
       case Left(error) =>
-        print("getTrackById: ")
+        print("RepoDeezer get track: ")
         println(error)
         None
     }
@@ -148,7 +152,10 @@ class RepoDeezer(val dbh: DBHandler) {
 
   def getArtistById(id: Int): Option[DeezerArtist] = {
     dbh.getDeezerArtist(id) match {
-      case Some(d) => return Some(d)
+      case Some(d) => {
+        println("RepoDeezer: Artist get from cached")
+        return Some(d)
+      }
       case _ => ()
     }
 
@@ -158,11 +165,12 @@ class RepoDeezer(val dbh: DBHandler) {
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
       case Right(artist) => {
+        println("RepoDeezer: Artist get from Deezer API")
         dbh.addDeezerArtist(artist)
         Some(artist)
       }
       case Left(error) =>
-        print("getArtistById: ")
+        print("RepoDeezer get artist: ")
         println(error)
         None
     }
@@ -170,7 +178,10 @@ class RepoDeezer(val dbh: DBHandler) {
 
   def getAlbumById(id: Int): Option[DeezerAlbum] = {
     dbh.getDeezerAlbum(id) match {
-      case Some(d) => return Some(d)
+      case Some(d) => {
+        println("RepoDeezer: Album get from cached")
+        return Some(d)
+      }
       case _ => ()
     }
 
@@ -180,11 +191,12 @@ class RepoDeezer(val dbh: DBHandler) {
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
       case Right(album) => {
+        println("RepoDeezer: Album get from Deezer API")
         dbh.addDeezerAlbum(album)
         Some(album)
       }
       case Left(error) =>
-        print("getAlbumById: ")
+        print("RepoDeezer get album : ")
         println(error)
         None
     }
@@ -192,7 +204,10 @@ class RepoDeezer(val dbh: DBHandler) {
 
   def getGenreById(id: Int): Option[DeezerGenre] = {
     dbh.getDeezerGenre(id) match {
-      case Some(d) => return Some(d)
+      case Some(d) => {
+        println("RepoDeezer: Genre get from cached")
+        return Some(d)
+      }
       case _ => ()
     }
 
@@ -202,11 +217,12 @@ class RepoDeezer(val dbh: DBHandler) {
     val decodingResult = parser.decode[DeezerGenre](res.body)
     decodingResult match {
       case Right(genre) => {
+        println("RepoDeezer: Genre get from Deezer API")
         dbh.addDeezerGenre(genre)
         Some(genre)
       }
       case Left(error) =>
-        print("getGenreById: ")
+        print("RepoDeezer get genre : ")
         println(error)
         None
     }

@@ -1,6 +1,9 @@
+import io.circe.parser
+import io.circe.generic.auto._
+import io.circe.syntax._
 import slick.jdbc.H2Profile.api._
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -10,37 +13,68 @@ class DBHandler {
   import DBHandler._
 
   def getDeezerGenre(id: Int): Option[DeezerGenre] = {
-    None
+    val query = tabDeezerGenre.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
+      val (id, json) = e
+      parser.decode[DeezerGenre](json).toOption
+    })
   }
 
   def addDeezerGenre(dg: DeezerGenre): Boolean = {
-    true
+    val f = db.run(tabDeezerGenre += ((dg.id, dg.asJson.toString())))
+    Await.ready(f, Duration.Inf)
+    false
   }
 
   def getDeezerAlbum(id: Int): Option[DeezerAlbum] = {
-    None
+    val query = tabDeezerAlbum.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
+      val (id, json) = e
+      parser.decode[DeezerAlbum](json).toOption
+    })
   }
 
   def addDeezerAlbum(dg: DeezerAlbum): Boolean = {
-    true
+    val f = db.run(tabDeezerAlbum += ((dg.id, dg.asJson.toString())))
+    Await.ready(f, Duration.Inf)
+    false
   }
 
   def getDeezerArtist(id: Int): Option[DeezerArtist] = {
-    None
+    val query = tabDeezerArtist.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
+      val (id, json) = e
+      parser.decode[DeezerArtist](json).toOption
+    })
   }
 
   def addDeezerArtist(dg: DeezerArtist): Boolean = {
-    true
+    val f = db.run(tabDeezerArtist += ((dg.id, dg.asJson.toString())))
+    Await.ready(f, Duration.Inf)
+    false
   }
 
   def getDeezerTrack(id: Int): Option[DeezerTrack] = {
-    None
+    val query = tabDeezerTrack.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(e => {
+      val (id, json) = e
+      parser.decode[DeezerTrack](json).toOption
+    })
   }
 
   def addDeezerTrack(dg: DeezerTrack): Boolean = {
-    true
+    val f = db.run(tabDeezerTrack += ((dg.id, dg.asJson.toString())))
+    Await.ready(f, Duration.Inf)
+    false
   }
-
 
 }
 
