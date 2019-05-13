@@ -121,18 +121,24 @@ case class DeezerTrack(
 
 // --
 
+// TODO LOG
 class RepoDeezer(val dbh: DBHandler) {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
-
-    dbh.print()
+    dbh.getDeezerTrack(id) match {
+      case Some(d) => return Some(d)
+      case _ => ()
+    }
 
     val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerTrack](res.body)
     decodingResult match {
-      case Right(track) => Some(track)
+      case Right(track) => {
+        dbh.addDeezerTrack(track)
+        Some(track)
+      }
       case Left(error) =>
         print("getTrackById: ")
         println(error)
@@ -141,12 +147,20 @@ class RepoDeezer(val dbh: DBHandler) {
   }
 
   def getArtistById(id: Int): Option[DeezerArtist] = {
+    dbh.getDeezerArtist(id) match {
+      case Some(d) => return Some(d)
+      case _ => ()
+    }
+
     val request: HttpRequest = Http(s"https://api.deezer.com/artist/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
-      case Right(artist) => Some(artist)
+      case Right(artist) => {
+        dbh.addDeezerArtist(artist)
+        Some(artist)
+      }
       case Left(error) =>
         print("getArtistById: ")
         println(error)
@@ -155,12 +169,20 @@ class RepoDeezer(val dbh: DBHandler) {
   }
 
   def getAlbumById(id: Int): Option[DeezerAlbum] = {
+    dbh.getDeezerAlbum(id) match {
+      case Some(d) => return Some(d)
+      case _ => ()
+    }
+
     val request: HttpRequest = Http(s"https://api.deezer.com/album/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
-      case Right(album) => Some(album)
+      case Right(album) => {
+        dbh.addDeezerAlbum(album)
+        Some(album)
+      }
       case Left(error) =>
         print("getAlbumById: ")
         println(error)
@@ -169,12 +191,20 @@ class RepoDeezer(val dbh: DBHandler) {
   }
 
   def getGenreById(id: Int): Option[DeezerGenre] = {
+    dbh.getDeezerGenre(id) match {
+      case Some(d) => return Some(d)
+      case _ => ()
+    }
+
     val request: HttpRequest = Http(s"https://api.deezer.com/genre/$id")
     val res: HttpResponse[String] = request.asString
 
     val decodingResult = parser.decode[DeezerGenre](res.body)
     decodingResult match {
-      case Right(genre) => Some(genre)
+      case Right(genre) => {
+        dbh.addDeezerGenre(genre)
+        Some(genre)
+      }
       case Left(error) =>
         print("getGenreById: ")
         println(error)

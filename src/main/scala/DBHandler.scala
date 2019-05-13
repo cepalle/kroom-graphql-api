@@ -9,74 +9,93 @@ class DBHandler {
 
   import DBHandler._
 
-  def print(): Unit = {
-    println("Coffees:")
-    val f = db.run(coffees.result)
-
-    val result = Await.ready(f, Duration.Inf).value.get
-
-    println(result)
+  def getDeezerGenre(id: Int): Option[DeezerGenre] = {
+    None
   }
+
+  def addDeezerGenre(dg: DeezerGenre): Boolean = {
+    true
+  }
+
+  def getDeezerAlbum(id: Int): Option[DeezerAlbum] = {
+    None
+  }
+
+  def addDeezerAlbum(dg: DeezerAlbum): Boolean = {
+    true
+  }
+
+  def getDeezerArtist(id: Int): Option[DeezerArtist] = {
+    None
+  }
+
+  def addDeezerArtist(dg: DeezerArtist): Boolean = {
+    true
+  }
+
+  def getDeezerTrack(id: Int): Option[DeezerTrack] = {
+    None
+  }
+
+  def addDeezerTrack(dg: DeezerTrack): Boolean = {
+    true
+  }
+
 
 }
 
 object DBHandler {
 
-  class Suppliers(tag: Tag) extends Table[(Int, String, String, String, String, String)](tag, "SUPPLIERS") {
-    def id = column[Int]("SUP_ID", O.PrimaryKey)
+  class TabDeezerGenre(tag: Tag)
+    extends Table[(Int, String)](tag, "DEEZER_GENRE") {
 
-    def name = column[String]("SUP_NAME")
+    def id = column[Int]("ID", O.PrimaryKey)
 
-    def street = column[String]("STREET")
+    def json = column[String]("JSON")
 
-    def city = column[String]("CITY")
-
-    def state = column[String]("STATE")
-
-    def zip = column[String]("ZIP")
-
-    def * = (id, name, street, city, state, zip)
+    def * = (id, json)
   }
 
-  val suppliers = TableQuery[Suppliers]
+  val tabDeezerGenre = TableQuery[TabDeezerGenre]
 
-  class Coffees(tag: Tag) extends Table[(String, Int, Double, Int, Int)](tag, "COFFEES") {
-    def name = column[String]("COF_NAME", O.PrimaryKey)
+  class TabDeezerAlbum(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ALBUM") {
 
-    def supID = column[Int]("SUP_ID")
+    def id = column[Int]("ID", O.PrimaryKey)
 
-    def price = column[Double]("PRICE")
+    def json = column[String]("JSON")
 
-    def sales = column[Int]("SALES")
-
-    def total = column[Int]("TOTAL")
-
-    def * = (name, supID, price, sales, total)
-
-    def supplier = foreignKey("SUP_FK", supID, suppliers)(_.id)
+    def * = (id, json)
   }
 
-  val coffees = TableQuery[Coffees]
+  val tabDeezerAlbum = TableQuery[TabDeezerAlbum]
 
-  val db = Database.forConfig("h2mem1")
+  class TabDeezerArtist(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ARTIST") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def json = column[String]("JSON")
+
+    def * = (id, json)
+  }
+
+  val tabDeezerArtist = TableQuery[TabDeezerArtist]
+
+  class TabDeezerTrack(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_TRACK") {
+
+    def id = column[Int]("ID", O.PrimaryKey)
+
+    def json = column[String]("JSON")
+
+    def * = (id, json)
+  }
+
+  val tabDeezerTrack = TableQuery[TabDeezerTrack]
+
+  private val db = Database.forConfig("h2mem1")
 
   def init(): Unit = {
-    println("Init started")
-
     val setup = DBIO.seq(
-      (suppliers.schema ++ coffees.schema).create,
-
-      suppliers += (101, "Acme, Inc.", "99 Market Street", "Groundsville", "CA", "95199"),
-      suppliers += (49, "Superior Coffee", "1 Party Place", "Mendocino", "CA", "95460"),
-      suppliers += (150, "The High Ground", "100 Coffee Lane", "Meadows", "CA", "93966"),
-
-      coffees ++= Seq(
-        ("Colombian", 101, 7.99, 0, 0),
-        ("French_Roast", 49, 8.99, 0, 0),
-        ("Espresso", 150, 9.99, 0, 0),
-        ("Colombian_Decaf", 101, 8.99, 0, 0),
-        ("French_Roast_Decaf", 49, 9.99, 0, 0)
-      )
+      (tabDeezerGenre.schema ++ tabDeezerAlbum.schema ++ tabDeezerArtist.schema ++ tabDeezerTrack.schema).create,
     )
 
     val f = db.run(setup)
@@ -85,4 +104,5 @@ object DBHandler {
 
     println(result)
   }
+
 }
