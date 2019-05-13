@@ -177,13 +177,13 @@ object SchemaDefinition {
 
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
-        resolve = ctx ⇒ {
+        resolve = ctx ⇒ Future {
           ctx.ctx.getTrackVoteEventPublic()
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
-        resolve = ctx ⇒ {
+        resolve = ctx ⇒ Future {
           ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
         }),
     ))

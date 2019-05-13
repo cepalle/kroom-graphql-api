@@ -22,18 +22,12 @@ class RepoRoot(val dbh: DBHandler) {
     None
   }
 
-  def getTrackVoteEventPublic(): Future[List[TrackVoteEvent]] = {
-    Future {
-      val l = List[TrackVoteEvent]()
-      l
-    }
+  def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
+    List[TrackVoteEvent]()
   }
 
-  def getTrackVoteEventByUserId(userId: Int): Future[List[TrackVoteEvent]] = {
-    Future {
-      val l = List[TrackVoteEvent]()
-      l
-    }
+  def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
+    List[TrackVoteEvent]()
   }
 
 }

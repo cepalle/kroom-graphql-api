@@ -38,6 +38,7 @@ object Server extends App with CorsSupport {
         SchemaDefinition.ArtistFetcherId,
         SchemaDefinition.AlbumFetcherId,
         SchemaDefinition.GenreFetcherId,
+        SchemaDefinition.TrackVoteEventFetcherId
       )
     )
       .map(OK → _)
