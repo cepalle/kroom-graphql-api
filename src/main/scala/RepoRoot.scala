@@ -3,6 +3,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 case class TrackVoteEvent(
                            id: Int,
+                           name: String,
+                           public: Boolean,
+                           currentTrackId: Int,
+                           horaire: String,
+                           location: String
                          )
 
 
@@ -19,15 +24,15 @@ class RepoRoot(val dbh: DBHandler) {
   val getDeezerGenreById = deezerRepo.getGenreById _
 
   def getTrackVoteEventById(id: Int): Option[TrackVoteEvent] = {
-    None
+    dbh.getTrackVoteEventById(id)
   }
 
   def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
-    List[TrackVoteEvent]()
+    dbh.getTrackVoteEventPublic()
   }
 
   def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
-    List[TrackVoteEvent]()
+    dbh.getTrackVoteEventByUserId(userId)
   }
 
 }

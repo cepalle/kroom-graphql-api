@@ -12,6 +12,8 @@ class DBHandler {
 
   import DBHandler._
 
+  // -- DEEZER
+
   def getDeezerGenre(id: Int): Option[DeezerGenre] = {
     val query = tabDeezerGenre.filter(_.id === id).result.head
     val f = db.run(query)
@@ -71,6 +73,37 @@ class DBHandler {
     Await.ready(f, Duration.Inf)
     false
   }
+
+  // -- USER
+
+  // -- TRACK VOTE EVENT
+
+  def getTrackVoteEventById(id: Int): Option[TrackVoteEvent] = {
+    val query = tabTrackVoteEvent.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
+      case (id, name, public, currentTrackId, horaire, location) => Some(TrackVoteEvent(
+        id, name, public, currentTrackId, horaire, location
+      ))
+    })
+  }
+
+  def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
+    val query = tabTrackVoteEvent.filter(_.public).result
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(_.map({
+      case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
+        id, name, public, currentTrackId, horaire, location
+      )
+    })).toList
+  }
+
+  def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
+    List[TrackVoteEvent]()
+  }
+
 
 }
 
@@ -220,7 +253,6 @@ object DBHandler {
   }
 
   val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
-
 
   def init(): Unit = {
     val setup = DBIO.seq(
