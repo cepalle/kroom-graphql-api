@@ -122,6 +122,7 @@ case class DeezerTrack(
 // --
 
 // TODO LOG
+// cached error ?
 class RepoDeezer(val dbh: DBHandler) {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
