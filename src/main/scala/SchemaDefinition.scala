@@ -182,9 +182,9 @@ object SchemaDefinition {
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
-        arguments = Argument("id", IntType) :: Nil,
+        arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ {
-          ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("id"))
+          ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
         }),
     ))
 
