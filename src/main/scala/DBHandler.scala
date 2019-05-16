@@ -24,40 +24,9 @@ class DBHandler(val db: H2Profile.backend.Database) {
   val getDeezerTrack = DBDeezer.getDeezerTrack(db, _)
   val addDeezerTrack = DBDeezer.addDeezerTrack(db, _)
 
-  def getTrackVoteEventById(id: Int): Option[TrackVoteEvent] = {
-    val query = tabTrackVoteEvent.filter(_.id === id).result.head
-    val f = db.run(query)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjTrackVoteEvent)
-  }
-
-  def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
-    val query = tabTrackVoteEvent.filter(_.public).result
-    val f = db.run(query)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(_.map(tabToObjTrackVoteEvent))
-      .map(_.toList)
-      .getOrElse(List[TrackVoteEvent]())
-  }
-
-  def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
-    val query = for {
-      ((u, j), e) <- tabUser join joinTrackVoteEventUserInvited on
-        (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
-      if u.id === userId
-    } yield e
-    val f = db.run(query.result)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(_.map(tabToObjTrackVoteEvent))
-      .map(_.toList)
-      .getOrElse(List[TrackVoteEvent]())
-  }
+  val getTrackVoteEventById = DBTrackVoteEvent.getTrackVoteEventById(db, _)
+  def getTrackVoteEventPublic() = DBTrackVoteEvent.getTrackVoteEventPublic(db)
+  val getTrackVoteEventByUserId = DBTrackVoteEvent.getTrackVoteEventByUserId(db, _)
 
 }
 
@@ -245,64 +214,102 @@ object DBHandler {
 
   // -- TRACK VOTE EVENT
 
-  class TabTrackVoteEvent(tag: Tag)
-    extends Table[(Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
+  object DBTrackVoteEvent {
+    def getTrackVoteEventById(db: H2Profile.backend.Database, id: Int): Option[TrackVoteEvent] = {
+      val query = tabTrackVoteEvent.filter(_.id === id).result.head
+      val f = db.run(query)
 
-    def id = column[Int]("ID", O.PrimaryKey)
+      Await.ready(f, Duration.Inf).value
+        .flatMap(_.toOption)
+        .map(tabToObjTrackVoteEvent)
+    }
 
-    def name = column[String]("NAME")
+    def getTrackVoteEventPublic(db: H2Profile.backend.Database): List[TrackVoteEvent] = {
+      val query = tabTrackVoteEvent.filter(_.public).result
+      val f = db.run(query)
 
-    def public = column[Boolean]("PUBLIC")
+      Await.ready(f, Duration.Inf).value
+        .flatMap(_.toOption)
+        .map(_.map(tabToObjTrackVoteEvent))
+        .map(_.toList)
+        .getOrElse(List[TrackVoteEvent]())
+    }
 
-    def currentTrackId = column[Int]("CURRENT_TRACK_ID")
+    def getTrackVoteEventByUserId(db: H2Profile.backend.Database, userId: Int): List[TrackVoteEvent] = {
+      val query = for {
+        ((u, j), e) <- tabUser join joinTrackVoteEventUserInvited on
+          (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
+        if u.id === userId
+      } yield e
+      val f = db.run(query.result)
 
-    def horaire = column[String]("HORAIRE")
+      Await.ready(f, Duration.Inf).value
+        .flatMap(_.toOption)
+        .map(_.map(tabToObjTrackVoteEvent))
+        .map(_.toList)
+        .getOrElse(List[TrackVoteEvent]())
+    }
 
-    def location = column[String]("LOCATION")
+    class TabTrackVoteEvent(tag: Tag)
+      extends Table[(Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
 
-    def * = (id, name, public, currentTrackId, horaire, location)
+      def id = column[Int]("ID", O.PrimaryKey)
+
+      def name = column[String]("NAME")
+
+      def public = column[Boolean]("PUBLIC")
+
+      def currentTrackId = column[Int]("CURRENT_TRACK_ID")
+
+      def horaire = column[String]("HORAIRE")
+
+      def location = column[String]("LOCATION")
+
+      def * = (id, name, public, currentTrackId, horaire, location)
+    }
+
+    val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
+
+    def tabToObjTrackVoteEvent(t: (Int, String, Boolean, Int, String, String)): TrackVoteEvent = {
+      val (id, name, public, currentTrackId, horaire, location) = t
+      TrackVoteEvent(
+        id, name, public, currentTrackId, horaire, location
+      )
+    }
+
+    class JoinTrackVoteEventUserInvited(tag: Tag)
+      extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
+
+      def id = column[Int]("ID", O.PrimaryKey)
+
+      def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
+
+      def idUser = column[Int]("ID_USER")
+
+      def * = (id, idTrackVoteEvent, idUser)
+    }
+
+    val joinTrackVoteEventUserInvited = TableQuery[JoinTrackVoteEventUserInvited]
+
+    class JoinTrackVoteEventUserVoteTrack(tag: Tag)
+      extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
+
+      def id = column[Int]("ID", O.PrimaryKey)
+
+      def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
+
+      def idUser = column[Int]("ID_USER")
+
+      def idDeezerTrack = column[Int]("ID_DEEZER_TRACK")
+
+      def voteUp = column[Boolean]("VOTE_UP")
+
+      def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
+    }
+
+    val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
+
   }
-
-  val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
-
-  def tabToObjTrackVoteEvent(t: (Int, String, Boolean, Int, String, String)): TrackVoteEvent = {
-    val (id, name, public, currentTrackId, horaire, location) = t
-    TrackVoteEvent(
-      id, name, public, currentTrackId, horaire, location
-    )
-  }
-
-  class JoinTrackVoteEventUserInvited(tag: Tag)
-    extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
-
-    def id = column[Int]("ID", O.PrimaryKey)
-
-    def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
-
-    def idUser = column[Int]("ID_USER")
-
-    def * = (id, idTrackVoteEvent, idUser)
-  }
-
-  val joinTrackVoteEventUserInvited = TableQuery[JoinTrackVoteEventUserInvited]
-
-  class JoinTrackVoteEventUserVoteTrack(tag: Tag)
-    extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
-
-    def id = column[Int]("ID", O.PrimaryKey)
-
-    def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
-
-    def idUser = column[Int]("ID_USER")
-
-    def idDeezerTrack = column[Int]("ID_DEEZER_TRACK")
-
-    def voteUp = column[Boolean]("VOTE_UP")
-
-    def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
-  }
-
-  val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
 
   def init(db: H2Profile.backend.Database): Unit = {
     val setup = DBIO.seq(
@@ -315,9 +322,9 @@ object DBHandler {
         joinFriend.schema ++
         joinMusicalPreferences.schema ++
 
-        tabTrackVoteEvent.schema ++
-        joinTrackVoteEventUserInvited.schema ++
-        joinTrackVoteEventUserVoteTrack.schema
+        DBTrackVoteEvent.tabTrackVoteEvent.schema ++
+        DBTrackVoteEvent.joinTrackVoteEventUserInvited.schema ++
+        DBTrackVoteEvent.joinTrackVoteEventUserVoteTrack.schema
         ).create,
     )
 
