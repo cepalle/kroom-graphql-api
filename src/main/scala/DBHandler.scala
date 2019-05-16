@@ -26,7 +26,7 @@ class DBHandler {
   def addDeezerGenre(dg: DeezerGenre): Boolean = {
     val f = db.run(tabDeezerGenre += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
-    false
+    true
   }
 
   def getDeezerAlbum(id: Int): Option[DeezerAlbum] = {
@@ -41,7 +41,7 @@ class DBHandler {
   def addDeezerAlbum(dg: DeezerAlbum): Boolean = {
     val f = db.run(tabDeezerAlbum += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
-    false
+    true
   }
 
   def getDeezerArtist(id: Int): Option[DeezerArtist] = {
@@ -56,7 +56,7 @@ class DBHandler {
   def addDeezerArtist(dg: DeezerArtist): Boolean = {
     val f = db.run(tabDeezerArtist += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
-    false
+    true
   }
 
   def getDeezerTrack(id: Int): Option[DeezerTrack] = {
@@ -71,7 +71,7 @@ class DBHandler {
   def addDeezerTrack(dg: DeezerTrack): Boolean = {
     val f = db.run(tabDeezerTrack += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
-    false
+    true
   }
 
   // -- USER
@@ -93,11 +93,13 @@ class DBHandler {
     val query = tabTrackVoteEvent.filter(_.public).result
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap(_.map({
-      case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
-        id, name, public, currentTrackId, horaire, location
-      )
-    })).toList
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).map(
+      _.map({
+        case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
+          id, name, public, currentTrackId, horaire, location
+        )
+      })
+    ).map(_.toList).getOrElse(List[TrackVoteEvent]())
   }
 
   def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
