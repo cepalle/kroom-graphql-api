@@ -148,6 +148,11 @@ object SchemaDefinition {
     "TrackVoteEvent description.",
     fields[RepoRoot, TrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
+      Field("name", StringType, resolve = _.value.name),
+      Field("public", BooleanType, resolve = _.value.public),
+      Field("currentTrackId", IntType, resolve = _.value.currentTrackId),
+      Field("horaire", StringType, resolve = _.value.horaire),
+      Field("location", StringType, resolve = _.value.location),
     ))
 
   // arguments
