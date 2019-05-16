@@ -20,6 +20,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import GraphQLRequestUnmarshaller._
 import sangria.slowlog.SlowLog
+import slick.jdbc.H2Profile.api._
 
 object Server extends App with CorsSupport {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
@@ -27,9 +28,11 @@ object Server extends App with CorsSupport {
 
   import system.dispatcher
 
+  private val db = Database.forConfig("h2mem1")
+
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean) =
     complete(Executor.execute(
-      SchemaDefinition.KroomSchema, query, new RepoRoot(new DBHandler),
+      SchemaDefinition.KroomSchema, query, new RepoRoot(new DBHandler(db)),
       variables = if (variables.isNull) Json.obj() else variables,
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
@@ -116,6 +119,6 @@ object Server extends App with CorsSupport {
         redirect("/graphql", PermanentRedirect)
       }
 
-  DBHandler.init()
+  DBHandler.init(db)
   Http().bindAndHandle(corsHandler(route), "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
 }
