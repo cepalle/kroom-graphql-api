@@ -1,5 +1,6 @@
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+package Repo
+
+import DB.DBHandler
 
 case class TrackVoteEvent(
                            id: Int,

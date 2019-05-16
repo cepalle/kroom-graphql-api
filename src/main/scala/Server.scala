@@ -19,6 +19,9 @@ import io.circe.parser._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import GraphQLRequestUnmarshaller._
+import Repo.RepoRoot
+import Schema.SchemaDefinition
+import DB.DBHandler
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
 

@@ -1,14 +1,16 @@
+package Schema
+
+import Repo._
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema._
+import sangria.schema.{Argument, BooleanType, Field, FloatType, IntType, ListType, ObjectLikeType, ObjectType, OptionType, Schema, StringType, fields}
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Defines a GraphQL schema for the current project
   */
 object SchemaDefinition {
-
+  import scala.concurrent.ExecutionContext.Implicits.global
   // Fetcher
 
   lazy val GenreFetcherId: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
@@ -144,8 +146,8 @@ object SchemaDefinition {
     ))
 
   lazy val TrackVoteEventField: ObjectLikeType[RepoRoot, TrackVoteEvent] = ObjectType(
-    "TrackVoteEvent",
-    "TrackVoteEvent description.",
+    "Repo.TrackVoteEvent",
+    "Repo.TrackVoteEvent description.",
     fields[RepoRoot, TrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),

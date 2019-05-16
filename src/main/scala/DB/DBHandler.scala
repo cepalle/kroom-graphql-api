@@ -1,14 +1,14 @@
-import DBHandler._
-import io.circe.parser
+package DB
+
+import Repo._
 import io.circe.generic.auto._
+import io.circe.parser
 import io.circe.syntax._
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
-import slick.lifted.QueryBase
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
 
 
 class DBHandler(val db: H2Profile.backend.Database) {
