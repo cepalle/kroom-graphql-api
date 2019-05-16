@@ -19,9 +19,9 @@ class DBHandler {
     val query = tabDeezerGenre.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
-      case (id, json) => parser.decode[DeezerGenre](json).toOption
-    })
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjDeezerGenre)
   }
 
   def addDeezerGenre(dg: DeezerGenre): Boolean = {
@@ -34,9 +34,9 @@ class DBHandler {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
-      case (id, json) => parser.decode[DeezerAlbum](json).toOption
-    })
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjDeezerAlbum)
   }
 
   def addDeezerAlbum(dg: DeezerAlbum): Boolean = {
@@ -49,9 +49,9 @@ class DBHandler {
     val query = tabDeezerArtist.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
-      case (id, json) => parser.decode[DeezerArtist](json).toOption
-    })
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjDeezerArtist)
   }
 
   def addDeezerArtist(dg: DeezerArtist): Boolean = {
@@ -64,9 +64,9 @@ class DBHandler {
     val query = tabDeezerTrack.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
-      case (id, json) => parser.decode[DeezerTrack](json).toOption
-    })
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjDeezerTrack)
   }
 
   def addDeezerTrack(dg: DeezerTrack): Boolean = {
@@ -83,37 +83,35 @@ class DBHandler {
     val query = tabTrackVoteEvent.filter(_.id === id).result.head
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).flatMap({
-      case (id, name, public, currentTrackId, horaire, location) => Some(TrackVoteEvent(
-        id, name, public, currentTrackId, horaire, location
-      ))
-    })
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjTrackVoteEvent)
   }
 
   def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.public).result
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).map(
-      _.map({
-        case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
-          id, name, public, currentTrackId, horaire, location
-        )
-      })
-    ).map(_.toList).getOrElse(List[TrackVoteEvent]())
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(_.map(tabToObjTrackVoteEvent))
+      .map(_.toList)
+      .getOrElse(List[TrackVoteEvent]())
   }
 
   def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
     val query = for {
-      (u, e) <- tabUser join tabTrackVoteEvent on (_.id === _.id) if u.id === userId
+      ((u, j), e) <- tabUser join joinTrackVoteEventUserInvited on
+        (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
+      if u.id === userId
     } yield e
     val f = db.run(query.result)
 
-    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).map(_.map({
-      case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
-        id, name, public, currentTrackId, horaire, location
-      )
-    })).map(_.toList).getOrElse(List[TrackVoteEvent]())
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(_.map(tabToObjTrackVoteEvent))
+      .map(_.toList)
+      .getOrElse(List[TrackVoteEvent]())
   }
 
 
@@ -136,6 +134,13 @@ object DBHandler {
 
   val tabDeezerGenre = TableQuery[TabDeezerGenre]
 
+  def tabToObjDeezerGenre(t: (Int, String)): DeezerGenre = {
+    parser.decode[DeezerGenre](t._2).toOption match {
+      case Some(res) => res
+      case _ => throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid")
+    }
+  }
+
   class TabDeezerAlbum(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ALBUM") {
 
     def id = column[Int]("ID", O.PrimaryKey)
@@ -146,6 +151,13 @@ object DBHandler {
   }
 
   val tabDeezerAlbum = TableQuery[TabDeezerAlbum]
+
+  def tabToObjDeezerAlbum(t: (Int, String)): DeezerAlbum = {
+    parser.decode[DeezerAlbum](t._2).toOption match {
+      case Some(res) => res
+      case _ => throw new IllegalArgumentException("TabDeezerAlbum: json in db is invalid")
+    }
+  }
 
   class TabDeezerArtist(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ARTIST") {
 
@@ -158,6 +170,13 @@ object DBHandler {
 
   val tabDeezerArtist = TableQuery[TabDeezerArtist]
 
+  def tabToObjDeezerArtist(t: (Int, String)): DeezerArtist = {
+    parser.decode[DeezerArtist](t._2).toOption match {
+      case Some(res) => res
+      case _ => throw new IllegalArgumentException("TabDeezerArtist: json in db is invalid")
+    }
+  }
+
   class TabDeezerTrack(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_TRACK") {
 
     def id = column[Int]("ID", O.PrimaryKey)
@@ -168,6 +187,13 @@ object DBHandler {
   }
 
   val tabDeezerTrack = TableQuery[TabDeezerTrack]
+
+  def tabToObjDeezerTrack(t: (Int, String)): DeezerTrack = {
+    parser.decode[DeezerTrack](t._2).toOption match {
+      case Some(res) => res
+      case _ => throw new IllegalArgumentException("TabDeezerTrack: json in db is invalid")
+    }
+  }
 
   // -- USER
 
@@ -233,6 +259,13 @@ object DBHandler {
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
+
+  def tabToObjTrackVoteEvent(t: (Int, String, Boolean, Int, String, String)): TrackVoteEvent = {
+    val (id, name, public, currentTrackId, horaire, location) = t
+    TrackVoteEvent(
+      id, name, public, currentTrackId, horaire, location
+    )
+  }
 
   class JoinTrackVoteEventUserInvited(tag: Tag)
     extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
