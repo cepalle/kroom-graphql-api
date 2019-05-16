@@ -2,7 +2,7 @@ package Schema
 
 import Repo._
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{Argument, BooleanType, Field, FloatType, IntType, ListType, ObjectLikeType, ObjectType, OptionType, Schema, StringType, fields}
+import sangria.schema.{Argument, BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -10,6 +10,7 @@ import scala.concurrent.Future
   * Defines a GraphQL schema for the current project
   */
 object SchemaDefinition {
+
   import scala.concurrent.ExecutionContext.Implicits.global
   // Fetcher
 
@@ -45,10 +46,10 @@ object SchemaDefinition {
 
   // Field
 
-  lazy val GenreField = ObjectType(
+  lazy val GenreField: ObjectType[Unit, DeezerGenre] = ObjectType(
     "Genre",
     "Genre description.",
-    fields[RepoRoot, DeezerGenre](
+    () ⇒ fields[Unit, DeezerGenre](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("picture", StringType, resolve = _.value.picture),
@@ -58,10 +59,10 @@ object SchemaDefinition {
       Field("picture_xl", StringType, resolve = _.value.picture_xl),
     ))
 
-  lazy val ArtistField = ObjectType(
+  lazy val ArtistField: ObjectType[Unit, DeezerArtist] = ObjectType(
     "Artist",
     "Artist description.",
-    fields[RepoRoot, DeezerArtist](
+    () ⇒ fields[Unit, DeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -76,10 +77,10 @@ object SchemaDefinition {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumField: ObjectLikeType[RepoRoot, DeezerAlbum] = ObjectType(
+  lazy val AlbumField: ObjectType[Unit, DeezerAlbum] = ObjectType(
     "Album",
     "Album description.",
-    fields[RepoRoot, DeezerAlbum](
+    () ⇒ fields[Unit, DeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -112,10 +113,10 @@ object SchemaDefinition {
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackField: ObjectLikeType[RepoRoot, DeezerTrack] = ObjectType(
+  lazy val TrackField: ObjectType[Unit, DeezerTrack] = ObjectType(
     "Track",
     "Track description.",
-    fields[RepoRoot, DeezerTrack](
+    () ⇒ fields[Unit, DeezerTrack](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
@@ -145,10 +146,10 @@ object SchemaDefinition {
       Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
     ))
 
-  lazy val TrackVoteEventField: ObjectLikeType[RepoRoot, TrackVoteEvent] = ObjectType(
-    "Repo.TrackVoteEvent",
-    "Repo.TrackVoteEvent description.",
-    fields[RepoRoot, TrackVoteEvent](
+  lazy val TrackVoteEventField: ObjectType[Unit, TrackVoteEvent] = ObjectType(
+    "TrackVoteEvent",
+    "TrackVoteEvent description.",
+    () ⇒ fields[Unit, TrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),

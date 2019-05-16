@@ -25,12 +25,13 @@ class DBHandler(val db: H2Profile.backend.Database) {
   val addDeezerTrack = DBDeezer.addDeezerTrack(db, _)
 
   val getTrackVoteEventById = DBTrackVoteEvent.getTrackVoteEventById(db, _)
-  def getTrackVoteEventPublic() = DBTrackVoteEvent.getTrackVoteEventPublic(db)
+  val getTrackVoteEventPublic = () => DBTrackVoteEvent.getTrackVoteEventPublic(db)
   val getTrackVoteEventByUserId = DBTrackVoteEvent.getTrackVoteEventByUserId(db, _)
 
 }
 
 // foreign key
+// ids ?
 object DBHandler {
 
   object DBDeezer {
