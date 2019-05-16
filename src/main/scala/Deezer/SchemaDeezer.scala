@@ -10,34 +10,34 @@ object SchemaDeezer {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val GenreFetcherId: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
+  lazy val GenreFetcherId: Fetcher[RepoRoot, DataDeezerGenre, DataDeezerGenre, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerGenreById(id))
     }
     )(HasId(_.id))
 
-  lazy val ArtistFetcherId: Fetcher[RepoRoot, DeezerArtist, DeezerArtist, Int] =
+  lazy val ArtistFetcherId: Fetcher[RepoRoot, DataDeezerArtist, DataDeezerArtist, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerArtistById(id))
     }
     )(HasId(_.id))
 
-  lazy val AlbumFetcherId: Fetcher[RepoRoot, DeezerAlbum, DeezerAlbum, Int] =
+  lazy val AlbumFetcherId: Fetcher[RepoRoot, DataDeezerAlbum, DataDeezerAlbum, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerAlbumById(id))
     }
     )(HasId(_.id))
 
-  lazy val TrackFetcherId: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
+  lazy val TrackFetcherId: Fetcher[RepoRoot, DataDeezerTrack, DataDeezerTrack, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerTrackById(id))
     }
     )(HasId(_.id))
 
-  lazy val GenreField: ObjectType[Unit, DeezerGenre] = ObjectType(
+  lazy val GenreField: ObjectType[Unit, DataDeezerGenre] = ObjectType(
     "Genre",
     "Genre description.",
-    () ⇒ fields[Unit, DeezerGenre](
+    () ⇒ fields[Unit, DataDeezerGenre](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("picture", StringType, resolve = _.value.picture),
@@ -47,10 +47,10 @@ object SchemaDeezer {
       Field("picture_xl", StringType, resolve = _.value.picture_xl),
     ))
 
-  lazy val ArtistField: ObjectType[Unit, DeezerArtist] = ObjectType(
+  lazy val ArtistField: ObjectType[Unit, DataDeezerArtist] = ObjectType(
     "Artist",
     "Artist description.",
-    () ⇒ fields[Unit, DeezerArtist](
+    () ⇒ fields[Unit, DataDeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -65,10 +65,10 @@ object SchemaDeezer {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumField: ObjectType[Unit, DeezerAlbum] = ObjectType(
+  lazy val AlbumField: ObjectType[Unit, DataDeezerAlbum] = ObjectType(
     "Album",
     "Album description.",
-    () ⇒ fields[Unit, DeezerAlbum](
+    () ⇒ fields[Unit, DataDeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -101,10 +101,10 @@ object SchemaDeezer {
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackField: ObjectType[Unit, DeezerTrack] = ObjectType(
+  lazy val TrackField: ObjectType[Unit, DataDeezerTrack] = ObjectType(
     "Track",
     "Track description.",
-    () ⇒ fields[Unit, DeezerTrack](
+    () ⇒ fields[Unit, DataDeezerTrack](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),

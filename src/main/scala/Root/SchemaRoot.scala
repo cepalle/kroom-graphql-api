@@ -14,16 +14,16 @@ object SchemaRoot {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, TrackVoteEvent, TrackVoteEvent, Int] =
+  lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getTrackVoteEventById(id))
     }
     )(HasId(_.id))
 
-  lazy val TrackVoteEventField: ObjectType[Unit, TrackVoteEvent] = ObjectType(
+  lazy val TrackVoteEventField: ObjectType[Unit, DataTrackVoteEvent] = ObjectType(
     "TrackVoteEvent",
     "TrackVoteEvent description.",
-    () ⇒ fields[Unit, TrackVoteEvent](
+    () ⇒ fields[Unit, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),

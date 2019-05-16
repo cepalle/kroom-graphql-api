@@ -2,7 +2,7 @@ package Root
 
 import Deezer.RepoDeezer
 
-case class TrackVoteEvent(
+case class DataTrackVoteEvent(
                            id: Int,
                            name: String,
                            public: Boolean,
@@ -24,15 +24,15 @@ class RepoRoot(val dbh: DBRoot) {
 
   val getDeezerGenreById = deezerRepo.getGenreById _
 
-  def getTrackVoteEventById(id: Int): Option[TrackVoteEvent] = {
+  def getTrackVoteEventById(id: Int): Option[DataTrackVoteEvent] = {
     dbh.getTrackVoteEventById(id)
   }
 
-  def getTrackVoteEventPublic(): List[TrackVoteEvent] = {
+  def getTrackVoteEventPublic(): List[DataTrackVoteEvent] = {
     dbh.getTrackVoteEventPublic()
   }
 
-  def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
+  def getTrackVoteEventByUserId(userId: Int): List[DataTrackVoteEvent] = {
     dbh.getTrackVoteEventByUserId(userId)
   }
 

@@ -9,7 +9,7 @@ case class Id(id: Int)
 
 case class DataListId(data: List[Id])
 
-case class DeezerGenre(
+case class DataDeezerGenre(
                         id: Int,
                         name: String,
                         // url,
@@ -24,7 +24,7 @@ case class DeezerGenre(
                         picture_xl: String,
                       )
 
-case class DeezerAlbum(
+case class DataDeezerAlbum(
                         id: Int,
                         title: String,
                         upc: String,
@@ -67,7 +67,7 @@ case class DeezerAlbum(
                         tracks: DataListId,
                       )
 
-case class DeezerArtist(
+case class DataDeezerArtist(
                          id: Int,
                          name: String,
                          // url,
@@ -90,7 +90,7 @@ case class DeezerArtist(
                          tracklist: String
                        )
 
-case class DeezerTrack(
+case class DataDeezerTrack(
                         id: Int,
                         readable: Boolean,
                         title: String,
@@ -126,7 +126,7 @@ case class DeezerTrack(
 // cached error ?
 class RepoDeezer(val dbh: DBRoot) {
 
-  def getTrackById(id: Int): Option[DeezerTrack] = {
+  def getTrackById(id: Int): Option[DataDeezerTrack] = {
     dbh.getDeezerTrack(id) match {
       case Some(d) => {
         println("Deezer.RepoDeezer: Track get from cached")
@@ -138,7 +138,7 @@ class RepoDeezer(val dbh: DBRoot) {
     val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
     val res: HttpResponse[String] = request.asString
 
-    val decodingResult = parser.decode[DeezerTrack](res.body)
+    val decodingResult = parser.decode[DataDeezerTrack](res.body)
     decodingResult match {
       case Right(track) => {
         println("Deezer.RepoDeezer: Track get from Deezer API")
@@ -152,7 +152,7 @@ class RepoDeezer(val dbh: DBRoot) {
     }
   }
 
-  def getArtistById(id: Int): Option[DeezerArtist] = {
+  def getArtistById(id: Int): Option[DataDeezerArtist] = {
     dbh.getDeezerArtist(id) match {
       case Some(d) => {
         println("Deezer.RepoDeezer: Artist get from cached")
@@ -164,7 +164,7 @@ class RepoDeezer(val dbh: DBRoot) {
     val request: HttpRequest = Http(s"https://api.deezer.com/artist/$id")
     val res: HttpResponse[String] = request.asString
 
-    val decodingResult = parser.decode[DeezerArtist](res.body)
+    val decodingResult = parser.decode[DataDeezerArtist](res.body)
     decodingResult match {
       case Right(artist) => {
         println("Deezer.RepoDeezer: Artist get from Deezer API")
@@ -178,7 +178,7 @@ class RepoDeezer(val dbh: DBRoot) {
     }
   }
 
-  def getAlbumById(id: Int): Option[DeezerAlbum] = {
+  def getAlbumById(id: Int): Option[DataDeezerAlbum] = {
     dbh.getDeezerAlbum(id) match {
       case Some(d) => {
         println("Deezer.RepoDeezer: Album get from cached")
@@ -190,7 +190,7 @@ class RepoDeezer(val dbh: DBRoot) {
     val request: HttpRequest = Http(s"https://api.deezer.com/album/$id")
     val res: HttpResponse[String] = request.asString
 
-    val decodingResult = parser.decode[DeezerAlbum](res.body)
+    val decodingResult = parser.decode[DataDeezerAlbum](res.body)
     decodingResult match {
       case Right(album) => {
         println("Deezer.RepoDeezer: Album get from Deezer API")
@@ -204,7 +204,7 @@ class RepoDeezer(val dbh: DBRoot) {
     }
   }
 
-  def getGenreById(id: Int): Option[DeezerGenre] = {
+  def getGenreById(id: Int): Option[DataDeezerGenre] = {
     dbh.getDeezerGenre(id) match {
       case Some(d) => {
         println("Deezer.RepoDeezer: Genre get from cached")
@@ -216,7 +216,7 @@ class RepoDeezer(val dbh: DBRoot) {
     val request: HttpRequest = Http(s"https://api.deezer.com/genre/$id")
     val res: HttpResponse[String] = request.asString
 
-    val decodingResult = parser.decode[DeezerGenre](res.body)
+    val decodingResult = parser.decode[DataDeezerGenre](res.body)
     decodingResult match {
       case Right(genre) => {
         println("Deezer.RepoDeezer: Genre get from Deezer API")
