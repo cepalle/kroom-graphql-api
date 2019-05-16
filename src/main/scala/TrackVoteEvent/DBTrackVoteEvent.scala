@@ -8,11 +8,12 @@ import slick.jdbc.H2Profile.api._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object DBTrackVoteEvent {
+class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
+  import DBTrackVoteEvent._
   import DBUser._
 
-  def getTrackVoteEventById(db: H2Profile.backend.Database, id: Int): Option[DataTrackVoteEvent] = {
+  def getTrackVoteEventById(id: Int): Option[DataTrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.id === id).result.head
     val f = db.run(query)
 
@@ -21,7 +22,7 @@ object DBTrackVoteEvent {
       .map(tabToObjTrackVoteEvent)
   }
 
-  def getTrackVoteEventPublic(db: H2Profile.backend.Database): List[DataTrackVoteEvent] = {
+  def getTrackVoteEventPublic: List[DataTrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.public).result
     val f = db.run(query)
 
@@ -32,7 +33,7 @@ object DBTrackVoteEvent {
       .getOrElse(List[DataTrackVoteEvent]())
   }
 
-  def getTrackVoteEventByUserId(db: H2Profile.backend.Database, userId: Int): List[DataTrackVoteEvent] = {
+  def getTrackVoteEventByUserId(userId: Int): List[DataTrackVoteEvent] = {
     val query = for {
       ((u, j), e) <- tabUser join joinTrackVoteEventUserInvited on
         (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
@@ -46,6 +47,10 @@ object DBTrackVoteEvent {
       .map(_.toList)
       .getOrElse(List[DataTrackVoteEvent]())
   }
+
+}
+
+object DBTrackVoteEvent {
 
   class TabTrackVoteEvent(tag: Tag)
     extends Table[(Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {

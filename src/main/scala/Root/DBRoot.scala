@@ -10,20 +10,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-class DBRoot(val db: H2Profile.backend.Database) {
-
-  val getDeezerGenre = DBDeezer.getDeezerGenre(db, _)
-  val addDeezerGenre = DBDeezer.addDeezerGenre(db, _)
-  val getDeezerAlbum = DBDeezer.getDeezerAlbum(db, _)
-  val addDeezerAlbum = DBDeezer.addDeezerAlbum(db, _)
-  val getDeezerArtist = DBDeezer.getDeezerArtist(db, _)
-  val addDeezerArtist = DBDeezer.addDeezerArtist(db, _)
-  val getDeezerTrack = DBDeezer.getDeezerTrack(db, _)
-  val addDeezerTrack = DBDeezer.addDeezerTrack(db, _)
-
-  val getTrackVoteEventById = DBTrackVoteEvent.getTrackVoteEventById(db, _)
-  val getTrackVoteEventPublic = () => DBTrackVoteEvent.getTrackVoteEventPublic(db)
-  val getTrackVoteEventByUserId = DBTrackVoteEvent.getTrackVoteEventByUserId(db, _)
+class DBRoot(private val db: H2Profile.backend.Database) {
+  val deezer = DBDeezer(db)
+  val trackVoteEvent = DBTrackVoteEvent(db)
+  val user = DBUser(db)
 
 }
 

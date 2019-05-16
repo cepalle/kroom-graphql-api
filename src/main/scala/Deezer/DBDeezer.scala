@@ -9,9 +9,11 @@ import slick.jdbc.H2Profile.api._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object DBDeezer {
+class DBDeezer(private val db: H2Profile.backend.Database) {
 
-  def getDeezerGenre(db: H2Profile.backend.Database, id: Int): Option[DataDeezerGenre] = {
+  import DBDeezer._
+
+  def getDeezerGenre(id: Int): Option[DataDeezerGenre] = {
     val query = tabDeezerGenre.filter(_.id === id).result.head
     val f = db.run(query)
 
@@ -20,13 +22,13 @@ object DBDeezer {
       .map(tabToObjDeezerGenre)
   }
 
-  def addDeezerGenre(db: H2Profile.backend.Database, dg: DataDeezerGenre): Boolean = {
+  def addDeezerGenre(dg: DataDeezerGenre): Boolean = {
     val f = db.run(tabDeezerGenre += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
     true
   }
 
-  def getDeezerAlbum(db: H2Profile.backend.Database, id: Int): Option[DataDeezerAlbum] = {
+  def getDeezerAlbum(id: Int): Option[DataDeezerAlbum] = {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
     val f = db.run(query)
 
@@ -35,13 +37,13 @@ object DBDeezer {
       .map(tabToObjDeezerAlbum)
   }
 
-  def addDeezerAlbum(db: H2Profile.backend.Database, dg: DataDeezerAlbum): Boolean = {
+  def addDeezerAlbum(dg: DataDeezerAlbum): Boolean = {
     val f = db.run(tabDeezerAlbum += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
     true
   }
 
-  def getDeezerArtist(db: H2Profile.backend.Database, id: Int): Option[DataDeezerArtist] = {
+  def getDeezerArtist(id: Int): Option[DataDeezerArtist] = {
     val query = tabDeezerArtist.filter(_.id === id).result.head
     val f = db.run(query)
 
@@ -50,13 +52,13 @@ object DBDeezer {
       .map(tabToObjDeezerArtist)
   }
 
-  def addDeezerArtist(db: H2Profile.backend.Database, dg: DataDeezerArtist): Boolean = {
+  def addDeezerArtist(dg: DataDeezerArtist): Boolean = {
     val f = db.run(tabDeezerArtist += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
     true
   }
 
-  def getDeezerTrack(db: H2Profile.backend.Database, id: Int): Option[DataDeezerTrack] = {
+  def getDeezerTrack(id: Int): Option[DataDeezerTrack] = {
     val query = tabDeezerTrack.filter(_.id === id).result.head
     val f = db.run(query)
 
@@ -65,11 +67,15 @@ object DBDeezer {
       .map(tabToObjDeezerTrack)
   }
 
-  def addDeezerTrack(db: H2Profile.backend.Database, dg: DataDeezerTrack): Boolean = {
+  def addDeezerTrack(dg: DataDeezerTrack): Boolean = {
     val f = db.run(tabDeezerTrack += ((dg.id, dg.asJson.toString())))
     Await.ready(f, Duration.Inf)
     true
   }
+
+}
+
+object DBDeezer {
 
   class TabDeezerGenre(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_GENRE") {
 

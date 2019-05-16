@@ -1,7 +1,13 @@
 package User
 
+import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
+class DBUser(private val db: H2Profile.backend.Database) {
+
+  import DBUser._
+
+}
 
 object DBUser {
 
