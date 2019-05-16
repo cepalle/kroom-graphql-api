@@ -1,6 +1,6 @@
-package Repo
+package Deezer
 
-import DB.DBRoot
+import Root.DBRoot
 import io.circe.generic.auto._
 import io.circe.parser
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -44,7 +44,7 @@ case class DeezerAlbum(
                         cover_xl: String,
                         // -1 not found
                         genre_id: Int,
-                        // genres: Repo.DataListId,
+                        // genres: Deezer.DataListId,
                         label: String,
                         nb_tracks: Int,
                         duration: Int,
@@ -54,7 +54,7 @@ case class DeezerAlbum(
                         release_date: String,
                         record_type: String,
                         available: Boolean,
-                        // alternative: Repo.DeezerAlbum,
+                        // alternative: Deezer.DeezerAlbum,
                         // url
                         tracklist: String,
                         explicit_lyrics: Boolean,
@@ -129,7 +129,7 @@ class RepoDeezer(val dbh: DBRoot) {
   def getTrackById(id: Int): Option[DeezerTrack] = {
     dbh.getDeezerTrack(id) match {
       case Some(d) => {
-        println("Repo.RepoDeezer: Track get from cached")
+        println("Deezer.RepoDeezer: Track get from cached")
         return Some(d)
       }
       case _ => ()
@@ -141,12 +141,12 @@ class RepoDeezer(val dbh: DBRoot) {
     val decodingResult = parser.decode[DeezerTrack](res.body)
     decodingResult match {
       case Right(track) => {
-        println("Repo.RepoDeezer: Track get from Deezer API")
+        println("Deezer.RepoDeezer: Track get from Deezer API")
         dbh.addDeezerTrack(track)
         Some(track)
       }
       case Left(error) =>
-        print("Repo.RepoDeezer get track: ")
+        print("Deezer.RepoDeezer get track: ")
         println(error)
         None
     }
@@ -155,7 +155,7 @@ class RepoDeezer(val dbh: DBRoot) {
   def getArtistById(id: Int): Option[DeezerArtist] = {
     dbh.getDeezerArtist(id) match {
       case Some(d) => {
-        println("Repo.RepoDeezer: Artist get from cached")
+        println("Deezer.RepoDeezer: Artist get from cached")
         return Some(d)
       }
       case _ => ()
@@ -167,12 +167,12 @@ class RepoDeezer(val dbh: DBRoot) {
     val decodingResult = parser.decode[DeezerArtist](res.body)
     decodingResult match {
       case Right(artist) => {
-        println("Repo.RepoDeezer: Artist get from Deezer API")
+        println("Deezer.RepoDeezer: Artist get from Deezer API")
         dbh.addDeezerArtist(artist)
         Some(artist)
       }
       case Left(error) =>
-        print("Repo.RepoDeezer get artist: ")
+        print("Deezer.RepoDeezer get artist: ")
         println(error)
         None
     }
@@ -181,7 +181,7 @@ class RepoDeezer(val dbh: DBRoot) {
   def getAlbumById(id: Int): Option[DeezerAlbum] = {
     dbh.getDeezerAlbum(id) match {
       case Some(d) => {
-        println("Repo.RepoDeezer: Album get from cached")
+        println("Deezer.RepoDeezer: Album get from cached")
         return Some(d)
       }
       case _ => ()
@@ -193,12 +193,12 @@ class RepoDeezer(val dbh: DBRoot) {
     val decodingResult = parser.decode[DeezerAlbum](res.body)
     decodingResult match {
       case Right(album) => {
-        println("Repo.RepoDeezer: Album get from Deezer API")
+        println("Deezer.RepoDeezer: Album get from Deezer API")
         dbh.addDeezerAlbum(album)
         Some(album)
       }
       case Left(error) =>
-        print("Repo.RepoDeezer get album : ")
+        print("Deezer.RepoDeezer get album : ")
         println(error)
         None
     }
@@ -207,7 +207,7 @@ class RepoDeezer(val dbh: DBRoot) {
   def getGenreById(id: Int): Option[DeezerGenre] = {
     dbh.getDeezerGenre(id) match {
       case Some(d) => {
-        println("Repo.RepoDeezer: Genre get from cached")
+        println("Deezer.RepoDeezer: Genre get from cached")
         return Some(d)
       }
       case _ => ()
@@ -219,12 +219,12 @@ class RepoDeezer(val dbh: DBRoot) {
     val decodingResult = parser.decode[DeezerGenre](res.body)
     decodingResult match {
       case Right(genre) => {
-        println("Repo.RepoDeezer: Genre get from Deezer API")
+        println("Deezer.RepoDeezer: Genre get from Deezer API")
         dbh.addDeezerGenre(genre)
         Some(genre)
       }
       case Left(error) =>
-        print("Repo.RepoDeezer get genre : ")
+        print("Deezer.RepoDeezer get genre : ")
         println(error)
         None
     }

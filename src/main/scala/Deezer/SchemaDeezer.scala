@@ -1,6 +1,6 @@
-package Schema
+package Deezer
 
-import Repo._
+import Root.RepoRoot
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 

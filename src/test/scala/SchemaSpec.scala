@@ -1,4 +1,4 @@
-import Schema.SchemaRoot
+import Root.SchemaRoot
 import org.scalatest.{Matchers, WordSpec}
 import sangria.ast.Document
 import sangria.macros._
@@ -11,7 +11,6 @@ import io.circe.parser._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import Schema.SchemaRoot.KroomSchema
 
 class SchemaSpec extends WordSpec with Matchers {
   "StartWars Schema" should {

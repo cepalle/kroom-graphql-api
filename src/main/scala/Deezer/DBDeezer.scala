@@ -1,6 +1,5 @@
-package DB
+package Deezer
 
-import Repo._
 import io.circe.generic.auto._
 import io.circe.parser
 import io.circe.syntax._
@@ -9,7 +8,6 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-
 
 object DBDeezer {
 

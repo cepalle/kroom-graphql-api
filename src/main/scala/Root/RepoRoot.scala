@@ -1,6 +1,6 @@
-package Repo
+package Root
 
-import DB.DBRoot
+import Deezer.RepoDeezer
 
 case class TrackVoteEvent(
                            id: Int,

@@ -1,9 +1,6 @@
-package DB
+package Root
 
-import Repo._
-import io.circe.generic.auto._
-import io.circe.parser
-import io.circe.syntax._
+import Deezer.DBDeezer
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
@@ -177,6 +174,7 @@ object DBRoot {
   }
 
   def init(db: H2Profile.backend.Database): Unit = {
+    println("Database starting ...")
     val setup = DBIO.seq(
       (DBDeezer.tabDeezerGenre.schema ++
         DBDeezer.tabDeezerAlbum.schema ++

@@ -1,8 +1,7 @@
-package Schema
+package Root
 
-import Repo._
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{Argument, BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
+import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -11,7 +10,7 @@ import scala.concurrent.Future
   */
 object SchemaRoot {
 
-  import SchemaDeezer._
+  import Deezer.SchemaDeezer._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -71,4 +70,3 @@ object SchemaRoot {
 
   val KroomSchema = Schema(Query)
 }
-
