@@ -1,6 +1,6 @@
 package Repo
 
-import DB.DBHandler
+import DB.DBRoot
 
 case class TrackVoteEvent(
                            id: Int,
@@ -12,7 +12,7 @@ case class TrackVoteEvent(
                          )
 
 
-class RepoRoot(val dbh: DBHandler) {
+class RepoRoot(val dbh: DBRoot) {
 
   val deezerRepo = new RepoDeezer(dbh)
 

@@ -1,6 +1,6 @@
 package Repo
 
-import DB.DBHandler
+import DB.DBRoot
 import io.circe.generic.auto._
 import io.circe.parser
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -124,7 +124,7 @@ case class DeezerTrack(
 
 // TODO LOG
 // cached error ?
-class RepoDeezer(val dbh: DBHandler) {
+class RepoDeezer(val dbh: DBRoot) {
 
   def getTrackById(id: Int): Option[DeezerTrack] = {
     dbh.getDeezerTrack(id) match {

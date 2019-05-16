@@ -1,4 +1,4 @@
-import Schema.SchemaDefinition
+import Schema.SchemaRoot
 import org.scalatest.{Matchers, WordSpec}
 import sangria.ast.Document
 import sangria.macros._
@@ -11,7 +11,7 @@ import io.circe.parser._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import Schema.SchemaDefinition.KroomSchema
+import Schema.SchemaRoot.KroomSchema
 
 class SchemaSpec extends WordSpec with Matchers {
   "StartWars Schema" should {
@@ -82,7 +82,7 @@ class SchemaSpec extends WordSpec with Matchers {
     val futureResult = Executor.execute(KroomSchema, query,
       variables = vars,
       userContext = new CharacterRepo,
-      deferredResolver = DeferredResolver.fetchers(SchemaDefinition.characters))
+      deferredResolver = DeferredResolver.fetchers(SchemaRoot.characters))
 
     Await.result(futureResult, 10.seconds)
   }

@@ -20,8 +20,8 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import GraphQLRequestUnmarshaller._
 import Repo.RepoRoot
-import Schema.SchemaDefinition
-import DB.DBHandler
+import Schema.{SchemaDeezer, SchemaRoot}
+import DB.DBRoot
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
 
@@ -35,16 +35,16 @@ object Server extends App with CorsSupport {
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean) =
     complete(Executor.execute(
-      SchemaDefinition.KroomSchema, query, new RepoRoot(new DBHandler(db)),
+      SchemaRoot.KroomSchema, query, new RepoRoot(new DBRoot(db)),
       variables = if (variables.isNull) Json.obj() else variables,
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
       deferredResolver = DeferredResolver.fetchers(
-        SchemaDefinition.TrackFetcherId,
-        SchemaDefinition.ArtistFetcherId,
-        SchemaDefinition.AlbumFetcherId,
-        SchemaDefinition.GenreFetcherId,
-        SchemaDefinition.TrackVoteEventFetcherId
+        SchemaDeezer.TrackFetcherId,
+        SchemaDeezer.ArtistFetcherId,
+        SchemaDeezer.AlbumFetcherId,
+        SchemaDeezer.GenreFetcherId,
+        SchemaRoot.TrackVoteEventFetcherId
       )
     )
       .map(OK → _)
@@ -122,6 +122,6 @@ object Server extends App with CorsSupport {
         redirect("/graphql", PermanentRedirect)
       }
 
-  DBHandler.init(db)
+  DBRoot.init(db)
   Http().bindAndHandle(corsHandler(route), "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
 }

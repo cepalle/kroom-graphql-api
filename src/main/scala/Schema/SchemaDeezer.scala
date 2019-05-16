@@ -2,49 +2,37 @@ package Schema
 
 import Repo._
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{Argument, BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
+import sangria.schema.{BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
 import scala.concurrent.Future
 
-/**
-  * Defines a GraphQL schema for the current project
-  */
-object SchemaDefinition {
+object SchemaDeezer {
 
   import scala.concurrent.ExecutionContext.Implicits.global
-  // Fetcher
 
   lazy val GenreFetcherId: Fetcher[RepoRoot, DeezerGenre, DeezerGenre, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerGenreById(id))
     }
     )(HasId(_.id))
 
   lazy val ArtistFetcherId: Fetcher[RepoRoot, DeezerArtist, DeezerArtist, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerArtistById(id))
     }
     )(HasId(_.id))
 
   lazy val AlbumFetcherId: Fetcher[RepoRoot, DeezerAlbum, DeezerAlbum, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerAlbumById(id))
     }
     )(HasId(_.id))
 
   lazy val TrackFetcherId: Fetcher[RepoRoot, DeezerTrack, DeezerTrack, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.getDeezerTrackById(id))
     }
     )(HasId(_.id))
-
-  lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, TrackVoteEvent, TrackVoteEvent, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getTrackVoteEventById(id))
-    }
-    )(HasId(_.id))
-
-  // Field
 
   lazy val GenreField: ObjectType[Unit, DeezerGenre] = ObjectType(
     "Genre",
@@ -146,55 +134,4 @@ object SchemaDefinition {
       Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
     ))
 
-  lazy val TrackVoteEventField: ObjectType[Unit, TrackVoteEvent] = ObjectType(
-    "TrackVoteEvent",
-    "TrackVoteEvent description.",
-    () ⇒ fields[Unit, TrackVoteEvent](
-      Field("id", IntType, resolve = _.value.id),
-      Field("name", StringType, resolve = _.value.name),
-      Field("public", BooleanType, resolve = _.value.public),
-      Field("currentTrackId", IntType, resolve = _.value.currentTrackId),
-      Field("horaire", StringType, resolve = _.value.horaire),
-      Field("location", StringType, resolve = _.value.location),
-    ))
-
-  // arguments
-
-  // root
-
-  lazy val Query = ObjectType(
-    "Query", fields[RepoRoot, Unit](
-      Field("track", OptionType(TrackField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ TrackFetcherId.deferOpt(ctx.arg[Int]("id"))),
-      Field("artist", OptionType(ArtistField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))),
-      Field("album", OptionType(AlbumField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))),
-      Field("genre", OptionType(GenreField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ GenreFetcherId.deferOpt(ctx.arg[Int]("id"))),
-
-      Field("TrackVoteEventById", OptionType(TrackVoteEventField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ {
-          TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
-
-      Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
-        arguments = Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.getTrackVoteEventPublic()
-        }),
-
-      Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
-        arguments = Argument("userId", IntType) :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
-        }),
-    ))
-
-  val KroomSchema = Schema(Query)
 }
