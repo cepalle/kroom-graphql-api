@@ -11,10 +11,9 @@ import scala.concurrent.duration.Duration
 
 
 class DBRoot(private val db: H2Profile.backend.Database) {
-  val deezer = DBDeezer(db)
-  val trackVoteEvent = DBTrackVoteEvent(db)
-  val user = DBUser(db)
-
+  val deezer: DBDeezer = new DBDeezer(db)
+  val trackVoteEvent: DBTrackVoteEvent = new DBTrackVoteEvent(db)
+  val user: DBUser = new DBUser(db)
 }
 
 // foreign key

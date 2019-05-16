@@ -1,5 +1,6 @@
 package Root
 
+import TrackVoteEvent.DataTrackVoteEvent
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
 
@@ -16,7 +17,7 @@ object SchemaRoot {
 
   lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getTrackVoteEventById(id))
+      ids.flatMap(id => ctx.trackVoteEvent.getTrackVoteEventById(id))
     }
     )(HasId(_.id))
 
@@ -58,13 +59,13 @@ object SchemaRoot {
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.getTrackVoteEventPublic()
+          ctx.ctx.trackVoteEvent.getTrackVoteEventPublic
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
+          ctx.ctx.trackVoteEvent.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
         }),
     ))
 

@@ -1,6 +1,5 @@
 package Deezer
 
-import Root.DBRoot
 import io.circe.generic.auto._
 import io.circe.parser
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -124,7 +123,7 @@ case class DataDeezerTrack(
 
 // TODO LOG
 // cached error ?
-class RepoDeezer(val dbh: DBRoot) {
+class RepoDeezer(val dbh: DBDeezer) {
 
   def getTrackById(id: Int): Option[DataDeezerTrack] = {
     dbh.getDeezerTrack(id) match {

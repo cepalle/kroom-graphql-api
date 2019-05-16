@@ -12,25 +12,25 @@ object SchemaDeezer {
 
   lazy val GenreFetcherId: Fetcher[RepoRoot, DataDeezerGenre, DataDeezerGenre, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getDeezerGenreById(id))
+      ids.flatMap(id => ctx.deezer.getGenreById(id))
     }
     )(HasId(_.id))
 
   lazy val ArtistFetcherId: Fetcher[RepoRoot, DataDeezerArtist, DataDeezerArtist, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getDeezerArtistById(id))
+      ids.flatMap(id => ctx.deezer.getArtistById(id))
     }
     )(HasId(_.id))
 
   lazy val AlbumFetcherId: Fetcher[RepoRoot, DataDeezerAlbum, DataDeezerAlbum, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getDeezerAlbumById(id))
+      ids.flatMap(id => ctx.deezer.getAlbumById(id))
     }
     )(HasId(_.id))
 
   lazy val TrackFetcherId: Fetcher[RepoRoot, DataDeezerTrack, DataDeezerTrack, Int] =
     Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.getDeezerTrackById(id))
+      ids.flatMap(id => ctx.deezer.getTrackById(id))
     }
     )(HasId(_.id))
 
