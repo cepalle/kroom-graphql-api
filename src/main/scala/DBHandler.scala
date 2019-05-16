@@ -2,6 +2,7 @@ import io.circe.parser
 import io.circe.generic.auto._
 import io.circe.syntax._
 import slick.jdbc.H2Profile.api._
+import slick.lifted.QueryBase
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -103,7 +104,16 @@ class DBHandler {
   }
 
   def getTrackVoteEventByUserId(userId: Int): List[TrackVoteEvent] = {
-    List[TrackVoteEvent]()
+    val query = for {
+      (u, e) <- tabUser join tabTrackVoteEvent on (_.id === _.id) if u.id === userId
+    } yield e
+    val f = db.run(query.result)
+
+    Await.ready(f, Duration.Inf).value.flatMap(_.toOption).map(_.map({
+      case (id, name, public, currentTrackId, horaire, location) => TrackVoteEvent(
+        id, name, public, currentTrackId, horaire, location
+      )
+    })).map(_.toList).getOrElse(List[TrackVoteEvent]())
   }
 
 
