@@ -63,7 +63,7 @@ case class DeezerAlbum(
                         explicit_content_cover: Int,
                         contributors: List[Id],
                         artist: Id,
-                        // tracks: DataListId,
+                        tracks: DataListId,
                       )
 
 case class DeezerArtist(
