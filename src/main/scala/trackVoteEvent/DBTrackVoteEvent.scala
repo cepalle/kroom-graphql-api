@@ -1,6 +1,6 @@
-package TrackVoteEvent
+package trackVoteEvent
 
-import User.DBUser
+import user.DBUser
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 

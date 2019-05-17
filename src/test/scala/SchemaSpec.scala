@@ -1,4 +1,4 @@
-import Root.SchemaRoot
+import root.SchemaRoot
 import org.scalatest.{Matchers, WordSpec}
 import sangria.ast.Document
 import sangria.macros._

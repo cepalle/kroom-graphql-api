@@ -1,7 +1,7 @@
-package Root
+package root
 
-import Deezer.RepoDeezer
-import TrackVoteEvent.RepoTrackVoteEvent
+import deezer.RepoDeezer
+import trackVoteEvent.RepoTrackVoteEvent
 
 
 class RepoRoot(private val dbh: DBRoot) {

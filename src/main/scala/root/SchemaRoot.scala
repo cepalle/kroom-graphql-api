@@ -1,6 +1,6 @@
-package Root
+package root
 
-import TrackVoteEvent.DataTrackVoteEvent
+import trackVoteEvent.DataTrackVoteEvent
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
 
@@ -11,7 +11,7 @@ import scala.concurrent.Future
   */
 object SchemaRoot {
 
-  import Deezer.SchemaDeezer._
+  import deezer.SchemaDeezer._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -22,7 +22,7 @@ object SchemaRoot {
     )(HasId(_.id))
 
   lazy val TrackVoteEventField: ObjectType[Unit, DataTrackVoteEvent] = ObjectType(
-    "TrackVoteEvent",
+    "trackVoteEvent",
     "TrackVoteEvent description.",
     () ⇒ fields[Unit, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),

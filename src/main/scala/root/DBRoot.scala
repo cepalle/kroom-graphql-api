@@ -1,8 +1,8 @@
-package Root
+package root
 
-import Deezer.DBDeezer
-import TrackVoteEvent.DBTrackVoteEvent
-import User.DBUser
+import deezer.DBDeezer
+import trackVoteEvent.DBTrackVoteEvent
+import user.DBUser
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 

@@ -1,4 +1,4 @@
-package User
+package user
 
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._

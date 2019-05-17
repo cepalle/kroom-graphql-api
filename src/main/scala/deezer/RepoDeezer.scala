@@ -1,4 +1,4 @@
-package Deezer
+package deezer
 
 import io.circe.generic.auto._
 import io.circe.parser

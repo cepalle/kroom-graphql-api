@@ -1,6 +1,6 @@
-package TrackVoteEvent
+package trackVoteEvent
 
-import Root.DBRoot
+import root.DBRoot
 
 case class DataTrackVoteEvent(
                                id: Int,
