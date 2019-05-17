@@ -136,6 +136,23 @@ case class DataDeezerSearch(
                              albumId: Id,
                            )
 
+// RANKING, TRACK_ASC, TRACK_DESC, ARTIST_ASC, ARTIST_DESC, ALBUM_ASC, ALBUM_DESC, RATING_ASC, RATING_DESC, DURATION_ASC, DURATION_DESC
+case class DeezerSearchOption(
+                               search: Option[String],
+
+                               artistName: Option[String],
+                               albumTitle: Option[String],
+                               trackTitle: Option[String],
+                               labelName: Option[String],
+                               durMin: Option[Int],
+                               durMax: Option[Int],
+                               bpmMin: Option[Int],
+                               bpmMax: Option[Int],
+
+                               strict: Option[Boolean],
+                               order: Option[String]
+                             )
+
 
 // TODO LOG
 // cached error ?
@@ -243,6 +260,10 @@ class RepoDeezer(val dbh: DBDeezer) {
         println(error)
         None
     }
+  }
+
+  def getSearch(opt: DeezerSearchOption): List[DataDeezerSearch] = {
+    List[DataDeezerSearch]()
   }
 
 }
