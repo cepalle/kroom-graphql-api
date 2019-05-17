@@ -1,8 +1,6 @@
 package root
 
-import trackVoteEvent.DataTrackVoteEvent
-import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionType, Schema, StringType, fields}
+import sangria.schema.{Argument, Field, IntType, ListType, ObjectType, OptionType, Schema, fields}
 
 import scala.concurrent.Future
 
@@ -12,28 +10,9 @@ import scala.concurrent.Future
 object SchemaRoot {
 
   import deezer.SchemaDeezer._
+  import trackVoteEvent.SchemaTrackVoteEvent._
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.trackVoteEvent.getTrackVoteEventById(id))
-    }
-    )(HasId(_.id))
-
-  lazy val TrackVoteEventField: ObjectType[Unit, DataTrackVoteEvent] = ObjectType(
-    "trackVoteEvent",
-    "TrackVoteEvent description.",
-    () ⇒ fields[Unit, DataTrackVoteEvent](
-      Field("id", IntType, resolve = _.value.id),
-      Field("name", StringType, resolve = _.value.name),
-      Field("public", BooleanType, resolve = _.value.public),
-      Field("currentTrackId", IntType, resolve = _.value.currentTrackId),
-      Field("horaire", StringType, resolve = _.value.horaire),
-      Field("location", StringType, resolve = _.value.location),
-    ))
-
-  // root
 
   lazy val Query = ObjectType(
     "Query", fields[RepoRoot, Unit](

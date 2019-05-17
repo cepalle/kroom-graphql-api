@@ -13,8 +13,8 @@ import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
-import io.circe.optics.JsonPath._
 import io.circe.parser._
+import io.circe.optics.JsonPath.{root => r}
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
@@ -23,6 +23,7 @@ import deezer.SchemaDeezer
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
+import trackVoteEvent.SchemaTrackVoteEvent
 
 object Server extends App with CorsSupport {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
@@ -43,7 +44,7 @@ object Server extends App with CorsSupport {
         SchemaDeezer.ArtistFetcherId,
         SchemaDeezer.AlbumFetcherId,
         SchemaDeezer.GenreFetcherId,
-        SchemaRoot.TrackVoteEventFetcherId
+        SchemaTrackVoteEvent.TrackVoteEventFetcherId
       )
     )
       .map(OK → _)
@@ -91,16 +92,16 @@ object Server extends App with CorsSupport {
           post {
             parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
               entity(as[Json]) { body ⇒
-                val query = queryParam orElse root.query.string.getOption(body)
-                val operationName = operationNameParam orElse root.operationName.string.getOption(body)
-                val variablesStr = variablesParam orElse root.variables.string.getOption(body)
+                val query = queryParam orElse r.query.string.getOption(body)
+                val operationName = operationNameParam orElse r.operationName.string.getOption(body)
+                val variablesStr = variablesParam orElse r.variables.string.getOption(body)
 
                 query.map(QueryParser.parse(_)) match {
                   case Some(Success(ast)) ⇒
                     variablesStr.map(parse) match {
                       case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
                       case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined)
-                      case None ⇒ executeGraphQL(ast, operationName, root.variables.json.getOption(body) getOrElse Json.obj(), tracing.isDefined)
+                      case None ⇒ executeGraphQL(ast, operationName, r.variables.json.getOption(body) getOrElse Json.obj(), tracing.isDefined)
                     }
                   case Some(Failure(error)) ⇒ complete(BadRequest, formatError(error))
                   case None ⇒ complete(BadRequest, formatError("No query to execute"))
