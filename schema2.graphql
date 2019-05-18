@@ -50,5 +50,12 @@ type Query {
 
 # Mutation
 type Mutation {
-    TrackVoteEventVote(musicId: String, b:Boolean): TrackVoteEvent!
+    NewTrackVoteEvent(name: String, public: Boolean, horaire: String, location: String): TrackVoteEvent!
+
+    TrackVoteEventUpdate(name: String, public: Boolean, horaire: String, location: String): TrackVoteEvent!
+
+    TrackVoteEventAddUser(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
+    TrackVoteEventDelUser(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
+
+    TrackVoteEventVote(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
 }

@@ -1,6 +1,7 @@
 package trackVoteEvent
 
 import root.DBRoot
+import sangria.execution.UserFacingError
 
 case class DataTrackVoteEvent(
                                id: Int,
@@ -25,4 +26,12 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
     dbh.trackVoteEvent.getTrackVoteEventByUserId(userId)
   }
 
+  def trackVoteEventVote(eventId: Int, musicId: Int, bool: Boolean): Option[DataTrackVoteEvent] = {
+    println("ici")
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
 }
+

@@ -1,8 +1,8 @@
 package root
 
 import deezer.{Order, Connections}
-import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionInputType, OptionType, Schema, StringType, fields}
-
+import sangria.schema._
+import sangria.macros.derive._
 import scala.concurrent.Future
 
 /**
@@ -71,5 +71,23 @@ object SchemaRoot {
         }),
     ))
 
-  val KroomSchema = Schema(Query)
+  val MutationType = ObjectType(
+    "Mutation", fields[RepoRoot, Unit](
+
+      /* DEEZER */
+
+      Field("TrackVoteEventVoteVote", OptionType(TrackVoteEventField),
+        arguments = Argument("eventId", IntType) :: Argument("musicId", IntType) :: Argument("bool", BooleanType) :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.trackVoteEventVote(
+            ctx.arg[Int]("eventId"),
+            ctx.arg[Int]("musicId"),
+            ctx.arg[Boolean]("bool"),
+          )
+        }
+      ),
+    )
+  )
+
+  val KroomSchema = Schema(Query, Some(MutationType))
 }
