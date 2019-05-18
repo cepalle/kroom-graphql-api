@@ -4,6 +4,8 @@ import io.circe.generic.auto._
 import io.circe.parser
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
+case class data[T](data: T)
+
 case class Id(id: Int)
 
 case class DataListId(data: List[Id])
@@ -132,27 +134,17 @@ case class DataDeezerSearch(
                              explicit_lyrics: Boolean,
                              // url,
                              preview: String,
-                             artistId: Id,
-                             albumId: Id,
+                             artist: Id,
+                             album: Id,
                            )
 
-// RANKING, TRACK_ASC, TRACK_DESC, ARTIST_ASC, ARTIST_DESC, ALBUM_ASC, ALBUM_DESC, RATING_ASC, RATING_DESC, DURATION_ASC, DURATION_DESC
-case class DeezerSearchOption(
-                               search: Option[String],
+object Order extends Enumeration {
+  val RANKING, TRACK_ASC, TRACK_DESC, ARTIST_ASC, ARTIST_DESC, ALBUM_ASC, ALBUM_DESC, RATING_ASC, RATING_DESC, DURATION_ASC, DURATION_DESC = Value
+}
 
-                               artistName: Option[String],
-                               albumTitle: Option[String],
-                               trackTitle: Option[String],
-                               labelName: Option[String],
-                               durMin: Option[Int],
-                               durMax: Option[Int],
-                               bpmMin: Option[Int],
-                               bpmMax: Option[Int],
-
-                               strict: Option[Boolean],
-                               order: Option[String]
-                             )
-
+object Connections extends Enumeration {
+  val album, artist, history, playlist, podcast, radio, track, user = Value
+}
 
 // TODO LOG
 // cached error ?
@@ -160,110 +152,129 @@ class RepoDeezer(val dbh: DBDeezer) {
 
   def getTrackById(id: Int): Option[DataDeezerTrack] = {
     dbh.getDeezerTrack(id) match {
-      case Some(d) => {
-        println("Deezer.RepoDeezer: Track get from cached")
+      case Some(d) =>
+        println(s"RepoDeezer: Track $id get from DB")
         return Some(d)
-      }
       case _ => ()
     }
 
-    val request: HttpRequest = Http(s"https://api.deezer.com/track/$id")
+    val urlEntry = s"https://api.deezer.com/track/$id"
+    val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-
     val decodingResult = parser.decode[DataDeezerTrack](res.body)
+
     decodingResult match {
-      case Right(track) => {
-        println("Deezer.RepoDeezer: Track get from Deezer API")
+      case Right(track) =>
+        println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerTrack(track)
         Some(track)
-      }
       case Left(error) =>
-        print("Deezer.RepoDeezer get track: ")
-        println(error)
+        println(s"RepoDeezer: Deezer API $urlEntry $error")
         None
     }
   }
 
   def getArtistById(id: Int): Option[DataDeezerArtist] = {
     dbh.getDeezerArtist(id) match {
-      case Some(d) => {
-        println("Deezer.RepoDeezer: Artist get from cached")
+      case Some(d) =>
+        println(s"RepoDeezer: Artist $id get from DB")
         return Some(d)
-      }
       case _ => ()
     }
 
-    val request: HttpRequest = Http(s"https://api.deezer.com/artist/$id")
+    val urlEntry = s"https://api.deezer.com/artist/$id"
+    val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-
     val decodingResult = parser.decode[DataDeezerArtist](res.body)
+
     decodingResult match {
-      case Right(artist) => {
-        println("Deezer.RepoDeezer: Artist get from Deezer API")
+      case Right(artist) =>
+        println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerArtist(artist)
         Some(artist)
-      }
       case Left(error) =>
-        print("Deezer.RepoDeezer get artist: ")
-        println(error)
+        println(s"RepoDeezer: Deezer API $urlEntry $error")
         None
     }
   }
 
   def getAlbumById(id: Int): Option[DataDeezerAlbum] = {
     dbh.getDeezerAlbum(id) match {
-      case Some(d) => {
-        println("Deezer.RepoDeezer: Album get from cached")
+      case Some(d) =>
+        println(s"RepoDeezer: Album $id get from DB")
         return Some(d)
-      }
       case _ => ()
     }
 
-    val request: HttpRequest = Http(s"https://api.deezer.com/album/$id")
+    val urlEntry = s"https://api.deezer.com/album/$id"
+    val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-
     val decodingResult = parser.decode[DataDeezerAlbum](res.body)
+
     decodingResult match {
-      case Right(album) => {
-        println("Deezer.RepoDeezer: Album get from Deezer API")
+      case Right(album) =>
+        println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerAlbum(album)
         Some(album)
-      }
       case Left(error) =>
-        print("Deezer.RepoDeezer get album : ")
-        println(error)
+        println(s"RepoDeezer: Deezer API $urlEntry $error")
         None
     }
   }
 
   def getGenreById(id: Int): Option[DataDeezerGenre] = {
     dbh.getDeezerGenre(id) match {
-      case Some(d) => {
-        println("Deezer.RepoDeezer: Genre get from cached")
+      case Some(d) =>
+        println(s"RepoDeezer: Genre $id get from DB")
         return Some(d)
-      }
       case _ => ()
     }
 
-    val request: HttpRequest = Http(s"https://api.deezer.com/genre/$id")
+    val urlEntry = s"https://api.deezer.com/genre/$id"
+    val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-
     val decodingResult = parser.decode[DataDeezerGenre](res.body)
+
     decodingResult match {
-      case Right(genre) => {
-        println("Deezer.RepoDeezer: Genre get from Deezer API")
+      case Right(genre) =>
+        println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerGenre(genre)
         Some(genre)
-      }
       case Left(error) =>
-        print("Deezer.RepoDeezer get genre : ")
-        println(error)
+        println(s"RepoDeezer: Deezer API $urlEntry $error")
         None
     }
   }
 
-  def getSearch(opt: DeezerSearchOption): List[DataDeezerSearch] = {
-    List[DataDeezerSearch]()
+  def getSearch(search: String,
+                connections: Option[Connections.Value],
+                strict: Boolean,
+                order: Option[Order.Value]
+               ): List[DataDeezerSearch] = {
+    val urlEntry = s"https://api.deezer.com/search${
+      connections.map(e => "/" + e).getOrElse("")
+    }?q=$search${
+      if (strict) {
+        "?strict=on"
+      } else {
+        ""
+      }
+    }${
+      order.map(e => "&order=" + e.toString).getOrElse("")
+    }"
+
+    val request: HttpRequest = Http(urlEntry)
+    val res: HttpResponse[String] = request.asString
+    val decodingResult = parser.decode[data[List[DataDeezerSearch]]](res.body)
+
+    decodingResult match {
+      case Right(resJson) =>
+        println(s"RepoDeezer: Deezer API $urlEntry")
+        resJson.data
+      case Left(error) =>
+        println(s"RepoDeezer: Deezer API $urlEntry $error")
+        List[DataDeezerSearch]()
+    }
   }
 
 }

@@ -1,6 +1,7 @@
 package root
 
-import sangria.schema.{Argument, Field, IntType, ListType, ObjectType, OptionType, Schema, fields}
+import deezer.{Order, Connections}
+import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionInputType, OptionType, Schema, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -16,6 +17,9 @@ object SchemaRoot {
 
   lazy val Query = ObjectType(
     "Query", fields[RepoRoot, Unit](
+
+      /* DEEZER */
+
       Field("track", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ TrackFetcherId.deferOpt(ctx.arg[Int]("id"))),
@@ -28,6 +32,25 @@ object SchemaRoot {
       Field("genre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ GenreFetcherId.deferOpt(ctx.arg[Int]("id"))),
+
+      // Option length, index ?
+      Field("search", ListType(SearchField),
+        arguments =
+          Argument("search", StringType) ::
+            Argument("connections", OptionInputType(ConnectionEnum)) ::
+            Argument("strict", BooleanType) ::
+            Argument("order", OptionInputType(OrderEnum)) ::
+            Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.deezer.getSearch(
+            ctx.arg[String]("search"),
+            ctx.argOpt[Connections.Value]("connections"),
+            ctx.arg[Boolean]("strict"),
+            ctx.argOpt[Order.Value]("order"),
+          )
+        }),
+
+      /* TRACK_VOTE_EVENT */
 
       Field("TrackVoteEventById", OptionType(TrackVoteEventField),
         arguments = Argument("id", IntType) :: Nil,

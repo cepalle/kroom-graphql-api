@@ -2,7 +2,7 @@ package deezer
 
 import root.RepoRoot
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{BooleanType, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
+import sangria.schema.{BooleanType, EnumType, EnumValue, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -130,6 +130,78 @@ object SchemaDeezer {
       ),
       Field("artist_id", IntType, resolve = _.value.artist.id),
       Field("album_id", IntType, resolve = _.value.album.id),
+      Field("artist", OptionType(ArtistField), resolve = ctx => ArtistFetcherId.deferOpt(ctx.value.artist.id)),
+      Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
+    ))
+
+  val ConnectionEnum = EnumType(
+    "Episode",
+    Some("One of the films in the Star Wars Trilogy"),
+    List(
+      EnumValue("album",
+        value = Connections.album),
+      EnumValue("artist",
+        value = Connections.artist),
+      EnumValue("history",
+        value = Connections.history),
+      EnumValue("playlist",
+        value = Connections.playlist),
+      EnumValue("podcast",
+        value = Connections.podcast),
+      EnumValue("radio",
+        value = Connections.radio),
+      EnumValue("track",
+        value = Connections.track),
+      EnumValue("user",
+        value = Connections.user),
+    )
+  )
+
+  val OrderEnum = EnumType(
+    "Episode",
+    Some("One of the films in the Star Wars Trilogy"),
+    List(
+      EnumValue("RANKING",
+        value = Order.RANKING),
+      EnumValue("ALBUM_ASC",
+        value = Order.ALBUM_ASC),
+      EnumValue("ALBUM_DESC",
+        value = Order.ALBUM_DESC),
+      EnumValue("ARTIST_ASC",
+        value = Order.ARTIST_ASC),
+      EnumValue("ARTIST_DESC",
+        value = Order.ARTIST_DESC),
+      EnumValue("DURATION_ASC",
+        value = Order.DURATION_ASC),
+      EnumValue("DURATION_DESC",
+        value = Order.DURATION_DESC),
+      EnumValue("RATING_ASC",
+        value = Order.RATING_ASC),
+      EnumValue("RATING_DESC",
+        value = Order.RATING_DESC),
+      EnumValue("TRACK_ASC",
+        value = Order.TRACK_ASC),
+      EnumValue("TRACK_DESC",
+        value = Order.TRACK_DESC),
+    )
+  )
+
+  lazy val SearchField: ObjectType[Unit, DataDeezerSearch] = ObjectType(
+    "Serach",
+    "Serach description.",
+    () ⇒ fields[Unit, DataDeezerSearch](
+      Field("id", IntType, resolve = _.value.id),
+      Field("readable", BooleanType, resolve = _.value.readable),
+      Field("title", StringType, resolve = _.value.title),
+      Field("title_short", StringType, resolve = _.value.title_short),
+      Field("title_version", StringType, resolve = _.value.title_version),
+
+      Field("link", StringType, resolve = _.value.link),
+      Field("duration", IntType, resolve = _.value.duration),
+      Field("rank", IntType, resolve = _.value.rank),
+      Field("explicit_lyrics", BooleanType, resolve = _.value.explicit_lyrics),
+      Field("preview", StringType, resolve = _.value.preview),
+
       Field("artist", OptionType(ArtistField), resolve = ctx => ArtistFetcherId.deferOpt(ctx.value.artist.id)),
       Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
     ))
