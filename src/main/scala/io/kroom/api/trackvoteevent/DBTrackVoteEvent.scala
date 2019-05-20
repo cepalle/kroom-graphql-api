@@ -1,6 +1,6 @@
 package io.kroom.api.trackvoteevent
 
-import io.kroom.api.user.DBUser
+import io.kroom.api.user.{DBUser, DataUser}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
@@ -45,6 +45,14 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .map(_.map(tabToObjTrackVoteEvent))
       .map(_.toList)
       .getOrElse(List[DataTrackVoteEvent]())
+  }
+
+  def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
+    List[DataTrackWithVote]()
+  }
+
+  def getUserInvited(eventId: Int): List[DataUser] = {
+    List[DataUser]()
   }
 
 }

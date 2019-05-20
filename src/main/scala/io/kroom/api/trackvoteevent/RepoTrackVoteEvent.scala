@@ -35,12 +35,12 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
     dbh.trackVoteEvent.getTrackVoteEventByUserId(userId)
   }
 
-  def getTrackWithVote(id: Int): List[DataTrackWithVote] = {
-    List[DataTrackWithVote]()
+  def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
+    dbh.trackVoteEvent.getTrackWithVote(eventId)
   }
 
-  def getUserInvited(id: Int): List[DataUser] = {
-    List[DataUser]()
+  def getUserInvited(eventId: Int): List[DataUser] = {
+    dbh.trackVoteEvent.getUserInvited(eventId)
   }
 
   // Mutation

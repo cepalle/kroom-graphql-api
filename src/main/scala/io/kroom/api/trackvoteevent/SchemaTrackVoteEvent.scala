@@ -14,7 +14,7 @@ object SchemaTrackVoteEvent {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
-    Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
+    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.trackVoteEvent.getById(id))
     }
     )(HasId(_.id))
