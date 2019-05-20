@@ -17,7 +17,7 @@ case class DataTrackVoteEvent(
                                name: String,
                                public: Boolean,
                                currentTrackId: Int,
-                               horaire: String,
+                               schedule: String,
                                location: String
                              )
 

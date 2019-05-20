@@ -48,18 +48,29 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
-    val query = (for {
+    val query1 = (for {
       (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
-      if e.id === eventId
+      if e.id === eventId if jv.voteUp === true
     } yield (e, jv))
       .groupBy(_._2.idDeezerTrack)
       .map({
         case (idDeezerTrack, css) => {
-          (idDeezerTrack, css.map(_._2.voteUp).sum, css.map(!_._2.voteUp).sum)
+          (idDeezerTrack, css.length)
         }
       })
 
-    val f = db.run(query.result)
+    val query2 = (for {
+      (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
+      if e.id === eventId if jv.voteUp === false
+    } yield (e, jv))
+      .groupBy(_._2.idDeezerTrack)
+      .map({
+        case (idDeezerTrack, css) => {
+          (idDeezerTrack, css.length)
+        }
+      })
+
+    val f = db.run(DBIO.seq(query1.result, query2.result))
 
     Await.ready(f, Duration.Inf).value
       .flatMap(_.toOption)
@@ -93,11 +104,11 @@ object DBTrackVoteEvent {
 
     def currentTrackId = column[Int]("CURRENT_TRACK_ID")
 
-    def horaire = column[String]("HORAIRE")
+    def schedule = column[String]("SCHEDULE")
 
     def location = column[String]("LOCATION")
 
-    def * = (id, userMasterId, name, public, currentTrackId, horaire, location)
+    def * = (id, userMasterId, name, public, currentTrackId, schedule, location)
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]

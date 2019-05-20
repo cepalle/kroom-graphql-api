@@ -39,7 +39,7 @@ object SchemaTrackVoteEvent {
         ctx.ctx.trackVoteEvent.getTrackWithVote(ctx.value.id)
       }),
 
-      Field("horaire", StringType, resolve = _.value.horaire),
+      Field("schedule", StringType, resolve = _.value.schedule),
       Field("location", StringType, resolve = _.value.location),
 
       Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
