@@ -25,7 +25,7 @@ object SchemaTrackVoteEvent {
     () ⇒ fields[RepoRoot, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
 
-      Field("userMasterId", SchemaUser.UserField, resolve = ctx =>
+      Field("userMaster", SchemaUser.UserField, resolve = ctx =>
         SchemaUser.UserFetcherId.defer(ctx.value.userMasterId)
       ),
 
@@ -35,22 +35,22 @@ object SchemaTrackVoteEvent {
       Field("currentTrack", SchemaDeezer.TrackField, resolve = ctx =>
         SchemaDeezer.TrackFetcherId.defer(ctx.value.currentTrackId)
       ),
-      Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx =>
+      Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx => Future {
         ctx.ctx.trackVoteEvent.getTrackWithVote(ctx.value.id)
-      ),
+      }),
 
       Field("horaire", StringType, resolve = _.value.horaire),
       Field("location", StringType, resolve = _.value.location),
 
-      Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx =>
+      Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
         ctx.ctx.trackVoteEvent.getUserInvited(ctx.value.id)
-      ),
+      }),
     ))
 
-  lazy val TrackWithVoteField: ObjectType[Unit, DataTrackWithVote] = ObjectType(
+  lazy val TrackWithVoteField: ObjectType[RepoRoot, DataTrackWithVote] = ObjectType(
     "trackWithVote",
     "trackWithVote description.",
-    () ⇒ fields[Unit, DataTrackWithVote](
+    () ⇒ fields[RepoRoot, DataTrackWithVote](
       Field("track", SchemaDeezer.TrackField, resolve = ctx =>
         SchemaDeezer.TrackFetcherId.defer(ctx.value.trackId)
       ),

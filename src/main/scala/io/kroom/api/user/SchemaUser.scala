@@ -17,20 +17,21 @@ object SchemaUser {
     }
     )(HasId(_.id))
 
-  lazy val UserField: ObjectType[Unit, DataUser] = ObjectType(
+  lazy val UserField: ObjectType[RepoRoot, DataUser] = ObjectType(
     "User",
     "User description.",
-    () ⇒ fields[Unit, DataUser](
+    () ⇒ fields[RepoRoot, DataUser](
       Field("id", IntType, resolve = _.value.id),
       Field("userName", StringType, resolve = _.value.userName),
       Field("email", StringType, resolve = _.value.email),
-      Field("friends", ListType(UserField), resolve = ctx => {
-        UserFetcherId.deferSeqOpt(ctx.value.friendsId)
-      }),
-      Field("musicalPreferencesGenre", ListType(SchemaDeezer.GenreField), resolve = ctx => {
-        SchemaDeezer.GenreFetcherId.deferSeqOpt(ctx.value.musicalPreferencesGenreId)
-      }),
       Field("location", OptionType(StringType), resolve = _.value.location),
+
+      Field("friends", ListType(UserField), resolve = ctx => Future {
+        ctx.ctx.user.getFriends(ctx.value.id)
+      }),
+      Field("musicalPreferencesGenre", ListType(SchemaDeezer.GenreField), resolve = ctx => Future {
+        ctx.ctx.user.getmMsicalPreferences(ctx.value.id)
+      }),
     ))
 
 }

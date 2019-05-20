@@ -1,11 +1,25 @@
 package io.kroom.api.user
 
+import io.kroom.api.deezer.DataDeezerGenre
+import sangria.execution.UserFacingError
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
 class DBUser(private val db: H2Profile.backend.Database) {
 
   import DBUser._
+
+  def getById(id: Int): Option[DataUser] = {
+    None
+  }
+
+  def getFriends(userId: Int): List[DataUser] = {
+    List[DataUser]()
+  }
+
+  def getmMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
+    List[DataDeezerGenre]()
+  }
 
 }
 
@@ -18,6 +32,8 @@ object DBUser {
     def name = column[String]("NAME")
 
     def email = column[String]("EMAIL")
+
+    def passHash = column[String]("PASS_HASH")
 
     def location = column[String]("LOCATION")
 

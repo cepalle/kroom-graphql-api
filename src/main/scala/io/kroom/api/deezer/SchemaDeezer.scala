@@ -34,10 +34,10 @@ object SchemaDeezer {
     }
     )(HasId(_.id))
 
-  lazy val GenreField: ObjectType[Unit, DataDeezerGenre] = ObjectType(
+  lazy val GenreField: ObjectType[RepoRoot, DataDeezerGenre] = ObjectType(
     "Genre",
     "Genre description.",
-    () ⇒ fields[Unit, DataDeezerGenre](
+    () ⇒ fields[RepoRoot, DataDeezerGenre](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("picture", StringType, resolve = _.value.picture),
@@ -47,10 +47,10 @@ object SchemaDeezer {
       Field("picture_xl", StringType, resolve = _.value.picture_xl),
     ))
 
-  lazy val ArtistField: ObjectType[Unit, DataDeezerArtist] = ObjectType(
+  lazy val ArtistField: ObjectType[RepoRoot, DataDeezerArtist] = ObjectType(
     "Artist",
     "Artist description.",
-    () ⇒ fields[Unit, DataDeezerArtist](
+    () ⇒ fields[RepoRoot, DataDeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -65,10 +65,10 @@ object SchemaDeezer {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumField: ObjectType[Unit, DataDeezerAlbum] = ObjectType(
+  lazy val AlbumField: ObjectType[RepoRoot, DataDeezerAlbum] = ObjectType(
     "Album",
     "Album description.",
-    () ⇒ fields[Unit, DataDeezerAlbum](
+    () ⇒ fields[RepoRoot, DataDeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -101,10 +101,10 @@ object SchemaDeezer {
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackField: ObjectType[Unit, DataDeezerTrack] = ObjectType(
+  lazy val TrackField: ObjectType[RepoRoot, DataDeezerTrack] = ObjectType(
     "Track",
     "Track description.",
-    () ⇒ fields[Unit, DataDeezerTrack](
+    () ⇒ fields[RepoRoot, DataDeezerTrack](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
@@ -186,10 +186,10 @@ object SchemaDeezer {
     )
   )
 
-  lazy val SearchField: ObjectType[Unit, DataDeezerSearch] = ObjectType(
+  lazy val SearchField: ObjectType[RepoRoot, DataDeezerSearch] = ObjectType(
     "Serach",
     "Serach description.",
-    () ⇒ fields[Unit, DataDeezerSearch](
+    () ⇒ fields[RepoRoot, DataDeezerSearch](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),

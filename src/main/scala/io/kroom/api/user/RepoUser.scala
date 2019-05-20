@@ -1,5 +1,6 @@
 package io.kroom.api.user
 
+import io.kroom.api.deezer.DataDeezerGenre
 import sangria.execution.UserFacingError
 
 case class DataUser(
@@ -7,17 +8,21 @@ case class DataUser(
                      userName: String,
                      email: String,
                      passHash: String,
-                     friendsId: List[Int],
-                     musicalPreferencesGenreId: List[Int],
-                     location: Option[String]
+                     location: Option[String],
                    )
 
 class RepoUser(val dbh: DBUser) {
 
   def getById(id: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.getById(id)
+  }
+
+  def getFriends(userId: Int): List[DataUser] = {
+    dbh.getFriends(userId)
+  }
+
+  def getmMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
+    dbh.getmMsicalPreferences(userId)
   }
 
   // Mutation
