@@ -1,8 +1,10 @@
 package root
 
-import deezer.{Order, Connections}
+import deezer.{Connections, Order}
 import sangria.schema._
 import sangria.macros.derive._
+import user.SchemaUser
+
 import scala.concurrent.Future
 
 /**
@@ -12,6 +14,7 @@ object SchemaRoot {
 
   import deezer.SchemaDeezer._
   import trackVoteEvent.SchemaTrackVoteEvent._
+  import SchemaUser._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -68,12 +71,21 @@ object SchemaRoot {
         resolve = ctx ⇒ Future {
           ctx.ctx.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
         }),
+
+      /* USER */
+
+      Field("UserGetById", OptionType(UserField),
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.getById(ctx.arg[Int]("id"))
+        }),
+
     ))
 
   val MutationType = ObjectType(
     "Mutation", fields[RepoRoot, Unit](
 
-      /* DEEZER */
+      /* TRACK_VOTE_EVENT */
 
       Field("TrackVoteEventNew", OptionType(TrackVoteEventField),
         arguments = Argument("userIdMaster", IntType)
@@ -164,6 +176,37 @@ object SchemaRoot {
           )
         }
       ),
+
+      /* USER */
+
+      Field("UserSignUp", OptionType(UserField),
+        arguments = Argument("userName", StringType)
+          :: Argument("email", StringType)
+          :: Argument("pass", StringType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.signUp(
+            ctx.arg[String]("userName"),
+            ctx.arg[String]("email"),
+            ctx.arg[String]("pass"),
+          )
+        }
+      ),
+
+      Field("UserSignIn", OptionType(UserField),
+        arguments = Argument("userName", OptionInputType(StringType))
+          :: Argument("email", OptionInputType(StringType))
+          :: Argument("pass", StringType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.signIn(
+            ctx.argOpt[String]("userName"),
+            ctx.argOpt[String]("email"),
+            ctx.arg[String]("pass"),
+          )
+        }
+      ),
+
 
     )
   )

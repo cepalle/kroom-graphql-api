@@ -35,10 +35,9 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
                location: String
               ): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
-
 
   def update(userIdMaster: Option[Int],
              name: Option[String],
@@ -47,34 +46,32 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
              location: Option[String]
             ): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
 
   def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
 
   def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
-      override def getMessage: String = "Not yet implemented"
+      override def getMessage: String = "TODO"
     }
   }
 
-
 }
-
