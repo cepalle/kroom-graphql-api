@@ -1,4 +1,4 @@
-package deezer
+package io.kroom.api.deezer
 
 import io.circe.generic.auto._
 import io.circe.parser

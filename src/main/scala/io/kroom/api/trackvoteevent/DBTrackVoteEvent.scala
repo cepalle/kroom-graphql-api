@@ -1,6 +1,6 @@
-package trackVoteEvent
+package io.kroom.api.trackVoteEvent
 
-import user.DBUser
+import io.kroom.api.user.DBUser
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 

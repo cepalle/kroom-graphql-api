@@ -1,7 +1,7 @@
-package root
+package io.kroom.api.root
 
-import deezer.RepoDeezer
-import trackVoteEvent.RepoTrackVoteEvent
+import io.kroom.api.deezer.RepoDeezer
+import io.kroom.api.trackVoteEvent.RepoTrackVoteEvent
 
 
 class RepoRoot(private val dbh: DBRoot) {

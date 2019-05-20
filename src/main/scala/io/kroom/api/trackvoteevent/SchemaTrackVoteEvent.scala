@@ -1,6 +1,6 @@
-package trackVoteEvent
+package io.kroom.api.trackVoteEvent
 
-import root.RepoRoot
+import io.kroom.api.root.RepoRoot
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, Field, IntType, ObjectType, StringType, fields}
 

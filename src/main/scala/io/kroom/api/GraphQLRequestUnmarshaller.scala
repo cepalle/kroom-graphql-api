@@ -1,3 +1,5 @@
+package io.kroom.api
+
 import java.nio.charset.Charset
 
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}

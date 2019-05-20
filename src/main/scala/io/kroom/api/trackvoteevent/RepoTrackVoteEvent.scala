@@ -1,6 +1,6 @@
-package trackVoteEvent
+package io.kroom.api.trackVoteEvent
 
-import root.DBRoot
+import io.kroom.api.root.DBRoot
 
 case class DataTrackVoteEvent(
                                id: Int,

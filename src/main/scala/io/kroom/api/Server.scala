@@ -1,3 +1,5 @@
+package io.kroom.api
+
 import sangria.ast.Document
 import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
@@ -18,7 +20,6 @@ import io.circe.optics.JsonPath.{root => r}
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-import GraphQLRequestUnmarshaller._
 import deezer.SchemaDeezer
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
@@ -30,6 +31,7 @@ object Server extends App with CorsSupport {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   import system.dispatcher
+  import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
 

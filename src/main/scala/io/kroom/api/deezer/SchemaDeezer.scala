@@ -1,6 +1,6 @@
-package deezer
+package io.kroom.api.deezer
 
-import root.RepoRoot
+import io.kroom.api.root.RepoRoot
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, EnumType, EnumValue, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 

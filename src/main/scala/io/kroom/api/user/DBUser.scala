@@ -1,4 +1,4 @@
-package user
+package io.kroom.api.user
 
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
