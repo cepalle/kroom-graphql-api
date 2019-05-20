@@ -82,7 +82,7 @@ object SchemaRoot {
 
     ))
 
-  val MutationType = ObjectType(
+  val Mutation = ObjectType(
     "Mutation", fields[RepoRoot, Unit](
 
       /* TRACK_VOTE_EVENT */
@@ -259,5 +259,5 @@ object SchemaRoot {
     )
   )
 
-  val KroomSchema = Schema(Query, Some(MutationType))
+  val KroomSchema = Schema(Query, Some(Mutation))
 }
