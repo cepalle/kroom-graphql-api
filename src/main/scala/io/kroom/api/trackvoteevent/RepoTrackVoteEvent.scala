@@ -1,7 +1,7 @@
-package trackVoteEvent
+package io.kroom.api.trackvoteevent
 
-import root.DBRoot
 import sangria.execution.UserFacingError
+import io.kroom.api.root.DBRoot
 
 case class DataTrackVoteEvent(
                                id: Int,

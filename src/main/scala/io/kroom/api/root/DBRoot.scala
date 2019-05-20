@@ -1,8 +1,8 @@
-package root
+package io.kroom.api.root
 
-import deezer.DBDeezer
-import trackVoteEvent.DBTrackVoteEvent
-import user.DBUser
+import io.kroom.api.deezer.DBDeezer
+import io.kroom.api.trackvoteevent.DBTrackVoteEvent
+import io.kroom.api.user.DBUser
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 

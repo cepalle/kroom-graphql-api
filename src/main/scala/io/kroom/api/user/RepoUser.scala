@@ -1,4 +1,4 @@
-package user
+package io.kroom.api.user
 
 import sangria.execution.UserFacingError
 

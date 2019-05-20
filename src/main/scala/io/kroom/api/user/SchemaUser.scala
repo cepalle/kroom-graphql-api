@@ -1,9 +1,9 @@
-package user
+package io.kroom.api.user
 
-import deezer.{DataDeezerGenre, SchemaDeezer}
-import root.RepoRoot
+import io.kroom.api.deezer.SchemaDeezer
+import io.kroom.api.root.RepoRoot
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{BooleanType, Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
+import sangria.schema.{Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
 import scala.concurrent.Future
 

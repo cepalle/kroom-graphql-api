@@ -1,9 +1,8 @@
-package root
+package io.kroom.api.root
 
-import deezer.{Connections, Order}
-import sangria.schema._
-import sangria.macros.derive._
-import user.SchemaUser
+import io.kroom.api.user.SchemaUser
+import io.kroom.api.deezer.{Order, Connections}
+import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionInputType, OptionType, Schema, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -12,9 +11,9 @@ import scala.concurrent.Future
   */
 object SchemaRoot {
 
-  import deezer.SchemaDeezer._
-  import trackVoteEvent.SchemaTrackVoteEvent._
   import SchemaUser._
+  import io.kroom.api.deezer.SchemaDeezer._
+  import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
