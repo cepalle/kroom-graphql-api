@@ -34,5 +34,28 @@ class RepoUser(val dbh: DBUser) {
     }
   }
 
+  def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "TODO"
+    }
+  }
+
+  def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "TODO"
+    }
+  }
+
+  def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "TODO"
+    }
+  }
+
+  def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "TODO"
+    }
+  }
 
 }

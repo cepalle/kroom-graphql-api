@@ -207,6 +207,54 @@ object SchemaRoot {
         }
       ),
 
+      Field("UserAddFriend", OptionType(UserField),
+        arguments = Argument("userId", IntType)
+          :: Argument("friendId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.addFriend(
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("friendId"),
+          )
+        }
+      ),
+
+      Field("UserDelFriend", OptionType(UserField),
+        arguments = Argument("userId", IntType)
+          :: Argument("friendId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.delFriend(
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("friendId"),
+          )
+        }
+      ),
+
+      Field("UserAddMusicalPreference", OptionType(UserField),
+        arguments = Argument("userId", IntType)
+          :: Argument("genreId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.addMusicalPreference(
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("genreId"),
+          )
+        }
+      ),
+
+      Field("UserDelMusicalPreference", OptionType(UserField),
+        arguments = Argument("userId", IntType)
+          :: Argument("genreId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.delMusicalPreference(
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("genreId"),
+          )
+        }
+      ),
+
 
     )
   )
