@@ -135,8 +135,8 @@ object SchemaDeezer {
     ))
 
   val ConnectionEnum = EnumType(
-    "Episode",
-    Some("One of the films in the Star Wars Trilogy"),
+    "Connection",
+    Some("exemple: search/album"),
     List(
       EnumValue("album",
         value = Connections.album),
@@ -158,8 +158,8 @@ object SchemaDeezer {
   )
 
   val OrderEnum = EnumType(
-    "Episode",
-    Some("One of the films in the Star Wars Trilogy"),
+    "Order",
+    Some("Sort Order"),
     List(
       EnumValue("RANKING",
         value = Order.RANKING),
