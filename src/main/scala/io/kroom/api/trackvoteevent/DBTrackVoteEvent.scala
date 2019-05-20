@@ -34,7 +34,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
   def getTrackVoteEventByUserId(userId: Int): List[DataTrackVoteEvent] = {
     val query = for {
-      ((u, j), e) <- tabUser join joinTrackVoteEventUserInvited on
+      ((u, j), e) <- tabUser join joinTrackVoteEventUser on
         (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
       if u.id === userId
     } yield e
@@ -48,7 +48,28 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
-    List[DataTrackWithVote]()
+    val query = (for {
+      (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
+      if e.id === eventId
+    } yield (e, jv))
+      .groupBy(_._2.idDeezerTrack)
+      .map({
+        case (idDeezerTrack, css) => {
+          (idDeezerTrack, css.map(_._2.voteUp).sum, css.map(!_._2.voteUp).sum)
+        }
+      })
+
+    val f = db.run(query.result)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(_.map({
+        case (idDeezerTrack, nbUp, nbDown) => {
+          DataTrackWithVote(idDeezerTrack, nbUp - nbDown, nbUp, nbDown)
+        }
+      }))
+      .map(_.toList)
+      .getOrElse(List[DataTrackWithVote]())
   }
 
   def getUserInvited(eventId: Int): List[DataUser] = {
@@ -88,7 +109,7 @@ object DBTrackVoteEvent {
     )
   }
 
-  class JoinTrackVoteEventUserInvited(tag: Tag)
+  class JoinTrackVoteEventUser(tag: Tag)
     extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
 
     def id = column[Int]("ID", O.PrimaryKey)
@@ -100,7 +121,7 @@ object DBTrackVoteEvent {
     def * = (id, idTrackVoteEvent, idUser)
   }
 
-  val joinTrackVoteEventUserInvited = TableQuery[JoinTrackVoteEventUserInvited]
+  val joinTrackVoteEventUser = TableQuery[JoinTrackVoteEventUser]
 
   class JoinTrackVoteEventUserVoteTrack(tag: Tag)
     extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {

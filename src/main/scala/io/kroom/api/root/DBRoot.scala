@@ -33,7 +33,7 @@ object DBRoot {
         DBUser.joinMusicalPreferences.schema ++
 
         DBTrackVoteEvent.tabTrackVoteEvent.schema ++
-        DBTrackVoteEvent.joinTrackVoteEventUserInvited.schema ++
+        DBTrackVoteEvent.joinTrackVoteEventUser.schema ++
         DBTrackVoteEvent.joinTrackVoteEventUserVoteTrack.schema
         ).create,
     )
