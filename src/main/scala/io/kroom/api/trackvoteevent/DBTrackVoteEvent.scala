@@ -48,9 +48,22 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
-    val query1 = (for {
+    // One query ?
+    val qVoteTrue = (for {
       (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
-      if e.id === eventId if jv.voteUp === true
+      if e.id === eventId
+    } yield (e, jv))
+      .filter(_._2.voteUp === true)
+      .groupBy(_._2.idDeezerTrack)
+      .map({
+        case (idDeezerTrack, css) => {
+          (idDeezerTrack, css.length)
+        }
+      })
+
+    val qVoteAll = (for {
+      (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
+      if e.id === eventId
     } yield (e, jv))
       .groupBy(_._2.idDeezerTrack)
       .map({
@@ -59,26 +72,19 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
         }
       })
 
-    val query2 = (for {
-      (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
-      if e.id === eventId if jv.voteUp === false
-    } yield (e, jv))
-      .groupBy(_._2.idDeezerTrack)
-      .map({
-        case (idDeezerTrack, css) => {
-          (idDeezerTrack, css.length)
-        }
-      })
-
-    val f = db.run(DBIO.seq(query1.result, query2.result))
+    val f = db.run(qVoteTrue.result zip qVoteAll.result)
 
     Await.ready(f, Duration.Inf).value
       .flatMap(_.toOption)
-      .map(_.map({
-        case (idDeezerTrack, nbUp, nbDown) => {
-          DataTrackWithVote(idDeezerTrack, nbUp - nbDown, nbUp, nbDown)
-        }
-      }))
+      .map(d => {
+        val (voteTrue, allVote) = d
+
+        allVote.map(v => {
+          val (id, nbTot) = v
+          val nbUp = voteTrue.find(_._1 == id).map(_._1).getOrElse(0)
+          DataTrackWithVote(id, 2 * nbUp - nbTot, nbUp, nbTot - nbUp)
+        })
+      })
       .map(_.toList)
       .getOrElse(List[DataTrackWithVote]())
   }
