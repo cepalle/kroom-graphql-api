@@ -90,7 +90,18 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def getUserInvited(eventId: Int): List[DataUser] = {
-    List[DataUser]()
+    val query = for {
+      ((e, ju), u) <- tabTrackVoteEvent join joinTrackVoteEventUser on (_.id === _.idTrackVoteEvent) join DBUser.tabUser on (_._2.idUser === _.id)
+      if e.id === eventId
+    } yield u
+
+    val f = db.run(query.result)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(_.map(DBUser.tabToObjUser))
+      .map(_.toList)
+      .getOrElse(List[DataUser]())
   }
 
 }
@@ -119,11 +130,11 @@ object DBTrackVoteEvent {
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
 
-  def tabToObjTrackVoteEvent(t: (Int, Int, String, Boolean, Int, String, String)): DataTrackVoteEvent = {
-    val (id, userMasterId, name, public, currentTrackId, horaire, location) = t
-    DataTrackVoteEvent(
-      id, userMasterId, name, public, currentTrackId, horaire, location
-    )
+  val tabToObjTrackVoteEvent: ((Int, Int, String, Boolean, Int, String, String)) => DataTrackVoteEvent = {
+    case (id, userMasterId, name, public, currentTrackId, horaire, location) =>
+      DataTrackVoteEvent(
+        id, userMasterId, name, public, currentTrackId, horaire, location
+      )
   }
 
   class JoinTrackVoteEventUser(tag: Tag)
