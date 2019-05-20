@@ -27,6 +27,7 @@ type TrackWithVote {
 
 interface TrackVoteEvent {
     id: Int!
+    userIdMaster: Int
     name: String!
     public: Boolean!
 
@@ -50,12 +51,12 @@ type Query {
 
 # Mutation
 type Mutation {
-    NewTrackVoteEvent(name: String, public: Boolean, horaire: String, location: String): TrackVoteEvent!
+    NewTrackVoteEvent(userIdMaster: Int, name: String, public: Boolean, horaire: String, location: String): TrackVoteEvent!
 
     TrackVoteEventUpdate(name: String, public: Boolean, horaire: String, location: String): TrackVoteEvent!
 
-    TrackVoteEventAddUser(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
-    TrackVoteEventDelUser(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
+    TrackVoteEventAddUser(eventId: Int, userId: Int): TrackVoteEvent!
+    TrackVoteEventDelUser(eventId: Int, userId: Int): TrackVoteEvent!
 
     TrackVoteEventVote(eventId: Int, musicId: Int, b:Boolean): TrackVoteEvent!
 }

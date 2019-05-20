@@ -14,24 +14,67 @@ case class DataTrackVoteEvent(
 
 class RepoTrackVoteEvent(private val dbh: DBRoot) {
 
-  def getTrackVoteEventById(id: Int): Option[DataTrackVoteEvent] = {
+  def getById(id: Int): Option[DataTrackVoteEvent] = {
     dbh.trackVoteEvent.getTrackVoteEventById(id)
   }
 
-  def getTrackVoteEventPublic: List[DataTrackVoteEvent] = {
+  def getPublic: List[DataTrackVoteEvent] = {
     dbh.trackVoteEvent.getTrackVoteEventPublic
   }
 
-  def getTrackVoteEventByUserId(userId: Int): List[DataTrackVoteEvent] = {
+  def getByUserId(userId: Int): List[DataTrackVoteEvent] = {
     dbh.trackVoteEvent.getTrackVoteEventByUserId(userId)
   }
 
-  def trackVoteEventVote(eventId: Int, musicId: Int, bool: Boolean): Option[DataTrackVoteEvent] = {
-    println("ici")
+  // Mutation
+
+  def newEvent(userIdMaster: Int,
+               name: String,
+               public: Boolean,
+               horaire: String,
+               location: String
+              ): Option[DataTrackVoteEvent] = {
     throw new Throwable with UserFacingError {
       override def getMessage: String = "Not yet implemented"
     }
   }
+
+
+  def update(userIdMaster: Option[Int],
+             name: Option[String],
+             public: Option[Boolean],
+             horaire: Option[String],
+             location: Option[String]
+            ): Option[DataTrackVoteEvent] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
+  def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
+  def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
+  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
+  def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "Not yet implemented"
+    }
+  }
+
 
 }
 

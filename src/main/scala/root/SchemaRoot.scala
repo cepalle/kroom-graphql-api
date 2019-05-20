@@ -35,12 +35,11 @@ object SchemaRoot {
 
       // Option length, index ?
       Field("search", ListType(SearchField),
-        arguments =
-          Argument("search", StringType) ::
-            Argument("connections", OptionInputType(ConnectionEnum)) ::
-            Argument("strict", BooleanType) ::
-            Argument("order", OptionInputType(OrderEnum)) ::
-            Nil,
+        arguments = Argument("search", StringType)
+          :: Argument("connections", OptionInputType(ConnectionEnum))
+          :: Argument("strict", BooleanType)
+          :: Argument("order", OptionInputType(OrderEnum))
+          :: Nil,
         resolve = ctx ⇒ Future {
           ctx.ctx.deezer.getSearch(
             ctx.arg[String]("search"),
@@ -61,13 +60,13 @@ object SchemaRoot {
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.getTrackVoteEventPublic
+          ctx.ctx.trackVoteEvent.getPublic
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.getTrackVoteEventByUserId(ctx.arg[Int]("userId"))
+          ctx.ctx.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
         }),
     ))
 
@@ -76,16 +75,96 @@ object SchemaRoot {
 
       /* DEEZER */
 
-      Field("TrackVoteEventVoteVote", OptionType(TrackVoteEventField),
-        arguments = Argument("eventId", IntType) :: Argument("musicId", IntType) :: Argument("bool", BooleanType) :: Nil,
+      Field("TrackVoteEventNew", OptionType(TrackVoteEventField),
+        arguments = Argument("userIdMaster", IntType)
+          :: Argument("name", StringType)
+          :: Argument("public", BooleanType)
+          :: Argument("horaire", StringType)
+          :: Argument("location", StringType)
+          :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.trackVoteEventVote(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("musicId"),
-            ctx.arg[Boolean]("bool"),
+          ctx.ctx.trackVoteEvent.newEvent(
+            ctx.arg[Int]("userIdMaster"),
+            ctx.arg[String]("name"),
+            ctx.arg[Boolean]("public"),
+            ctx.arg[String]("horaire"),
+            ctx.arg[String]("location"),
           )
         }
       ),
+
+      Field("TrackVoteEventUpdate", OptionType(TrackVoteEventField),
+        arguments = Argument("userIdMaster", OptionInputType(IntType))
+          :: Argument("name", OptionInputType(StringType))
+          :: Argument("public", OptionInputType(BooleanType))
+          :: Argument("horaire", OptionInputType(StringType))
+          :: Argument("location", OptionInputType(StringType))
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.update(
+            ctx.argOpt[Int]("userIdMaster"),
+            ctx.argOpt[String]("name"),
+            ctx.argOpt[Boolean]("public"),
+            ctx.argOpt[String]("horaire"),
+            ctx.argOpt[String]("location"),
+          )
+        }
+      ),
+
+      Field("TrackVoteEventAddUser", OptionType(TrackVoteEventField),
+        arguments = Argument("eventId", IntType)
+          :: Argument("userId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.addUser(
+            ctx.arg[Int]("eventId"),
+            ctx.arg[Int]("userId"),
+          )
+        }
+      ),
+
+      Field("TrackVoteEventDelUser", OptionType(TrackVoteEventField),
+        arguments = Argument("eventId", IntType)
+          :: Argument("userId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.delUser(
+            ctx.arg[Int]("eventId"),
+            ctx.arg[Int]("userId"),
+          )
+        }
+      ),
+
+      Field("TrackVoteEventAddVote", OptionType(TrackVoteEventField),
+        arguments = Argument("eventId", IntType)
+          :: Argument("userId", IntType)
+          :: Argument("musicId", IntType)
+          :: Argument("up", BooleanType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.addVote(
+            ctx.arg[Int]("eventId"),
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("musicId"),
+            ctx.arg[Boolean]("up"),
+          )
+        }
+      ),
+
+      Field("TrackVoteEventDelVote", OptionType(TrackVoteEventField),
+        arguments = Argument("eventId", IntType)
+          :: Argument("userId", IntType)
+          :: Argument("musicId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.trackVoteEvent.delVote(
+            ctx.arg[Int]("eventId"),
+            ctx.arg[Int]("userId"),
+            ctx.arg[Int]("musicId"),
+          )
+        }
+      ),
+
     )
   )
 

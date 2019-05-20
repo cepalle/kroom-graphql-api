@@ -12,7 +12,7 @@ object SchemaTrackVoteEvent {
 
   lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
     Fetcher((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.trackVoteEvent.getTrackVoteEventById(id))
+      ids.flatMap(id => ctx.trackVoteEvent.getById(id))
     }
     )(HasId(_.id))
 
