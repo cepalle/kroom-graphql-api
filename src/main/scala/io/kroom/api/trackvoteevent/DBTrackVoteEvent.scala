@@ -52,9 +52,11 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 object DBTrackVoteEvent {
 
   class TabTrackVoteEvent(tag: Tag)
-    extends Table[(Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
+    extends Table[(Int, Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
 
     def id = column[Int]("ID", O.PrimaryKey)
+
+    def userMasterId = column[Int]("USER_MASTER_ID")
 
     def name = column[String]("NAME")
 
@@ -66,15 +68,15 @@ object DBTrackVoteEvent {
 
     def location = column[String]("LOCATION")
 
-    def * = (id, name, public, currentTrackId, horaire, location)
+    def * = (id, userMasterId, name, public, currentTrackId, horaire, location)
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
 
-  def tabToObjTrackVoteEvent(t: (Int, String, Boolean, Int, String, String)): DataTrackVoteEvent = {
-    val (id, name, public, currentTrackId, horaire, location) = t
+  def tabToObjTrackVoteEvent(t: (Int, Int, String, Boolean, Int, String, String)): DataTrackVoteEvent = {
+    val (id, userMasterId, name, public, currentTrackId, horaire, location) = t
     DataTrackVoteEvent(
-      id, name, public, currentTrackId, horaire, location
+      id, userMasterId, name, public, currentTrackId, horaire, location
     )
   }
 

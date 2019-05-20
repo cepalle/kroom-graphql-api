@@ -2,9 +2,18 @@ package io.kroom.api.trackvoteevent
 
 import sangria.execution.UserFacingError
 import io.kroom.api.root.DBRoot
+import io.kroom.api.user.DataUser
+
+case class DataTrackWithVote(
+                              trackId: Int,
+                              score: Int,
+                              nb_vote_up: Int,
+                              nb_vote_down: Int,
+                            )
 
 case class DataTrackVoteEvent(
                                id: Int,
+                               userMasterId: Int,
                                name: String,
                                public: Boolean,
                                currentTrackId: Int,
@@ -24,6 +33,14 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
 
   def getByUserId(userId: Int): List[DataTrackVoteEvent] = {
     dbh.trackVoteEvent.getTrackVoteEventByUserId(userId)
+  }
+
+  def getTrackWithVote(id: Int): List[DataTrackWithVote] = {
+    List[DataTrackWithVote]()
+  }
+
+  def getUserInvited(id: Int): List[DataUser] = {
+    List[DataUser]()
   }
 
   // Mutation

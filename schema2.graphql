@@ -36,6 +36,7 @@ interface TrackVoteEvent {
 
     horaire: String
     location: String
+
     invited: [User!]
 }
 
