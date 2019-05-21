@@ -111,7 +111,7 @@ object DBTrackVoteEvent {
   class TabTrackVoteEvent(tag: Tag)
     extends Table[(Int, Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
 
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
     def userMasterId = column[Int]("USER_MASTER_ID")
 
@@ -140,7 +140,7 @@ object DBTrackVoteEvent {
   class JoinTrackVoteEventUser(tag: Tag)
     extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
 
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
     def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
 
@@ -154,7 +154,7 @@ object DBTrackVoteEvent {
   class JoinTrackVoteEventUserVoteTrack(tag: Tag)
     extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
 
-    def id = column[Int]("ID", O.PrimaryKey)
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
     def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
 
@@ -170,4 +170,3 @@ object DBTrackVoteEvent {
   val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
 
 }
-

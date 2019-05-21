@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % "10.1.3",
   "de.heikoseeberger" %% "akka-http-circe" % "1.21.0",
 
-  "io.circe" %%	"circe-core" % "0.10.0",
+  "io.circe" %% "circe-core" % "0.10.0",
   "io.circe" %% "circe-parser" % "0.10.0",
   "io.circe" %% "circe-optics" % "0.10.0",
   "io.circe" %% "circe-generic" % "0.10.0",
@@ -28,8 +28,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.0",
 
 
-  "com.h2database" % "h2" % "1.4.199"
-
+  "com.h2database" % "h2" % "1.4.199",
+  "com.github.t3hnar" %% "scala-bcrypt" % "4.0"
 )
 
 Revolver.settings

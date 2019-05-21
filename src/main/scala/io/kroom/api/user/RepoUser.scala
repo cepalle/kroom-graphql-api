@@ -2,13 +2,17 @@ package io.kroom.api.user
 
 import io.kroom.api.deezer.DataDeezerGenre
 import sangria.execution.UserFacingError
+import com.github.t3hnar.bcrypt._
 
 case class DataUser(
                      id: Int,
                      userName: String,
                      email: String,
-                     passHash: String,
+                     emailIsconfirmed: Boolean,
+                     passHash: Option[String],
                      location: Option[String],
+                     tokenOAuth: Option[String],
+                     tokenOAuthOutOfDate: Option[String]
                    )
 
 class RepoUser(val dbh: DBUser) {
@@ -28,39 +32,37 @@ class RepoUser(val dbh: DBUser) {
   // Mutation
 
   def signUp(userName: String, email: String, pass: String): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    // TODO verif send email
+    // TODO verif userName, email, pass
+    // TODO gen token, add in header ?
+    dbh.addUserWithPass(userName, email, pass.bcrypt)
   }
 
   def signIn(userName: Option[String], email: Option[String], pass: String): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
+    // TODO Token
+    userName match {
+      case Some(name) => dbh.checkUserNamePass(name, pass.bcrypt)
+      case _ => email match {
+        case Some(em) => dbh.checkUserEmailPass(em, pass.bcrypt)
+        case _ => None
+      }
     }
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.addFriend(userId, friendId)
   }
 
   def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.delFriend(userId, friendId)
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.addMusicalPreference(userId, genreId)
   }
 
   def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.delMusicalPreference(userId, genreId)
   }
 
 }
