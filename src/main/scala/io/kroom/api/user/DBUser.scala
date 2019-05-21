@@ -1,7 +1,6 @@
 package io.kroom.api.user
 
 import io.kroom.api.deezer.{DBDeezer, DataDeezerGenre}
-import sangria.execution.UserFacingError
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
@@ -124,7 +123,42 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    val query = joinMusicalPreferences.filter(e => e.idDeezerGenre === genreId && e.idUser === userId).delete
+    val query = joinMusicalPreferences
+      .filter(e => e.idDeezerGenre === genreId && e.idUser === userId)
+      .delete
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
+  }
+
+  def confirmEmail(userId: Int): Option[DataUser] = {
+    val query = tabUser.filter(e => e.id === userId)
+      .map(e => e.emailIsconfirmed)
+      .update(true)
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
+  }
+
+  def updateLocation(userId: Int, location: String): Option[DataUser] = {
+    val query = tabUser.filter(e => e.id === userId)
+      .map(e => e.location)
+      .update(Some(location))
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
+  }
+
+  def updateToken(userId: Int, token: Option[String], tokenOutOfDate: Option[String]): Option[DataUser] = {
+    val query = tabUser.filter(e => e.id === userId)
+      .map(e => (e.tokenOAuth, e.tokenOAuthOutOfDate))
+      .update((token, tokenOutOfDate))
 
     val f = db.run(query)
     Await.ready(f, Duration.Inf)

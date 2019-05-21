@@ -1,7 +1,6 @@
 package io.kroom.api.user
 
 import io.kroom.api.deezer.DataDeezerGenre
-import sangria.execution.UserFacingError
 import com.github.t3hnar.bcrypt._
 
 case class DataUser(
