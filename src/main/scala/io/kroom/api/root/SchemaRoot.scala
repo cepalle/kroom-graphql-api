@@ -90,22 +90,19 @@ object SchemaRoot {
         arguments = Argument("userIdMaster", IntType)
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
-          :: Argument("horaire", StringType)
-          :: Argument("location", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
           ctx.ctx.trackVoteEvent.newEvent(
             ctx.arg[Int]("userIdMaster"),
             ctx.arg[String]("name"),
             ctx.arg[Boolean]("public"),
-            ctx.arg[String]("horaire"),
-            ctx.arg[String]("location"),
           )
         }
       ),
 
       Field("TrackVoteEventUpdate", OptionType(TrackVoteEventField),
-        arguments = Argument("userIdMaster", OptionInputType(IntType))
+        arguments = Argument("eventId", IntType)
+          :: Argument("userIdMaster", OptionInputType(IntType))
           :: Argument("name", OptionInputType(StringType))
           :: Argument("public", OptionInputType(BooleanType))
           :: Argument("horaire", OptionInputType(StringType))
@@ -113,6 +110,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ Future {
           ctx.ctx.trackVoteEvent.update(
+            ctx.arg[Int]("eventId"),
             ctx.argOpt[Int]("userIdMaster"),
             ctx.argOpt[String]("name"),
             ctx.argOpt[Boolean]("public"),

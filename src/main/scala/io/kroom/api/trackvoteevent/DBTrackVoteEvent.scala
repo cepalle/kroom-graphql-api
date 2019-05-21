@@ -101,12 +101,56 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .getOrElse(List[DataUser]())
   }
 
+  // Mutation
+
+  def newEvent(userIdMaster: Int,
+               name: String,
+               public: Boolean,
+              ): Option[DataTrackVoteEvent] = {
+    val query = (tabTrackVoteEvent
+      .map(e => (e.userMasterId, e.name, public))
+      returning tabTrackVoteEvent.map(_.id)
+      ) += (userIdMaster, name, public)
+
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .flatMap(id => getTrackVoteEventById(id))
+  }
+
+  def update(eventId: Int,
+             userIdMaster: Option[Int],
+             name: Option[String],
+             public: Option[Boolean],
+             schedule: Option[String],
+             location: Option[String]
+            ): Option[DataTrackVoteEvent] = {
+    None
+  }
+
+  def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    getTrackVoteEventById(eventId)
+  }
+
+  def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    getTrackVoteEventById(eventId)
+  }
+
+  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
+    getTrackVoteEventById(eventId)
+  }
+
+  def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
+    getTrackVoteEventById(eventId)
+  }
+
 }
 
 object DBTrackVoteEvent {
 
   class TabTrackVoteEvent(tag: Tag)
-    extends Table[(Int, Int, String, Boolean, Int, String, String)](tag, "TRACK_VOTE_EVENT") {
+    extends Table[(Int, Int, String, Boolean, Option[Int], Option[String], Option[String])](tag, "TRACK_VOTE_EVENT") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -116,21 +160,21 @@ object DBTrackVoteEvent {
 
     def public = column[Boolean]("PUBLIC")
 
-    def currentTrackId = column[Int]("CURRENT_TRACK_ID")
+    def currentTrackId = column[Option[Int]]("CURRENT_TRACK_ID")
 
-    def schedule = column[String]("SCHEDULE")
+    def schedule = column[Option[String]]("SCHEDULE")
 
-    def location = column[String]("LOCATION")
+    def location = column[Option[String]]("LOCATION")
 
     def * = (id, userMasterId, name, public, currentTrackId, schedule, location)
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
 
-  val tabToObjTrackVoteEvent: ((Int, Int, String, Boolean, Int, String, String)) => DataTrackVoteEvent = {
-    case (id, userMasterId, name, public, currentTrackId, horaire, location) =>
+  val tabToObjTrackVoteEvent: ((Int, Int, String, Boolean, Option[Int], Option[String], Option[String])) => DataTrackVoteEvent = {
+    case (id, userMasterId, name, public, currentTrackId, schedule, location) =>
       DataTrackVoteEvent(
-        id, userMasterId, name, public, currentTrackId, horaire, location
+        id, userMasterId, name, public, currentTrackId, schedule, location
       )
   }
 

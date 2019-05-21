@@ -13,3 +13,11 @@ sbt ~reStart
 ``` 
 
 you can run queries interactively using [graphql-playground](https://github.com/prisma/graphql-playground) by opening [http://localhost:8080](http://localhost:8080) in a browser or query the `/graphql` endpoint directly. The HTTP endpoint follows [GraphQL best practices for handling the HTTP requests](http://graphql.org/learn/serving-over-http/#http-methods-headers-and-body).
+
+# Note
+
+````scala
+    throw new Throwable with UserFacingError {
+      override def getMessage: String = "TODO"
+    }
+````

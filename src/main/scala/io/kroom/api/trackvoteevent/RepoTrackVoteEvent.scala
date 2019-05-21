@@ -1,6 +1,5 @@
 package io.kroom.api.trackvoteevent
 
-import sangria.execution.UserFacingError
 import io.kroom.api.root.DBRoot
 import io.kroom.api.user.DataUser
 
@@ -16,9 +15,9 @@ case class DataTrackVoteEvent(
                                userMasterId: Int,
                                name: String,
                                public: Boolean,
-                               currentTrackId: Int,
-                               schedule: String,
-                               location: String
+                               currentTrackId: Option[Int],
+                               schedule: Option[String],
+                               location: Option[String]
                              )
 
 class RepoTrackVoteEvent(private val dbh: DBRoot) {
@@ -48,47 +47,42 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
   def newEvent(userIdMaster: Int,
                name: String,
                public: Boolean,
-               horaire: String,
-               location: String
               ): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.trackVoteEvent.newEvent(userIdMaster, name, public)
   }
 
-  def update(userIdMaster: Option[Int],
+  def update(eventId: Int,
+             userIdMaster: Option[Int],
              name: Option[String],
              public: Option[Boolean],
-             horaire: Option[String],
+             schedule: Option[String],
              location: Option[String]
             ): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.trackVoteEvent.update(
+      eventId,
+      userIdMaster,
+      name,
+      public,
+      schedule,
+      location
+    )
   }
 
   def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.trackVoteEvent.addUser(eventId, userId)
   }
 
   def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.trackVoteEvent.delUser(eventId, userId)
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    // TODO May need fetch
+    dbh.trackVoteEvent.addVote(eventId, userId, musicId, up)
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    dbh.trackVoteEvent.delVote(eventId, userId, musicId)
   }
 
 }

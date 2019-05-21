@@ -16,8 +16,6 @@ class DBRoot(private val db: H2Profile.backend.Database) {
   val user: DBUser = new DBUser(db)
 }
 
-// foreign key
-// ids ?
 object DBRoot {
 
   def init(db: H2Profile.backend.Database): Unit = {
