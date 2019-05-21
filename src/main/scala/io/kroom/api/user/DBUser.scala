@@ -92,7 +92,15 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
+    val query = joinFriend.map(e => (e.idUser1, e.idUser2)) += (userId, friendId)
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
 
+    val queryUser = tabUser.filter(e => e.id === userId).result.head
+    val f2 = db.run(queryUser)
+    Await.ready(f2, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjUser)
   }
 
   def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
@@ -156,11 +164,11 @@ object DBUser {
 
     def * = (id, idUser1, idUser2)
 
-    def supplier =
-      foreignKey("ID_USER_1", idUser1, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user1 =
+      foreignKey("FK_USER_1", idUser1, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def supplier2 =
-      foreignKey("ID_USER_2", idUser2, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user2 =
+      foreignKey("FK_USER_2", idUser2, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
   }
 
@@ -175,6 +183,13 @@ object DBUser {
     def idDeezerGenre = column[Int]("ID_DEEZER_GENRE")
 
     def * = (id, idUser, idDeezerGenre)
+
+    def user =
+      foreignKey("FK_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+    def deezerGenre =
+      foreignKey("FK_DEEZER_GENRE", idDeezerGenre, DBDeezer.tabDeezerGenre)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
   }
 
   val joinMusicalPreferences = TableQuery[JoinMusicalPreferences]

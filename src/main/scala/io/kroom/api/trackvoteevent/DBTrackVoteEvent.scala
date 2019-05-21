@@ -1,5 +1,6 @@
 package io.kroom.api.trackvoteevent
 
+import io.kroom.api.deezer.DBDeezer
 import io.kroom.api.user.{DBUser, DataUser}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
@@ -147,6 +148,12 @@ object DBTrackVoteEvent {
     def idUser = column[Int]("ID_USER")
 
     def * = (id, idTrackVoteEvent, idUser)
+
+    def trackVoteEvent =
+      foreignKey("FK_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+    def user =
+      foreignKey("FK_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
   }
 
   val joinTrackVoteEventUser = TableQuery[JoinTrackVoteEventUser]
@@ -165,6 +172,16 @@ object DBTrackVoteEvent {
     def voteUp = column[Boolean]("VOTE_UP")
 
     def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
+
+    def deezerTrack =
+      foreignKey("FK_DEEZER_TRACK", idDeezerTrack, DBDeezer.tabDeezerTrack)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+    def trackVoteEvent =
+      foreignKey("FK_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+    def user =
+      foreignKey("FK_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
   }
 
   val joinTrackVoteEventUserVoteTrack = TableQuery[JoinTrackVoteEventUserVoteTrack]
