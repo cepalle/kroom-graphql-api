@@ -150,10 +150,10 @@ object DBTrackVoteEvent {
     def * = (id, idTrackVoteEvent, idUser)
 
     def trackVoteEvent =
-      foreignKey("FK_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_TRACK_VOTE_EVENT_EVENT_USER_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def user =
-      foreignKey("FK_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_TRACK_VOTE_EVENT_EVENT_USER_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
   }
 
   val joinTrackVoteEventUser = TableQuery[JoinTrackVoteEventUser]
@@ -174,13 +174,13 @@ object DBTrackVoteEvent {
     def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
 
     def deezerTrack =
-      foreignKey("FK_DEEZER_TRACK", idDeezerTrack, DBDeezer.tabDeezerTrack)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK_DEEZER_TRACK", idDeezerTrack, DBDeezer.tabDeezerTrack)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def trackVoteEvent =
-      foreignKey("FK_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def user =
-      foreignKey("FK_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK_USER", idUser, DBUser.tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
   }
 

@@ -24,7 +24,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def getFriends(userId: Int): List[DataUser] = {
     val query = for {
       ((u, jf), f) <- tabUser join joinFriend on
-        (_.id === _.idUser1) join tabUser on (_._2.idUser2 === _.id)
+        (_.id === _.idUser) join tabUser on (_._2.idFriend === _.id)
       if u.id === userId
     } yield f
     val f = db.run(query.result)
@@ -92,7 +92,10 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
-    val query = joinFriend.map(e => (e.idUser1, e.idUser2)) += (userId, friendId)
+    val query = DBIO.seq(
+      joinFriend.map(e => (e.idUser, e.idFriend)) += (userId, friendId),
+      joinFriend.map(e => (e.idUser, e.idFriend)) += (friendId, userId)
+    )
     val f = db.run(query)
     Await.ready(f, Duration.Inf)
 
@@ -158,17 +161,17 @@ object DBUser {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
-    def idUser1 = column[Int]("ID_USER_1")
+    def idUser = column[Int]("ID_USER")
 
-    def idUser2 = column[Int]("ID_USER_2")
+    def idFriend = column[Int]("ID_FRIEND")
 
-    def * = (id, idUser1, idUser2)
+    def * = (id, idUser, idFriend)
 
-    def user1 =
-      foreignKey("FK_USER_1", idUser1, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user =
+      foreignKey("FK_JOIN_FRIEND_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def user2 =
-      foreignKey("FK_USER_2", idUser2, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def friend =
+      foreignKey("FK_JOIN_FRIEND_FRIEND", idFriend, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
   }
 
@@ -185,10 +188,10 @@ object DBUser {
     def * = (id, idUser, idDeezerGenre)
 
     def user =
-      foreignKey("FK_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_MUSICAL_PREFERENCES_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def deezerGenre =
-      foreignKey("FK_DEEZER_GENRE", idDeezerGenre, DBDeezer.tabDeezerGenre)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("FK_JOIN_MUSICAL_PREFERENCES_DEEZER_GENRE", idDeezerGenre, DBDeezer.tabDeezerGenre)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
   }
 
