@@ -57,9 +57,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .filter(_._2.voteUp === true)
       .groupBy(_._2.idDeezerTrack)
       .map({
-        case (idDeezerTrack, css) => {
-          (idDeezerTrack, css.length)
-        }
+        case (idDeezerTrack, css) => (idDeezerTrack, css.length)
       })
 
     val qVoteAll = (for {
@@ -68,9 +66,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
     } yield (e, jv))
       .groupBy(_._2.idDeezerTrack)
       .map({
-        case (idDeezerTrack, css) => {
-          (idDeezerTrack, css.length)
-        }
+        case (idDeezerTrack, css) => (idDeezerTrack, css.length)
       })
 
     val f = db.run(qVoteTrue.result zip qVoteAll.result)

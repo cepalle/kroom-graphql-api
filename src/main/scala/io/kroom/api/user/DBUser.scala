@@ -99,29 +99,37 @@ class DBUser(private val db: H2Profile.backend.Database) {
     val f = db.run(query)
     Await.ready(f, Duration.Inf)
 
-    val queryUser = tabUser.filter(e => e.id === userId).result.head
-    val f2 = db.run(queryUser)
-    Await.ready(f2, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    getById(userId)
   }
 
   def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    val query = DBIO.seq(
+      joinFriend.filter(e => e.idFriend === friendId && e.idUser === userId).delete,
+      joinFriend.filter(e => e.idFriend === userId && e.idUser === friendId).delete,
+    )
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    // TODO if music not in DB need fetch
+    val query = joinMusicalPreferences.map(e => (e.idUser, e.idDeezerGenre)) += (userId, genreId)
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
   }
 
   def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    throw new Throwable with UserFacingError {
-      override def getMessage: String = "TODO"
-    }
+    val query = joinMusicalPreferences.filter(e => e.idDeezerGenre === genreId && e.idUser === userId).delete
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
   }
 
 }
