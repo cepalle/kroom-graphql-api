@@ -4,7 +4,7 @@ import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.SchemaUser
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{BooleanType, Field, IntType, ObjectType, StringType, fields, ListType}
+import sangria.schema.{BooleanType, Field, IntType, ObjectType, StringType, fields, ListType, OptionType}
 
 import scala.concurrent.Future
 
@@ -32,15 +32,15 @@ object SchemaTrackVoteEvent {
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),
 
-      Field("currentTrack", SchemaDeezer.TrackField, resolve = ctx =>
-        SchemaDeezer.TrackFetcherId.defer(ctx.value.currentTrackId)
+      Field("currentTrack", OptionType(SchemaDeezer.TrackField), resolve = ctx =>
+        SchemaDeezer.TrackFetcherId.deferOpt(ctx.value.currentTrackId)
       ),
       Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx => Future {
         ctx.ctx.trackVoteEvent.getTrackWithVote(ctx.value.id)
       }),
 
-      Field("schedule", StringType, resolve = _.value.schedule),
-      Field("location", StringType, resolve = _.value.location),
+      Field("schedule", OptionType(StringType), resolve = _.value.schedule),
+      Field("location", OptionType(StringType), resolve = _.value.location),
 
       Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
         ctx.ctx.trackVoteEvent.getUserInvited(ctx.value.id)

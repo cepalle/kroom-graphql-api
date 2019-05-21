@@ -52,9 +52,9 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
   }
 
   def update(eventId: Int,
-             userIdMaster: Option[Int],
-             name: Option[String],
-             public: Option[Boolean],
+             userIdMaster: Int,
+             name: String,
+             public: Boolean,
              schedule: Option[String],
              location: Option[String]
             ): Option[DataTrackVoteEvent] = {

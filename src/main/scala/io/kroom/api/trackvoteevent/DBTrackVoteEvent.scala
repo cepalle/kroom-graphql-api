@@ -120,28 +120,57 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def update(eventId: Int,
-             userIdMaster: Option[Int],
-             name: Option[String],
-             public: Option[Boolean],
+             userIdMaster: Int,
+             name: String,
+             public: Boolean,
              schedule: Option[String],
              location: Option[String]
             ): Option[DataTrackVoteEvent] = {
-    None
+    Await.ready(db.run(
+      tabTrackVoteEvent
+        .filter(_.id === eventId)
+        .map(e => (e.userMasterId, e.name, e.public, e.schedule, e.location))
+        .update((userIdMaster, name, public, schedule, location))
+    ), Duration.Inf)
+
+    getTrackVoteEventById(eventId)
   }
 
   def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    val query = joinTrackVoteEventUser
+      .map(e => (e.idTrackVoteEvent, e.idUser)) += (eventId, userId)
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
     getTrackVoteEventById(eventId)
   }
 
   def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+    val query = joinTrackVoteEventUser
+      .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId).delete
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
     getTrackVoteEventById(eventId)
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
+    // TODO Check is music fetch
+    val query = joinTrackVoteEventUserVoteTrack
+      .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack)) += (eventId, userId, musicId)
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
     getTrackVoteEventById(eventId)
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
+    val query = joinTrackVoteEventUserVoteTrack
+      .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId && e.idDeezerTrack === musicId)
+      .delete
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
     getTrackVoteEventById(eventId)
   }
 
