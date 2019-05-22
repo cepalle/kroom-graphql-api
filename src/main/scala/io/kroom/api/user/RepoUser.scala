@@ -74,4 +74,19 @@ class RepoUser(val dbh: DBUser) {
     dbh.delMusicalPreference(userId, genreId)
   }
 
+  def updatePrivacy(
+                     userId: Int,
+                     email: Privacy.Value,
+                     location: Privacy.Value,
+                     friends: Privacy.Value,
+                     musicalPreferencesGenre: Privacy.Value,
+                   ): Option[DataUser] = {
+    dbh.updatePrivacy(userId, DataUserPrivacy(
+      Privacy.PrivacyToInt(email),
+      Privacy.PrivacyToInt(location),
+      Privacy.PrivacyToInt(friends),
+      Privacy.PrivacyToInt(musicalPreferencesGenre),
+    ))
+  }
+
 }

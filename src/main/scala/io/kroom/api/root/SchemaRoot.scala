@@ -10,6 +10,8 @@ import scala.concurrent.Future
 /**
   * Defines a GraphQL schema for the current project
   */
+
+// Split?
 object SchemaRoot {
 
   import SchemaUser._
@@ -266,6 +268,23 @@ object SchemaRoot {
         }
       ),
 
+      Field("UserUpdatePrivacy", OptionType(UserField),
+        arguments = Argument("userId", IntType)
+          :: Argument("email", PrivacyEnum)
+          :: Argument("location", PrivacyEnum)
+          :: Argument("friends", PrivacyEnum)
+          :: Argument("musicalPreferencesGenre", PrivacyEnum)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.user.updatePrivacy(
+            ctx.arg[Int]("userId"),
+            ctx.arg[Privacy.Value]("email"),
+            ctx.arg[Privacy.Value]("location"),
+            ctx.arg[Privacy.Value]("friends"),
+            ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
+          )
+        }
+      ),
 
     )
   )

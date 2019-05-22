@@ -1,5 +1,6 @@
 package io.kroom.api.user
 
+import io.circe.syntax._
 import io.circe.parser
 import io.circe.generic.auto._
 import io.kroom.api.deezer.{DBDeezer, DataDeezerGenre}
@@ -168,6 +169,17 @@ class DBUser(private val db: H2Profile.backend.Database) {
     getById(userId)
   }
 
+  def updatePrivacy(userId: Int, pr: DataUserPrivacy): Option[DataUser] = {
+    val query = tabUser.filter(e => e.id === userId)
+      .map(e => e.privacyJson)
+      .update(DataUserPrivacy.asJson.toString())
+
+    val f = db.run(query)
+    Await.ready(f, Duration.Inf)
+
+    getById(userId)
+  }
+
 }
 
 object DBUser {
@@ -190,7 +202,7 @@ object DBUser {
 
     def tokenOAuthOutOfDate = column[Option[String]]("TOKEN_OUT_OF_DATE")
 
-    def privacyJson = column[String]("PRIVACY_JSON")
+    def privacyJson = column[String]("PRIVACY_JSON", O.Default(DataUserPrivacy(3, 3, 1, 1).asJson.toString()))
 
     def * = (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson)
   }
