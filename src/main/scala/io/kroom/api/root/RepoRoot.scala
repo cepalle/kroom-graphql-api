@@ -8,7 +8,7 @@ import io.kroom.api.trackvoteevent.RepoTrackVoteEvent
 class RepoRoot(private val dbh: DBRoot) {
 
   val deezer = new RepoDeezer(dbh.deezer)
-  val trackVoteEvent = new RepoTrackVoteEvent(dbh)
+  val trackVoteEvent = new RepoTrackVoteEvent(dbh.trackVoteEvent)
   val user = new RepoUser(dbh.user)
 
 }

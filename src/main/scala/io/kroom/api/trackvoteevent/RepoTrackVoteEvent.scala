@@ -20,26 +20,26 @@ case class DataTrackVoteEvent(
                                location: Option[String]
                              )
 
-class RepoTrackVoteEvent(private val dbh: DBRoot) {
+class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent) {
 
   def getById(id: Int): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.getTrackVoteEventById(id)
+    dbh.getTrackVoteEventById(id)
   }
 
   def getPublic: List[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.getTrackVoteEventPublic
+    dbh.getTrackVoteEventPublic
   }
 
   def getByUserId(userId: Int): List[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.getTrackVoteEventByUserId(userId)
+    dbh.getTrackVoteEventByUserId(userId)
   }
 
   def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
-    dbh.trackVoteEvent.getTrackWithVote(eventId)
+    dbh.getTrackWithVote(eventId)
   }
 
   def getUserInvited(eventId: Int): List[DataUser] = {
-    dbh.trackVoteEvent.getUserInvited(eventId)
+    dbh.getUserInvited(eventId)
   }
 
   // Mutation
@@ -48,7 +48,7 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
             name: String,
             public: Boolean,
               ): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.`new`(userIdMaster, name, public)
+    dbh.`new`(userIdMaster, name, public)
   }
 
   def update(eventId: Int,
@@ -58,7 +58,7 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
              schedule: Option[String],
              location: Option[String]
             ): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.update(
+    dbh.update(
       eventId,
       userIdMaster,
       name,
@@ -69,20 +69,20 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
   }
 
   def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.addUser(eventId, userId)
+    dbh.addUser(eventId, userId)
   }
 
   def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.delUser(eventId, userId)
+    dbh.delUser(eventId, userId)
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
     // TODO May need fetch
-    dbh.trackVoteEvent.addVote(eventId, userId, musicId, up)
+    dbh.addVote(eventId, userId, musicId, up)
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.delVote(eventId, userId, musicId)
+    dbh.delVote(eventId, userId, musicId)
   }
 
 }
