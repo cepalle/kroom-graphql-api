@@ -208,15 +208,15 @@ object DBTrackVoteEvent {
   }
 
   class JoinTrackVoteEventUser(tag: Tag)
-    extends Table[(Int, Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
-
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
+    extends Table[(Int, Int)](tag, "JOIN_TRACK_VOTE_EVENT_USER_INVITED") {
 
     def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
 
     def idUser = column[Int]("ID_USER")
 
-    def * = (id, idTrackVoteEvent, idUser)
+    def * = (idTrackVoteEvent, idUser)
+
+    def pk = primaryKey("PK_JOIN_TRACK_VOTE_EVENT_USER_INVITED", (idTrackVoteEvent, idUser))
 
     def trackVoteEvent =
       foreignKey("FK_JOIN_TRACK_VOTE_EVENT_EVENT_USER_TRACK_VOTE_EVENT", idTrackVoteEvent, tabTrackVoteEvent)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
@@ -228,9 +228,7 @@ object DBTrackVoteEvent {
   val joinTrackVoteEventUser = TableQuery[JoinTrackVoteEventUser]
 
   class JoinTrackVoteEventUserVoteTrack(tag: Tag)
-    extends Table[(Int, Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
-
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
+    extends Table[(Int, Int, Int, Boolean)](tag, "JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK") {
 
     def idTrackVoteEvent = column[Int]("ID_TRACK_VOTE_EVENT")
 
@@ -240,7 +238,9 @@ object DBTrackVoteEvent {
 
     def voteUp = column[Boolean]("VOTE_UP")
 
-    def * = (id, idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
+    def * = (idTrackVoteEvent, idUser, idDeezerTrack, voteUp)
+
+    def pk = primaryKey("PK_JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK", (idTrackVoteEvent, idUser, idDeezerTrack))
 
     def deezerTrack =
       foreignKey("FK_JOIN_TRACK_VOTE_EVENT_USER_VOTE_TRACK_DEEZER_TRACK", idDeezerTrack, DBDeezer.tabDeezerTrack)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)

@@ -199,15 +199,15 @@ object DBUser {
     )
   }
 
-  class JoinFriend(tag: Tag) extends Table[(Int, Int, Int)](tag, "JOIN_FRIEND") {
-
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
+  class JoinFriend(tag: Tag) extends Table[(Int, Int)](tag, "JOIN_FRIEND") {
 
     def idUser = column[Int]("ID_USER")
 
     def idFriend = column[Int]("ID_FRIEND")
 
-    def * = (id, idUser, idFriend)
+    def * = (idUser, idFriend)
+
+    def pk = primaryKey("PK_JOIN_FRIEND", (idUser, idFriend))
 
     def user =
       foreignKey("FK_JOIN_FRIEND_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
@@ -219,15 +219,15 @@ object DBUser {
 
   val joinFriend = TableQuery[JoinFriend]
 
-  class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int, Int)](tag, "JOIN_MUSICAL_PREFERENCES") {
-
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
+  class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int)](tag, "JOIN_MUSICAL_PREFERENCES") {
 
     def idUser = column[Int]("ID_USER")
 
     def idDeezerGenre = column[Int]("ID_DEEZER_GENRE")
 
-    def * = (id, idUser, idDeezerGenre)
+    def * = (idUser, idDeezerGenre)
+
+    def pk = primaryKey("PK_JOIN_MUSICAL_PREFERENCES", (idUser, idDeezerGenre))
 
     def user =
       foreignKey("FK_JOIN_MUSICAL_PREFERENCES_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)

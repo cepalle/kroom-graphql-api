@@ -21,3 +21,8 @@ you can run queries interactively using [graphql-playground](https://github.com/
       override def getMessage: String = "TODO"
     }
 ````
+
+# TODO
+
+Try[T]
+
