@@ -1,7 +1,7 @@
 package io.kroom.api.user
 
+import io.kroom.api.Authorization.Privacy
 import io.kroom.api.SecureContext
-import io.kroom.api.util.Privacy
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
 import sangria.execution.deferred.{Fetcher, HasId}

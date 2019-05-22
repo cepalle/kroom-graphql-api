@@ -1,4 +1,4 @@
-package io.kroom.api.util
+package io.kroom.api
 
 case class AuthenticationException(message: String) extends Exception(message)
 

@@ -1,9 +1,9 @@
 package io.kroom.api.root
 
+import io.kroom.api.Authorization.Privacy
 import io.kroom.api.SecureContext
 import io.kroom.api.user.SchemaUser
 import io.kroom.api.deezer.{Connections, Order}
-import io.kroom.api.util.Privacy
 import sangria.schema._
 
 import scala.concurrent.Future

@@ -1,26 +1,27 @@
 package io.kroom.api
 
 import io.kroom.api.root.RepoRoot
-import io.kroom.api.user.DataUser
-import io.kroom.api.util.{AuthenticationException, AuthorisationException}
+import io.kroom.api.user.{DataUser, DataUserPrivacy}
+import Authorization.PermissionGroup
 
-case class SecureContext(token: Option[String], repo: RepoRoot) {
-  def login(userName: String, password: String): DataUser = repo.user.authenticate(userName, password)
+class SecureContext(private val token: Option[String], val repo: RepoRoot) {
+
+  private lazy val (user: DataUser, permGrp: List[PermissionGroup.Value]) = token.flatMap(repo.user.authorise)
     .getOrElse(
-      throw AuthenticationException("UserName or password is incorrect")
+      (
+        DataUser(0, "public", "", false, None, None, None, None, DataUserPrivacy(0, 0, 0, 0)),
+        List(PermissionGroup.public)
+      )
     )
 
+  private lazy val permissions = Authorization.PermissionGroupsToPermissions(permGrp)
+
+  def login(userName: String, password: String): DataUser =
+    repo.user.authenticate(userName, password)
+      .fold(throw AuthorisationException("UserName or password is incorrect"))(identity)
+
   def authorised[T](permissions: String*)(fn: DataUser ⇒ T): T =
-    token.flatMap(repo.user.authorise).fold(throw AuthorisationException("Invalid token")) { user ⇒
-      if (permissions.forall(user.permissions.contains)) fn(user)
-      else throw AuthorisationException("You do not have permission to do this operation")
-    }
+    if (permissions.forall(permissions.contains)) fn(user)
+    else throw AuthorisationException("You do not have permission to do this operation")
 
-  def ensurePermissions(permissions: List[String]): Unit =
-    token.flatMap(repo.user.authorise).fold(throw AuthorisationException("Invalid token")) { user ⇒
-      if (!permissions.forall(user.permissions.contains))
-        throw AuthorisationException("You do not have permission to do this operation")
-    }
-
-  def user = token.flatMap(repo.user.authorise).fold(throw AuthorisationException("Invalid token"))(identity)
 }

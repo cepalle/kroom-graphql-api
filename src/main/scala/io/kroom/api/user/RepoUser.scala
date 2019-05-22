@@ -1,8 +1,8 @@
 package io.kroom.api.user
 
-import io.kroom.api.util.Privacy
 import io.kroom.api.deezer.DataDeezerGenre
 import com.github.t3hnar.bcrypt._
+import io.kroom.api.Authorization.{PermissionGroup, Privacy}
 
 
 case class DataUserPrivacy(
@@ -50,6 +50,11 @@ class RepoUser(val dbh: DBUser) {
   def authenticate(userName: String, pass: String): Option[DataUser] = {
     // TODO Token
     dbh.checkUserNamePass(userName, pass.bcrypt)
+  }
+
+  def authorise(token: String): Option[(DataUser, List[PermissionGroup.Value])] = {
+    // TODO
+    None
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
