@@ -1,5 +1,7 @@
 package io.kroom.api.user
 
+import io.circe.parser
+import io.circe.generic.auto._
 import io.kroom.api.deezer.{DBDeezer, DataDeezerGenre}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
@@ -170,7 +172,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
 object DBUser {
 
-  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String])](tag, "USER") {
+  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)](tag, "USER") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -188,14 +190,17 @@ object DBUser {
 
     def tokenOAuthOutOfDate = column[Option[String]]("TOKEN_OUT_OF_DATE")
 
-    def * = (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate)
+    def privacyJson = column[String]("PRIVACY_JSON")
+
+    def * = (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson)
   }
 
   val tabUser = TableQuery[TabUser]
 
-  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String])) => DataUser = {
-    case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate) => DataUser(
-      id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate
+  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)) => DataUser = {
+    case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson) => DataUser(
+      id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate,
+      parser.decode[DataUserPrivacy](privacyJson).getOrElse(throw new IllegalArgumentException("TabUser: json in db is invalid"))
     )
   }
 

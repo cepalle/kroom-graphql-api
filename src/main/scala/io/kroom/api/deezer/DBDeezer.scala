@@ -89,10 +89,7 @@ object DBDeezer {
   val tabDeezerGenre = TableQuery[TabDeezerGenre]
 
   def tabToObjDeezerGenre(t: (Int, String)): DataDeezerGenre = {
-    parser.decode[DataDeezerGenre](t._2).toOption match {
-      case Some(res) => res
-      case _ => throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid")
-    }
+    parser.decode[DataDeezerGenre](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
   }
 
   class TabDeezerAlbum(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ALBUM") {
@@ -107,10 +104,7 @@ object DBDeezer {
   val tabDeezerAlbum = TableQuery[TabDeezerAlbum]
 
   def tabToObjDeezerAlbum(t: (Int, String)): DataDeezerAlbum = {
-    parser.decode[DataDeezerAlbum](t._2).toOption match {
-      case Some(res) => res
-      case _ => throw new IllegalArgumentException("TabDeezerAlbum: json in db is invalid")
-    }
+    parser.decode[DataDeezerAlbum](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
   }
 
   class TabDeezerArtist(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ARTIST") {
@@ -125,10 +119,7 @@ object DBDeezer {
   val tabDeezerArtist = TableQuery[TabDeezerArtist]
 
   def tabToObjDeezerArtist(t: (Int, String)): DataDeezerArtist = {
-    parser.decode[DataDeezerArtist](t._2).toOption match {
-      case Some(res) => res
-      case _ => throw new IllegalArgumentException("TabDeezerArtist: json in db is invalid")
-    }
+    parser.decode[DataDeezerArtist](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
   }
 
   class TabDeezerTrack(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_TRACK") {
@@ -143,10 +134,7 @@ object DBDeezer {
   val tabDeezerTrack = TableQuery[TabDeezerTrack]
 
   def tabToObjDeezerTrack(t: (Int, String)): DataDeezerTrack = {
-    parser.decode[DataDeezerTrack](t._2).toOption match {
-      case Some(res) => res
-      case _ => throw new IllegalArgumentException("TabDeezerTrack: json in db is invalid")
-    }
+    parser.decode[DataDeezerTrack](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
   }
 
 }

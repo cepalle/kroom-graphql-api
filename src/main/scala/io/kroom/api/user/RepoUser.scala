@@ -6,10 +6,10 @@ import com.github.t3hnar.bcrypt._
 
 
 case class DataUserPrivacy(
-                            email: Privacy.Value,
-                            location: Privacy.Value,
-                            friends: Privacy.Value,
-                            musicalPreferencesGenre: Privacy.Value,
+                            email: Int,
+                            location: Int,
+                            friends: Int,
+                            musicalPreferencesGenre: Int,
                           )
 
 case class DataUser(

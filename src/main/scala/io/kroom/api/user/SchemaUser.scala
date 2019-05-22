@@ -1,5 +1,6 @@
 package io.kroom.api.user
 
+import io.kroom.api.util.Privacy
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.{RepoRoot, SchemaRoot}
 import sangria.execution.deferred.{Fetcher, HasId}
@@ -21,10 +22,10 @@ object SchemaUser {
     "Privacy",
     "Privacy description.",
     () ⇒ fields[RepoRoot, DataUserPrivacy](
-      Field("email", SchemaRoot.PrivacyEnum, resolve = _.value.email),
-      Field("location", SchemaRoot.PrivacyEnum, resolve = _.value.location),
-      Field("friends", SchemaRoot.PrivacyEnum, resolve = _.value.friends),
-      Field("musicalPreferencesGenre", SchemaRoot.PrivacyEnum, resolve = _.value.musicalPreferencesGenre),
+      Field("email", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.email)),
+      Field("location", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.location)),
+      Field("friends", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.friends)),
+      Field("musicalPreferencesGenre", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.musicalPreferencesGenre)),
     ))
 
   lazy val UserField: ObjectType[RepoRoot, DataUser] = ObjectType(
