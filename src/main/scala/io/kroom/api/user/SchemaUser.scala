@@ -37,6 +37,8 @@ object SchemaUser {
       Field("userName", StringType, resolve = _.value.userName),
       Field("email", StringType, resolve = _.value.email),
       Field("location", OptionType(StringType), resolve = _.value.location),
+      Field("token", OptionType(StringType), resolve = _.value.token),
+      Field("privacy", PrivacyField, resolve = _.value.privacy),
 
       Field("friends", ListType(UserField), resolve = ctx => Future {
         ctx.ctx.repo.user.getFriends(ctx.value.id)
@@ -44,7 +46,6 @@ object SchemaUser {
       Field("musicalPreferences", ListType(SchemaDeezer.GenreField), resolve = ctx => Future {
         ctx.ctx.repo.user.getmMsicalPreferences(ctx.value.id)
       }),
-      Field("privacy", PrivacyField, resolve = _.value.privacy),
     ))
 
 }

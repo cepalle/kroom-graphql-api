@@ -208,14 +208,12 @@ object SchemaRoot {
       ),
 
       Field("UserSignIn", OptionType(UserField),
-        arguments = Argument("userName", OptionInputType(StringType))
-          :: Argument("email", OptionInputType(StringType))
+        arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.signIn(
-            ctx.argOpt[String]("userName"),
-            ctx.argOpt[String]("email"),
+          ctx.ctx.repo.user.authenticate(
+            ctx.arg[String]("userName"),
             ctx.arg[String]("pass"),
           )
         }

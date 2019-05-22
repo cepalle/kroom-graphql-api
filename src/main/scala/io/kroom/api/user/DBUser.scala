@@ -67,19 +67,6 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(tabToObjUser)
   }
 
-  def checkUserEmailPass(email: String, passHash: String): Option[DataUser] = {
-    val queryUser = tabUser.filter(e => e.email === email).result.head
-    val f2 = db.run(queryUser)
-    Await.ready(f2, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
-      .flatMap(e => if (e.passHash.contains(passHash)) {
-        Some(e)
-      } else {
-        None
-      })
-  }
-
   def checkUserNamePass(name: String, passHash: String): Option[DataUser] = {
     val queryUser = tabUser.filter(e => e.name === name).result.head
     val f2 = db.run(queryUser)

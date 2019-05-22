@@ -19,8 +19,8 @@ case class DataUser(
                      emailIsconfirmed: Boolean,
                      passHash: Option[String],
                      location: Option[String],
-                     tokenOAuth: Option[String],
-                     tokenOAuthOutOfDate: Option[String],
+                     token: Option[String],
+                     tokenOutOfDate: Option[String],
                      privacy: DataUserPrivacy
                    )
 
@@ -47,15 +47,9 @@ class RepoUser(val dbh: DBUser) {
     dbh.addUserWithPass(userName, email, pass.bcrypt)
   }
 
-  def signIn(userName: Option[String], email: Option[String], pass: String): Option[DataUser] = {
+  def authenticate(userName: String, pass: String): Option[DataUser] = {
     // TODO Token
-    userName match {
-      case Some(name) => dbh.checkUserNamePass(name, pass.bcrypt)
-      case _ => email match {
-        case Some(em) => dbh.checkUserEmailPass(em, pass.bcrypt)
-        case _ => None
-      }
-    }
+    dbh.checkUserNamePass(userName, pass.bcrypt)
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
