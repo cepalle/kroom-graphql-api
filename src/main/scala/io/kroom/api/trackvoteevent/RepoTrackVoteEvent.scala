@@ -44,11 +44,11 @@ class RepoTrackVoteEvent(private val dbh: DBRoot) {
 
   // Mutation
 
-  def newEvent(userIdMaster: Int,
-               name: String,
-               public: Boolean,
+  def `new`(userIdMaster: Int,
+            name: String,
+            public: Boolean,
               ): Option[DataTrackVoteEvent] = {
-    dbh.trackVoteEvent.newEvent(userIdMaster, name, public)
+    dbh.trackVoteEvent.`new`(userIdMaster, name, public)
   }
 
   def update(eventId: Int,

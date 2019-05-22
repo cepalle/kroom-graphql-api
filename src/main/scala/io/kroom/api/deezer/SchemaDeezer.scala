@@ -134,55 +134,55 @@ object SchemaDeezer {
       Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
     ))
 
-  val ConnectionEnum = EnumType(
+  lazy val ConnectionEnum = EnumType(
     "Connection",
     Some("exemple: search/album"),
     List(
-      EnumValue("album",
+      EnumValue("ALBUM",
         value = Connections.album),
-      EnumValue("artist",
+      EnumValue("ARTIST",
         value = Connections.artist),
-      EnumValue("history",
+      EnumValue("HISTORY",
         value = Connections.history),
-      EnumValue("playlist",
+      EnumValue("PLAYLIST",
         value = Connections.playlist),
-      EnumValue("podcast",
+      EnumValue("PODCAST",
         value = Connections.podcast),
-      EnumValue("radio",
+      EnumValue("RADIO",
         value = Connections.radio),
-      EnumValue("track",
+      EnumValue("TRACK",
         value = Connections.track),
-      EnumValue("user",
+      EnumValue("USER",
         value = Connections.user),
     )
   )
 
-  val OrderEnum = EnumType(
+  lazy val OrderEnum = EnumType(
     "Order",
     Some("Sort Order"),
     List(
       EnumValue("RANKING",
-        value = Order.RANKING),
+        value = Order.ranking),
       EnumValue("ALBUM_ASC",
-        value = Order.ALBUM_ASC),
+        value = Order.albumASC),
       EnumValue("ALBUM_DESC",
-        value = Order.ALBUM_DESC),
+        value = Order.albumDESC),
       EnumValue("ARTIST_ASC",
-        value = Order.ARTIST_ASC),
+        value = Order.artistASC),
       EnumValue("ARTIST_DESC",
-        value = Order.ARTIST_DESC),
+        value = Order.artistDESC),
       EnumValue("DURATION_ASC",
-        value = Order.DURATION_ASC),
+        value = Order.durationASC),
       EnumValue("DURATION_DESC",
-        value = Order.DURATION_DESC),
+        value = Order.durationDESC),
       EnumValue("RATING_ASC",
-        value = Order.RATING_ASC),
+        value = Order.ratingASC),
       EnumValue("RATING_DESC",
-        value = Order.RATING_DESC),
+        value = Order.ratingDESC),
       EnumValue("TRACK_ASC",
-        value = Order.TRACK_ASC),
+        value = Order.trackASC),
       EnumValue("TRACK_DESC",
-        value = Order.TRACK_DESC),
+        value = Order.trackDESC),
     )
   )
 

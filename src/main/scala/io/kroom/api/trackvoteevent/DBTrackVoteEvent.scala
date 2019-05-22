@@ -103,9 +103,9 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
   // Mutation
 
-  def newEvent(userIdMaster: Int,
-               name: String,
-               public: Boolean,
+  def `new`(userIdMaster: Int,
+            name: String,
+            public: Boolean,
               ): Option[DataTrackVoteEvent] = {
     val query = (tabTrackVoteEvent
       .map(e => (e.userMasterId, e.name, public))

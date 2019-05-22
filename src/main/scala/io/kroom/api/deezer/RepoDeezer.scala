@@ -139,7 +139,7 @@ case class DataDeezerSearch(
                            )
 
 object Order extends Enumeration {
-  val RANKING, TRACK_ASC, TRACK_DESC, ARTIST_ASC, ARTIST_DESC, ALBUM_ASC, ALBUM_DESC, RATING_ASC, RATING_DESC, DURATION_ASC, DURATION_DESC = Value
+  val ranking, trackASC, trackDESC, artistASC, artistDESC, albumASC, albumDESC, ratingASC, ratingDESC, durationASC, durationDESC = Value
 }
 
 object Connections extends Enumeration {

@@ -1,8 +1,9 @@
 package io.kroom.api.root
 
 import io.kroom.api.user.SchemaUser
-import io.kroom.api.deezer.{Order, Connections}
-import sangria.schema.{Argument, BooleanType, Field, IntType, ListType, ObjectType, OptionInputType, OptionType, Schema, StringType, fields}
+import io.kroom.api.deezer.{Connections, Order}
+import io.kroom.api.util.Privacy
+import sangria.schema._
 
 import scala.concurrent.Future
 
@@ -16,6 +17,19 @@ object SchemaRoot {
   import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent._
 
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  lazy val PrivacyEnum = EnumType(
+    "PrivacyEnum",
+    Some("PrivacyEnum"),
+    List(
+      EnumValue("PUBLIC",
+        value = Privacy.public),
+      EnumValue("AMIS",
+        value = Privacy.amis),
+      EnumValue("PRIVATE",
+        value = Privacy.`private`),
+    )
+  )
 
   lazy val Query = ObjectType(
     "Query", fields[RepoRoot, Unit](
@@ -92,7 +106,7 @@ object SchemaRoot {
           :: Argument("public", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.newEvent(
+          ctx.ctx.trackVoteEvent.`new`(
             ctx.arg[Int]("userIdMaster"),
             ctx.arg[String]("name"),
             ctx.arg[Boolean]("public"),

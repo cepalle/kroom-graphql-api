@@ -1,7 +1,16 @@
 package io.kroom.api.user
 
+import io.kroom.api.util.Privacy
 import io.kroom.api.deezer.DataDeezerGenre
 import com.github.t3hnar.bcrypt._
+
+
+case class DataUserPrivacy(
+                            email: Privacy.Value,
+                            location: Privacy.Value,
+                            friends: Privacy.Value,
+                            musicalPreferencesGenre: Privacy.Value,
+                          )
 
 case class DataUser(
                      id: Int,
@@ -11,7 +20,8 @@ case class DataUser(
                      passHash: Option[String],
                      location: Option[String],
                      tokenOAuth: Option[String],
-                     tokenOAuthOutOfDate: Option[String]
+                     tokenOAuthOutOfDate: Option[String],
+                     privacy: DataUserPrivacy
                    )
 
 class RepoUser(val dbh: DBUser) {
