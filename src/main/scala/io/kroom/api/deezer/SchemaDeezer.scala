@@ -1,6 +1,6 @@
 package io.kroom.api.deezer
 
-import io.kroom.api.root.RepoRoot
+import io.kroom.api.SecureContext
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, EnumType, EnumValue, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
@@ -10,34 +10,34 @@ object SchemaDeezer {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val GenreFetcherId: Fetcher[RepoRoot, DataDeezerGenre, DataDeezerGenre, Int] =
-    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.deezer.getGenreById(id))
+  lazy val GenreFetcherId: Fetcher[SecureContext, DataDeezerGenre, DataDeezerGenre, Int] =
+    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.repo.deezer.getGenreById(id))
     }
     )(HasId(_.id))
 
-  lazy val ArtistFetcherId: Fetcher[RepoRoot, DataDeezerArtist, DataDeezerArtist, Int] =
-    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.deezer.getArtistById(id))
+  lazy val ArtistFetcherId: Fetcher[SecureContext, DataDeezerArtist, DataDeezerArtist, Int] =
+    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.repo.deezer.getArtistById(id))
     }
     )(HasId(_.id))
 
-  lazy val AlbumFetcherId: Fetcher[RepoRoot, DataDeezerAlbum, DataDeezerAlbum, Int] =
-    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.deezer.getAlbumById(id))
+  lazy val AlbumFetcherId: Fetcher[SecureContext, DataDeezerAlbum, DataDeezerAlbum, Int] =
+    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.repo.deezer.getAlbumById(id))
     }
     )(HasId(_.id))
 
-  lazy val TrackFetcherId: Fetcher[RepoRoot, DataDeezerTrack, DataDeezerTrack, Int] =
-    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.deezer.getTrackById(id))
+  lazy val TrackFetcherId: Fetcher[SecureContext, DataDeezerTrack, DataDeezerTrack, Int] =
+    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.repo.deezer.getTrackById(id))
     }
     )(HasId(_.id))
 
-  lazy val GenreField: ObjectType[RepoRoot, DataDeezerGenre] = ObjectType(
+  lazy val GenreField: ObjectType[SecureContext, DataDeezerGenre] = ObjectType(
     "Genre",
     "Genre description.",
-    () ⇒ fields[RepoRoot, DataDeezerGenre](
+    () ⇒ fields[SecureContext, DataDeezerGenre](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("picture", StringType, resolve = _.value.picture),
@@ -47,10 +47,10 @@ object SchemaDeezer {
       Field("picture_xl", StringType, resolve = _.value.picture_xl),
     ))
 
-  lazy val ArtistField: ObjectType[RepoRoot, DataDeezerArtist] = ObjectType(
+  lazy val ArtistField: ObjectType[SecureContext, DataDeezerArtist] = ObjectType(
     "Artist",
     "Artist description.",
-    () ⇒ fields[RepoRoot, DataDeezerArtist](
+    () ⇒ fields[SecureContext, DataDeezerArtist](
       Field("id", IntType, resolve = _.value.id),
       Field("name", StringType, resolve = _.value.name),
       Field("link", StringType, resolve = _.value.link),
@@ -65,10 +65,10 @@ object SchemaDeezer {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumField: ObjectType[RepoRoot, DataDeezerAlbum] = ObjectType(
+  lazy val AlbumField: ObjectType[SecureContext, DataDeezerAlbum] = ObjectType(
     "Album",
     "Album description.",
-    () ⇒ fields[RepoRoot, DataDeezerAlbum](
+    () ⇒ fields[SecureContext, DataDeezerAlbum](
       Field("id", IntType, resolve = _.value.id),
       Field("title", StringType, resolve = _.value.title),
       Field("link", StringType, resolve = _.value.link),
@@ -101,10 +101,10 @@ object SchemaDeezer {
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackField: ObjectType[RepoRoot, DataDeezerTrack] = ObjectType(
+  lazy val TrackField: ObjectType[SecureContext, DataDeezerTrack] = ObjectType(
     "Track",
     "Track description.",
-    () ⇒ fields[RepoRoot, DataDeezerTrack](
+    () ⇒ fields[SecureContext, DataDeezerTrack](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
@@ -186,10 +186,10 @@ object SchemaDeezer {
     )
   )
 
-  lazy val SearchField: ObjectType[RepoRoot, DataDeezerSearch] = ObjectType(
+  lazy val SearchField: ObjectType[SecureContext, DataDeezerSearch] = ObjectType(
     "Serach",
     "Serach description.",
-    () ⇒ fields[RepoRoot, DataDeezerSearch](
+    () ⇒ fields[SecureContext, DataDeezerSearch](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),

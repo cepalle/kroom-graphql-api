@@ -20,9 +20,22 @@ you can run queries interactively using [graphql-playground](https://github.com/
     throw new Throwable with UserFacingError {
       override def getMessage: String = "TODO"
     }
-````
+    
+case class AuthenticationException(message: String) extends Exception(message)
+case class AuthorisationException(message: String) extends Exception(message)
 
-# TODO
+val errorHandler = ExceptionHandler {
+  case (m, AuthenticationException(message)) ⇒ HandledException(message)
+  case (m, AuthorisationException(message)) ⇒ HandledException(message)
+}
+
+Executor.execute(schema, queryAst,
+  userContext = new SecureContext(token, userRepo, colorRepo),
+  exceptionHandler = errorHandler)
+
 
 Try[T]
 
+
+
+````

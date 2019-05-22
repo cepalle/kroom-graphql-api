@@ -1,10 +1,10 @@
 package io.kroom.api.trackvoteevent
 
+import io.kroom.api.SecureContext
 import io.kroom.api.deezer.SchemaDeezer
-import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.SchemaUser
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{BooleanType, Field, IntType, ObjectType, StringType, fields, ListType, OptionType}
+import sangria.schema.{BooleanType, Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
 import scala.concurrent.Future
 
@@ -13,16 +13,16 @@ object SchemaTrackVoteEvent {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val TrackVoteEventFetcherId: Fetcher[RepoRoot, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
-    Fetcher.caching((ctx: RepoRoot, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.trackVoteEvent.getById(id))
+  lazy val TrackVoteEventFetcherId: Fetcher[SecureContext, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
+    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
+      ids.flatMap(id => ctx.repo.trackVoteEvent.getById(id))
     }
     )(HasId(_.id))
 
-  lazy val TrackVoteEventField: ObjectType[RepoRoot, DataTrackVoteEvent] = ObjectType(
+  lazy val TrackVoteEventField: ObjectType[SecureContext, DataTrackVoteEvent] = ObjectType(
     "trackVoteEvent",
     "TrackVoteEvent description.",
-    () ⇒ fields[RepoRoot, DataTrackVoteEvent](
+    () ⇒ fields[SecureContext, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
 
       Field("userMaster", SchemaUser.UserField, resolve = ctx =>
@@ -36,21 +36,21 @@ object SchemaTrackVoteEvent {
         SchemaDeezer.TrackFetcherId.deferOpt(ctx.value.currentTrackId)
       ),
       Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx => Future {
-        ctx.ctx.trackVoteEvent.getTrackWithVote(ctx.value.id)
+        ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id)
       }),
 
       Field("schedule", OptionType(StringType), resolve = _.value.schedule),
       Field("location", OptionType(StringType), resolve = _.value.location),
 
       Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
-        ctx.ctx.trackVoteEvent.getUserInvited(ctx.value.id)
+        ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id)
       }),
     ))
 
-  lazy val TrackWithVoteField: ObjectType[RepoRoot, DataTrackWithVote] = ObjectType(
+  lazy val TrackWithVoteField: ObjectType[SecureContext, DataTrackWithVote] = ObjectType(
     "trackWithVote",
     "trackWithVote description.",
-    () ⇒ fields[RepoRoot, DataTrackWithVote](
+    () ⇒ fields[SecureContext, DataTrackWithVote](
       Field("track", SchemaDeezer.TrackField, resolve = ctx =>
         SchemaDeezer.TrackFetcherId.defer(ctx.value.trackId)
       ),

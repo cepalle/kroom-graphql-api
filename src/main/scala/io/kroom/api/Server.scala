@@ -2,7 +2,7 @@ package io.kroom.api
 
 import sangria.ast.Document
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
+import sangria.execution.{ErrorWithResolver, Executor, HandledException, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
@@ -37,7 +37,9 @@ object Server extends App with CorsSupport {
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean) =
     complete(Executor.execute(
-      SchemaRoot.KroomSchema, query, new RepoRoot(new DBRoot(db)),
+      schema = SchemaRoot.KroomSchema,
+      queryAst = query,
+      userContext = new SecureContext(None, new RepoRoot(new DBRoot(db))),
       variables = if (variables.isNull) Json.obj() else variables,
       operationName = operationName,
       middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,

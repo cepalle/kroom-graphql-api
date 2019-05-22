@@ -1,5 +1,6 @@
 package io.kroom.api.root
 
+import io.kroom.api.SecureContext
 import io.kroom.api.user.SchemaUser
 import io.kroom.api.deezer.{Connections, Order}
 import io.kroom.api.util.Privacy
@@ -34,7 +35,7 @@ object SchemaRoot {
   )
 
   lazy val Query = ObjectType(
-    "Query", fields[RepoRoot, Unit](
+    "Query", fields[SecureContext, Unit](
 
       /* DEEZER */
 
@@ -59,7 +60,7 @@ object SchemaRoot {
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.deezer.getSearch(
+          ctx.ctx.repo.deezer.getSearch(
             ctx.arg[String]("search"),
             ctx.argOpt[Connections.Value]("connections"),
             ctx.arg[Boolean]("strict"),
@@ -78,13 +79,13 @@ object SchemaRoot {
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.getPublic
+          ctx.ctx.repo.trackVoteEvent.getPublic
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
+          ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
         }),
 
       /* USER */
@@ -92,13 +93,13 @@ object SchemaRoot {
       Field("UserGetById", OptionType(UserField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.getById(ctx.arg[Int]("id"))
+          ctx.ctx.repo.user.getById(ctx.arg[Int]("id"))
         }),
 
     ))
 
   val Mutation = ObjectType(
-    "Mutation", fields[RepoRoot, Unit](
+    "Mutation", fields[SecureContext, Unit](
 
       /* TRACK_VOTE_EVENT */
 
@@ -108,7 +109,7 @@ object SchemaRoot {
           :: Argument("public", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.`new`(
+          ctx.ctx.repo.trackVoteEvent.`new`(
             ctx.arg[Int]("userIdMaster"),
             ctx.arg[String]("name"),
             ctx.arg[Boolean]("public"),
@@ -125,7 +126,7 @@ object SchemaRoot {
           :: Argument("location", OptionInputType(StringType))
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.update(
+          ctx.ctx.repo.trackVoteEvent.update(
             ctx.arg[Int]("eventId"),
             ctx.arg[Int]("userIdMaster"),
             ctx.arg[String]("name"),
@@ -141,7 +142,7 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.addUser(
+          ctx.ctx.repo.trackVoteEvent.addUser(
             ctx.arg[Int]("eventId"),
             ctx.arg[Int]("userId"),
           )
@@ -153,7 +154,7 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.delUser(
+          ctx.ctx.repo.trackVoteEvent.delUser(
             ctx.arg[Int]("eventId"),
             ctx.arg[Int]("userId"),
           )
@@ -167,7 +168,7 @@ object SchemaRoot {
           :: Argument("up", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.addVote(
+          ctx.ctx.repo.trackVoteEvent.addVote(
             ctx.arg[Int]("eventId"),
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("musicId"),
@@ -182,7 +183,7 @@ object SchemaRoot {
           :: Argument("musicId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.trackVoteEvent.delVote(
+          ctx.ctx.repo.trackVoteEvent.delVote(
             ctx.arg[Int]("eventId"),
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("musicId"),
@@ -198,7 +199,7 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.signUp(
+          ctx.ctx.repo.user.signUp(
             ctx.arg[String]("userName"),
             ctx.arg[String]("email"),
             ctx.arg[String]("pass"),
@@ -212,7 +213,7 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.signIn(
+          ctx.ctx.repo.user.signIn(
             ctx.argOpt[String]("userName"),
             ctx.argOpt[String]("email"),
             ctx.arg[String]("pass"),
@@ -225,7 +226,7 @@ object SchemaRoot {
           :: Argument("friendId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.addFriend(
+          ctx.ctx.repo.user.addFriend(
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("friendId"),
           )
@@ -237,7 +238,7 @@ object SchemaRoot {
           :: Argument("friendId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.delFriend(
+          ctx.ctx.repo.user.delFriend(
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("friendId"),
           )
@@ -249,7 +250,7 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.addMusicalPreference(
+          ctx.ctx.repo.user.addMusicalPreference(
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("genreId"),
           )
@@ -261,7 +262,7 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.delMusicalPreference(
+          ctx.ctx.repo.user.delMusicalPreference(
             ctx.arg[Int]("userId"),
             ctx.arg[Int]("genreId"),
           )
@@ -276,7 +277,7 @@ object SchemaRoot {
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.user.updatePrivacy(
+          ctx.ctx.repo.user.updatePrivacy(
             ctx.arg[Int]("userId"),
             ctx.arg[Privacy.Value]("email"),
             ctx.arg[Privacy.Value]("location"),
