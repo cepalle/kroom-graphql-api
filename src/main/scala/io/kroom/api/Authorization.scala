@@ -5,7 +5,7 @@ import io.kroom.api.Authorization.Permissions
 object Authorization {
 
   object Permissions extends Enumeration {
-    val track, artist, album, genre = Value
+    val track, artist, album, genre, search = Value
   }
 
   object PermissionGroup extends Enumeration {
@@ -17,14 +17,22 @@ object Authorization {
     Permissions.artist,
     Permissions.album,
     Permissions.genre,
+    Permissions.search,
   )
   val permissionsOfRoot: Set[Permissions.Value] = Set[Permissions.Value](
     Permissions.track,
     Permissions.artist,
     Permissions.album,
     Permissions.genre,
+    Permissions.search,
   )
-  val permissionsOfUser = Set[Permissions.Value]()
+  val permissionsOfUser = Set[Permissions.Value](
+    Permissions.track,
+    Permissions.artist,
+    Permissions.album,
+    Permissions.genre,
+    Permissions.search,
+  )
 
   def PermissionGroupsToPermissions(grps: Set[PermissionGroup.Value]): Set[Permissions.Value] = {
     Set[Permissions.Value]()

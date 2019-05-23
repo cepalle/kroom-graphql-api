@@ -18,8 +18,8 @@ class SecureContext(private var token: Option[String], val repo: RepoRoot) {
     repo.user.authenticate(userName, password)
       .fold(throw AuthorisationException("UserName or password is incorrect"))(identity)
 
-  def authorised[T](permissions: Permissions.Value*)(fn: DataUser ⇒ T): T =
-    if (permissions.forall(permissions.contains)) fn(user)
+  def authorised[T](perms: Permissions.Value*)(fn: (DataUser, Set[PermissionGroup.Value], Set[Authorization.Permissions.Value]) ⇒ T): T =
+    if (perms.forall(permissions.contains)) fn(user, permGrp, permissions)
     else throw AuthorisationException("You do not have permission to do this operation")
 
 }

@@ -40,22 +40,22 @@ object SchemaRoot {
 
       Field("track", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.track) { _ =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.track) { (_, _, _) =>
           TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("artist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.artist) { _ =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.artist) { (_, _, _) =>
           ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("album", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.album) { _ =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.album) { (_, _, _) =>
           AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("genre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.genre) { _ =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.genre) { (_, _, _) =>
           GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
 
@@ -66,13 +66,15 @@ object SchemaRoot {
           :: Argument("strict", BooleanType)
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.deezer.getSearch(
-            ctx.arg[String]("search"),
-            ctx.argOpt[Connections.Value]("connections"),
-            ctx.arg[Boolean]("strict"),
-            ctx.argOpt[Order.Value]("order"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.search) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.deezer.getSearch(
+              ctx.arg[String]("search"),
+              ctx.argOpt[Connections.Value]("connections"),
+              ctx.arg[Boolean]("strict"),
+              ctx.argOpt[Order.Value]("order"),
+            )
+          }
         }),
 
       /* TRACK_VOTE_EVENT */
