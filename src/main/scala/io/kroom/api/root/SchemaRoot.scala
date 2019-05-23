@@ -79,30 +79,36 @@ object SchemaRoot {
 
       /* TRACK_VOTE_EVENT */
 
-      Field("TrackVoteEventById", OptionType(TrackVoteEventField),
-        arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ {
-          TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
-
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.getPublic
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.getPublic
+          }
+        }),
+
+      Field("TrackVoteEventById", OptionType(TrackVoteEventField),
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventById) { (_, _, _) =>
+          TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
+          }
         }),
 
       /* USER */
 
       Field("UserGetById", OptionType(UserField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.getById(ctx.arg[Int]("id"))
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.getById(ctx.arg[Int]("id"))
+          }
         }),
 
     ))
@@ -117,12 +123,14 @@ object SchemaRoot {
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.`new`(
-            ctx.arg[Int]("userIdMaster"),
-            ctx.arg[String]("name"),
-            ctx.arg[Boolean]("public"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventNew) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.`new`(
+              ctx.arg[Int]("userIdMaster"),
+              ctx.arg[String]("name"),
+              ctx.arg[Boolean]("public"),
+            )
+          }
         }
       ),
 
@@ -134,15 +142,17 @@ object SchemaRoot {
           :: Argument("horaire", OptionInputType(StringType))
           :: Argument("location", OptionInputType(StringType))
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.update(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("userIdMaster"),
-            ctx.arg[String]("name"),
-            ctx.arg[Boolean]("public"),
-            ctx.argOpt[String]("horaire"),
-            ctx.argOpt[String]("location"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.update(
+              ctx.arg[Int]("eventId"),
+              ctx.arg[Int]("userIdMaster"),
+              ctx.arg[String]("name"),
+              ctx.arg[Boolean]("public"),
+              ctx.argOpt[String]("horaire"),
+              ctx.argOpt[String]("location"),
+            )
+          }
         }
       ),
 
@@ -150,11 +160,13 @@ object SchemaRoot {
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.addUser(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("userId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.addUser(
+              ctx.arg[Int]("eventId"),
+              ctx.arg[Int]("userId"),
+            )
+          }
         }
       ),
 
@@ -162,11 +174,13 @@ object SchemaRoot {
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.delUser(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("userId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.delUser(
+              ctx.arg[Int]("eventId"),
+              ctx.arg[Int]("userId"),
+            )
+          }
         }
       ),
 
@@ -176,13 +190,15 @@ object SchemaRoot {
           :: Argument("musicId", IntType)
           :: Argument("up", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.addVote(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("musicId"),
-            ctx.arg[Boolean]("up"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.addVote(
+              ctx.arg[Int]("eventId"),
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("musicId"),
+              ctx.arg[Boolean]("up"),
+            )
+          }
         }
       ),
 
@@ -191,12 +207,14 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Argument("musicId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.trackVoteEvent.delVote(
-            ctx.arg[Int]("eventId"),
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("musicId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.trackVoteEvent.delVote(
+              ctx.arg[Int]("eventId"),
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("musicId"),
+            )
+          }
         }
       ),
 
@@ -207,12 +225,14 @@ object SchemaRoot {
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.signUp(
-            ctx.arg[String]("userName"),
-            ctx.arg[String]("email"),
-            ctx.arg[String]("pass"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.signUp(
+              ctx.arg[String]("userName"),
+              ctx.arg[String]("email"),
+              ctx.arg[String]("pass"),
+            )
+          }
         }
       ),
 
@@ -220,11 +240,13 @@ object SchemaRoot {
         arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.authenticate(
-            ctx.arg[String]("userName"),
-            ctx.arg[String]("pass"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.authenticate(
+              ctx.arg[String]("userName"),
+              ctx.arg[String]("pass"),
+            )
+          }
         }
       ),
 
@@ -232,11 +254,13 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.addFriend(
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("friendId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddFriend) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.addFriend(
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("friendId"),
+            )
+          }
         }
       ),
 
@@ -244,11 +268,13 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.delFriend(
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("friendId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelFriend) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.delFriend(
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("friendId"),
+            )
+          }
         }
       ),
 
@@ -256,11 +282,13 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.addMusicalPreference(
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("genreId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.addMusicalPreference(
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("genreId"),
+            )
+          }
         }
       ),
 
@@ -268,11 +296,13 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.delMusicalPreference(
-            ctx.arg[Int]("userId"),
-            ctx.arg[Int]("genreId"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.delMusicalPreference(
+              ctx.arg[Int]("userId"),
+              ctx.arg[Int]("genreId"),
+            )
+          }
         }
       ),
 
@@ -283,14 +313,16 @@ object SchemaRoot {
           :: Argument("friends", PrivacyEnum)
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
-        resolve = ctx ⇒ Future {
-          ctx.ctx.repo.user.updatePrivacy(
-            ctx.arg[Int]("userId"),
-            ctx.arg[Privacy.Value]("email"),
-            ctx.arg[Privacy.Value]("location"),
-            ctx.arg[Privacy.Value]("friends"),
-            ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
-          )
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { (_, _, _) =>
+          Future {
+            ctx.ctx.repo.user.updatePrivacy(
+              ctx.arg[Int]("userId"),
+              ctx.arg[Privacy.Value]("email"),
+              ctx.arg[Privacy.Value]("location"),
+              ctx.arg[Privacy.Value]("friends"),
+              ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
+            )
+          }
         }
       ),
 

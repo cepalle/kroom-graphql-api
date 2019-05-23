@@ -1,11 +1,31 @@
 package io.kroom.api
 
-import io.kroom.api.Authorization.Permissions
-
 object Authorization {
 
   object Permissions extends Enumeration {
-    val DeezerTrack, DeezerArtist, DeezerAlbum, DeezerGenre, DeezerSearch = Value
+    val DeezerTrack,
+    DeezerArtist,
+    DeezerAlbum,
+    DeezerGenre,
+    DeezerSearch,
+    TrackVoteEventsPublic,
+    TrackVoteEventById,
+    TrackVoteEventByUserId,
+    UserGetById,
+
+    TrackVoteEventNew,
+    TrackVoteEventUpdate,
+    TrackVoteEventAddUser,
+    TrackVoteEventDelUser,
+    TrackVoteEventAddVote,
+    TrackVoteEventDelVote,
+    UserSignUp,
+    UserSignIn,
+    UserAddFriend,
+    UserDelFriend,
+    UserAddMusicalPreference,
+    UserDelMusicalPreference,
+    UserUpdatePrivacy = Value
   }
 
   object PermissionGroup extends Enumeration {
@@ -19,9 +39,27 @@ object Authorization {
     Permissions.DeezerGenre,
     Permissions.DeezerSearch,
   )
-  val permissionsOfRoot: Set[Permissions.Value] = Set[Permissions.Value](
+  val permissionsOfUser: Set[Permissions.Value] = permissionsOfPublic ++ Set[Permissions.Value](
+    Permissions.TrackVoteEventsPublic,
+    Permissions.TrackVoteEventById,
+    Permissions.TrackVoteEventByUserId,
+    Permissions.UserGetById,
+
+    Permissions.TrackVoteEventNew,
+    Permissions.TrackVoteEventUpdate,
+    Permissions.TrackVoteEventAddUser,
+    Permissions.TrackVoteEventDelUser,
+    Permissions.TrackVoteEventAddVote,
+    Permissions.TrackVoteEventDelVote,
+    Permissions.UserSignUp,
+    Permissions.UserSignIn,
+    Permissions.UserAddFriend,
+    Permissions.UserDelFriend,
+    Permissions.UserAddMusicalPreference,
+    Permissions.UserDelMusicalPreference,
+    Permissions.UserUpdatePrivacy
   )
-  val permissionsOfUser: Set[Permissions.Value] = Set[Permissions.Value](
+  val permissionsOfRoot: Set[Permissions.Value] = permissionsOfUser ++ Set[Permissions.Value](
   )
 
   def PermissionGroupToPermissions(grp: PermissionGroup.Value): Set[Permissions.Value] = {
