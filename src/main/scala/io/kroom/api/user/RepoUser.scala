@@ -1,6 +1,6 @@
 package io.kroom.api.user
 
-import io.kroom.api.deezer.DataDeezerGenre
+import io.kroom.api.deezer.{DataDeezerGenre, RepoDeezer}
 import com.github.t3hnar.bcrypt._
 import io.kroom.api.Authorization.{PermissionGroup, Privacy}
 
@@ -24,7 +24,7 @@ case class DataUser(
                      privacy: DataUserPrivacy
                    )
 
-class RepoUser(val dbh: DBUser) {
+class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
   def getById(id: Int): Option[DataUser] = {
     dbh.getById(id)
@@ -72,6 +72,7 @@ class RepoUser(val dbh: DBUser) {
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+    repoDeezer.getGenreById(genreId) // get Genre in DB
     dbh.addMusicalPreference(userId, genreId)
   }
 

@@ -155,7 +155,6 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
-    // TODO Check is music fetch
     val query = joinTrackVoteEventUserVoteTrack
       .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack)) += (eventId, userId, musicId)
     val f = db.run(query)

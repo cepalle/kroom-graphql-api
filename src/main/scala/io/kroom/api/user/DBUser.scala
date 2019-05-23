@@ -35,8 +35,16 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def getByName(name: String): Option[DataUser] = {
-    // TODO check time out of date
     val query = tabUser.filter(_.name === name).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjUser)
+  }
+
+  def getByEmail(email: String): Option[DataUser] = {
+    val query = tabUser.filter(_.email === email).result.head
     val f = db.run(query)
 
     Await.ready(f, Duration.Inf).value
@@ -88,16 +96,15 @@ class DBUser(private val db: H2Profile.backend.Database) {
   // Mutation
 
   def addUserWithPass(name: String, email: String, passHash: String): Option[DataUser] = {
-    // TODO group perm
-    val query = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    val query1 = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
+    Await.ready(db.run(query1), Duration.Inf)
 
-    val queryUser = tabUser.filter(e => e.email === email).result.head
-    val f2 = db.run(queryUser)
-    Await.ready(f2, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    val user = getByEmail(email).getOrElse(return None)
+
+    val query2 = joinPermGroup += (user.id, Authorization.PermissionGroupToString(Authorization.PermissionGroup.user))
+    Await.ready(db.run(query2), Duration.Inf)
+
+    getById(user.id)
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
@@ -123,7 +130,6 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
-    // TODO if music not in DB need fetch
     val query = joinMusicalPreferences.map(e => (e.idUser, e.idDeezerGenre)) += (userId, genreId)
 
     val f = db.run(query)

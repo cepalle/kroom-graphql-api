@@ -1,6 +1,6 @@
 package io.kroom.api.trackvoteevent
 
-import io.kroom.api.root.DBRoot
+import io.kroom.api.deezer.RepoDeezer
 import io.kroom.api.user.DataUser
 
 case class DataTrackWithVote(
@@ -20,7 +20,7 @@ case class DataTrackVoteEvent(
                                location: Option[String]
                              )
 
-class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent) {
+class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer) {
 
   def getById(id: Int): Option[DataTrackVoteEvent] = {
     dbh.getTrackVoteEventById(id)
@@ -47,7 +47,7 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent) {
   def `new`(userIdMaster: Int,
             name: String,
             public: Boolean,
-              ): Option[DataTrackVoteEvent] = {
+           ): Option[DataTrackVoteEvent] = {
     dbh.`new`(userIdMaster, name, public)
   }
 
@@ -77,7 +77,7 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent) {
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
-    // TODO May need fetch
+    repoDeezer.getTrackById(musicId) // get Track in DB
     dbh.addVote(eventId, userId, musicId, up)
   }
 
