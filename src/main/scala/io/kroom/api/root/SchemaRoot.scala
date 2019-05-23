@@ -38,35 +38,35 @@ object SchemaRoot {
 
       /* DEEZER */
 
-      Field("track", OptionType(TrackField),
+      Field("DeezerTrack", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.track) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { (_, _, _) =>
           TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
-      Field("artist", OptionType(ArtistField),
+      Field("DeezerArtist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.artist) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { (_, _, _) =>
           ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
-      Field("album", OptionType(AlbumField),
+      Field("DeezerAlbum", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.album) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { (_, _, _) =>
           AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
-      Field("genre", OptionType(GenreField),
+      Field("DeezerGenre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.genre) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { (_, _, _) =>
           GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
 
       // Option length, index ?
-      Field("search", ListType(SearchField),
+      Field("DeezerSearch", ListType(SearchField),
         arguments = Argument("search", StringType)
           :: Argument("connections", OptionInputType(ConnectionEnum))
           :: Argument("strict", BooleanType)
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.search) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerSearch) { (_, _, _) =>
           Future {
             ctx.ctx.repo.deezer.getSearch(
               ctx.arg[String]("search"),

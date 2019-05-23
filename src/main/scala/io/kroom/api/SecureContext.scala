@@ -9,7 +9,7 @@ class SecureContext(private var token: Option[String], val repo: RepoRoot) {
   private lazy val (user: DataUser, permGrp: Set[PermissionGroup.Value]) = token.flatMap(repo.user.authorise)
     .getOrElse((
       DataUser(-1, "public", "", false, None, None, None, None, DataUserPrivacy(0, 0, 0, 0)),
-      List(PermissionGroup.public)
+      Set(PermissionGroup.public)
     ))
 
   private lazy val permissions: Set[Authorization.Permissions.Value] = Authorization.PermissionGroupsToPermissions(permGrp)

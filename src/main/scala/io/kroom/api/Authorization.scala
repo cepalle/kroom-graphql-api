@@ -5,37 +5,37 @@ import io.kroom.api.Authorization.Permissions
 object Authorization {
 
   object Permissions extends Enumeration {
-    val track, artist, album, genre, search = Value
+    val DeezerTrack, DeezerArtist, DeezerAlbum, DeezerGenre, DeezerSearch = Value
   }
 
   object PermissionGroup extends Enumeration {
     val root, public, user = Value
   }
 
-  val permissionsOfPublic = Set[Permissions.Value](
-    Permissions.track,
-    Permissions.artist,
-    Permissions.album,
-    Permissions.genre,
-    Permissions.search,
+  val permissionsOfPublic: Set[Permissions.Value] = Set[Permissions.Value](
+    Permissions.DeezerTrack,
+    Permissions.DeezerArtist,
+    Permissions.DeezerAlbum,
+    Permissions.DeezerGenre,
+    Permissions.DeezerSearch,
   )
   val permissionsOfRoot: Set[Permissions.Value] = Set[Permissions.Value](
-    Permissions.track,
-    Permissions.artist,
-    Permissions.album,
-    Permissions.genre,
-    Permissions.search,
   )
-  val permissionsOfUser = Set[Permissions.Value](
-    Permissions.track,
-    Permissions.artist,
-    Permissions.album,
-    Permissions.genre,
-    Permissions.search,
+  val permissionsOfUser: Set[Permissions.Value] = Set[Permissions.Value](
   )
 
+  def PermissionGroupToPermissions(grp: PermissionGroup.Value): Set[Permissions.Value] = {
+    grp match {
+      case PermissionGroup.root => permissionsOfRoot
+      case PermissionGroup.public => permissionsOfPublic
+      case PermissionGroup.user => permissionsOfUser
+    }
+  }
+
   def PermissionGroupsToPermissions(grps: Set[PermissionGroup.Value]): Set[Permissions.Value] = {
-    Set[Permissions.Value]()
+    grps.foldLeft(Set[Permissions.Value]()) { (acc: Set[Permissions.Value], cur: PermissionGroup.Value) =>
+      acc ++ PermissionGroupToPermissions(cur)
+    }
   }
 
   def PermissionGroupToString(g: PermissionGroup.Value): String = {

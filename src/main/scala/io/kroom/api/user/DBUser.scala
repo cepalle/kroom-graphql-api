@@ -88,6 +88,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
   // Mutation
 
   def addUserWithPass(name: String, email: String, passHash: String): Option[DataUser] = {
+    // TODO group perm
     val query = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
     val f = db.run(query)
     Await.ready(f, Duration.Inf)
@@ -185,6 +186,11 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
     getById(userId)
   }
+
+  def addPermGroupe(): Unit = {
+
+  }
+
 
 }
 
