@@ -49,12 +49,18 @@ class RepoUser(val dbh: DBUser) {
 
   def authenticate(userName: String, pass: String): Option[DataUser] = {
     // TODO Token
-    dbh.checkUserNamePass(userName, pass.bcrypt)
+    val user = dbh.getByName(userName).getOrElse(return None)
+    user.passHash.flatMap(p => if (p == pass.bcrypt) {
+      Some(user)
+    } else {
+      None
+    })
   }
 
   def authorise(token: String): Option[(DataUser, List[PermissionGroup.Value])] = {
-    // TODO
-    None
+    val user = dbh.getByToken(token).getOrElse(return None)
+    val perms = dbh.getPermGroup(user.id)
+    Some((user, perms))
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {

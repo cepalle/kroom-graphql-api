@@ -3,6 +3,7 @@ package io.kroom.api.user
 import io.circe.syntax._
 import io.circe.parser
 import io.circe.generic.auto._
+import io.kroom.api.Authorization
 import io.kroom.api.deezer.{DBDeezer, DataDeezerGenre}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
@@ -16,6 +17,26 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
   def getById(id: Int): Option[DataUser] = {
     val query = tabUser.filter(_.id === id).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjUser)
+  }
+
+  def getByToken(token: String): Option[DataUser] = {
+    // TODO check time out of date
+    val query = tabUser.filter(_.tokenOAuth === token).result.head
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(tabToObjUser)
+  }
+
+  def getByName(name: String): Option[DataUser] = {
+    // TODO check time out of date
+    val query = tabUser.filter(_.name === name).result.head
     val f = db.run(query)
 
     Await.ready(f, Duration.Inf).value
@@ -53,6 +74,17 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .getOrElse(List[DataDeezerGenre]())
   }
 
+  def getPermGroup(userId: Int): List[Authorization.PermissionGroup.Value] = {
+    val query = joinPermGroup.filter(_.idUser === userId).result
+    val f = db.run(query)
+
+    Await.ready(f, Duration.Inf).value
+      .flatMap(_.toOption)
+      .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
+      .map(_.toList)
+      .getOrElse(List[Authorization.PermissionGroup.Value]())
+  }
+
   // Mutation
 
   def addUserWithPass(name: String, email: String, passHash: String): Option[DataUser] = {
@@ -65,19 +97,6 @@ class DBUser(private val db: H2Profile.backend.Database) {
     Await.ready(f2, Duration.Inf).value
       .flatMap(_.toOption)
       .map(tabToObjUser)
-  }
-
-  def checkUserNamePass(name: String, passHash: String): Option[DataUser] = {
-    val queryUser = tabUser.filter(e => e.name === name).result.head
-    val f2 = db.run(queryUser)
-    Await.ready(f2, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
-      .flatMap(e => if (e.passHash.contains(passHash)) {
-        Some(e)
-      } else {
-        None
-      })
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
@@ -222,6 +241,23 @@ object DBUser {
   }
 
   val joinFriend = TableQuery[JoinFriend]
+
+  class JoinPermGroup(tag: Tag) extends Table[(Int, String)](tag, "JOIN_PERM_GROUP") {
+
+    def idUser = column[Int]("ID_USER")
+
+    def permGroup = column[String]("ID_PERM_GROUP")
+
+    def * = (idUser, permGroup)
+
+    def pk = primaryKey("PK_JOIN_PERM_GROUP", (idUser, permGroup))
+
+    def user =
+      foreignKey("FK_JOIN_PERM_GROUP_USER", idUser, tabUser)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+  }
+
+  val joinPermGroup = TableQuery[JoinPermGroup]
 
   class JoinMusicalPreferences(tag: Tag) extends Table[(Int, Int)](tag, "JOIN_MUSICAL_PREFERENCES") {
 

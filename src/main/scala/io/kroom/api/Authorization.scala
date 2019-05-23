@@ -10,6 +10,22 @@ object Authorization {
     val root, public, user = Value
   }
 
+  def PermissionGroupToString(g: PermissionGroup.Value): String = {
+    g match {
+      case PermissionGroup.root => "root"
+      case PermissionGroup.public => "public"
+      case PermissionGroup.user => "user"
+    }
+  }
+
+  def StringToPermissionGroup(g: String): PermissionGroup.Value = {
+    g match {
+      case "root" => PermissionGroup.root
+      case "user" => PermissionGroup.user
+      case _ => PermissionGroup.public
+    }
+  }
+
   object Permissions extends Enumeration {
     val public, amis, `private` = Value
   }
