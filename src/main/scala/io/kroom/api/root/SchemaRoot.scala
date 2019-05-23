@@ -125,6 +125,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventNew) { (_, _, _) =>
           Future {
+            // TODO userMaster is invited and can't be del
             ctx.ctx.repo.trackVoteEvent.`new`(
               ctx.arg[Int]("userIdMaster"),
               ctx.arg[String]("name"),
@@ -144,6 +145,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { (_, _, _) =>
           Future {
+            // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.update(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userIdMaster"),
@@ -162,6 +164,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { (_, _, _) =>
           Future {
+            // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.addUser(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
@@ -176,6 +179,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { (_, _, _) =>
           Future {
+            // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.delUser(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
@@ -192,6 +196,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { (_, _, _) =>
           Future {
+            // TODO check if is invited
             ctx.ctx.repo.trackVoteEvent.addVote(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
@@ -209,6 +214,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { (_, _, _) =>
           Future {
+            // TODO check if is invited
             ctx.ctx.repo.trackVoteEvent.delVote(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
@@ -256,6 +262,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddFriend) { (_, _, _) =>
           Future {
+            // TODO check if is good user
             ctx.ctx.repo.user.addFriend(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("friendId"),
@@ -270,6 +277,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelFriend) { (_, _, _) =>
           Future {
+            // TODO check if is good user
             ctx.ctx.repo.user.delFriend(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("friendId"),
@@ -284,6 +292,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { (_, _, _) =>
           Future {
+            // TODO check if is good user
             ctx.ctx.repo.user.addMusicalPreference(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("genreId"),
@@ -298,6 +307,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { (_, _, _) =>
           Future {
+            // TODO check if is good user
             ctx.ctx.repo.user.delMusicalPreference(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("genreId"),
@@ -315,6 +325,7 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { (_, _, _) =>
           Future {
+            // TODO check if is good user
             ctx.ctx.repo.user.updatePrivacy(
               ctx.arg[Int]("userId"),
               ctx.arg[Privacy.Value]("email"),

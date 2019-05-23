@@ -29,6 +29,7 @@ object SchemaUser {
       Field("musicalPreferencesGenre", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.musicalPreferencesGenre)),
     ))
 
+  // TODO Permision
   lazy val UserField: ObjectType[SecureContext, DataUser] = ObjectType(
     "User",
     "User description.",
