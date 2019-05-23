@@ -1,13 +1,33 @@
 package io.kroom.api
 
+import io.kroom.api.Authorization.Permissions
+
 object Authorization {
 
-  def PermissionGroupsToPermissions(grps: List[PermissionGroup.Value]): List[Permissions.Value] = {
-    List[Permissions.Value]()
+  object Permissions extends Enumeration {
+    val track, artist, album, genre = Value
   }
 
   object PermissionGroup extends Enumeration {
     val root, public, user = Value
+  }
+
+  val permissionsOfPublic = Set[Permissions.Value](
+    Permissions.track,
+    Permissions.artist,
+    Permissions.album,
+    Permissions.genre,
+  )
+  val permissionsOfRoot: Set[Permissions.Value] = Set[Permissions.Value](
+    Permissions.track,
+    Permissions.artist,
+    Permissions.album,
+    Permissions.genre,
+  )
+  val permissionsOfUser = Set[Permissions.Value]()
+
+  def PermissionGroupsToPermissions(grps: Set[PermissionGroup.Value]): Set[Permissions.Value] = {
+    Set[Permissions.Value]()
   }
 
   def PermissionGroupToString(g: PermissionGroup.Value): String = {
@@ -24,10 +44,6 @@ object Authorization {
       case "user" => PermissionGroup.user
       case _ => PermissionGroup.public
     }
-  }
-
-  object Permissions extends Enumeration {
-    val public, amis, `private` = Value
   }
 
   object Privacy extends Enumeration {

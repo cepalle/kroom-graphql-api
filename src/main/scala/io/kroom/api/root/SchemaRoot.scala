@@ -1,6 +1,7 @@
 package io.kroom.api.root
 
 import io.kroom.api.Authorization.Privacy
+import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
 import io.kroom.api.user.SchemaUser
 import io.kroom.api.deezer.{Connections, Order}
@@ -11,8 +12,6 @@ import scala.concurrent.Future
 /**
   * Defines a GraphQL schema for the current project
   */
-
-// Split?
 object SchemaRoot {
 
   import SchemaUser._
@@ -41,16 +40,24 @@ object SchemaRoot {
 
       Field("track", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ TrackFetcherId.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.track) { _ =>
+          TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
+        }),
       Field("artist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.artist) { _ =>
+          ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
+        }),
       Field("album", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.album) { _ =>
+          AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
+        }),
       Field("genre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ GenreFetcherId.deferOpt(ctx.arg[Int]("id"))),
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.genre) { _ =>
+          GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
+        }),
 
       // Option length, index ?
       Field("search", ListType(SearchField),
