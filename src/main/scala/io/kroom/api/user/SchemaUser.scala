@@ -35,21 +35,21 @@ object SchemaUser {
     "User",
     "User description.",
     () ⇒ fields[SecureContext, DataUser](
-      Field("id", IntType, resolve = _.value.id),
+      Field("id", OptionType(IntType), resolve = _.value.id),
       Field("userName", StringType, resolve = _.value.userName),
-      Field("email", StringType, resolve = _.value.email),
+      Field("email", OptionType(StringType), resolve = _.value.email),
       Field("location", OptionType(StringType), resolve = _.value.location),
       Field("token", OptionType(StringType), resolve = _.value.token),
-      Field("privacy", PrivacyField, resolve = _.value.privacy),
+      Field("privacy", OptionType(PrivacyField), resolve = _.value.privacy),
 
-      Field("friends", ListType(UserField), resolve = ctx => Future {
+      Field("friends", OptionType(ListType(UserField)), resolve = ctx => Future {
         ctx.ctx.repo.user.getFriends(ctx.value.id)
       }),
-      Field("musicalPreferences", ListType(SchemaDeezer.GenreField), resolve = ctx => Future {
+      Field("musicalPreferences", OptionType(ListType(SchemaDeezer.GenreField)), resolve = ctx => Future {
         ctx.ctx.repo.user.getMsicalPreferences(ctx.value.id)
       }),
 
-      Field("permissionGroup", ListType(StringType), resolve = ctx => Future {
+      Field("permissionGroup", OptionType(ListType(StringType)), resolve = ctx => Future {
         ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(PermissionGroupToString).toList
       }),
     ))

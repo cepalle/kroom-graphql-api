@@ -40,22 +40,22 @@ object SchemaRoot {
 
       Field("DeezerTrack", OptionType(TrackField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
           TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("DeezerArtist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
           ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("DeezerAlbum", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
           AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
       Field("DeezerGenre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
           GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
 
@@ -66,7 +66,7 @@ object SchemaRoot {
           :: Argument("strict", BooleanType)
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerSearch) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
           Future {
             ctx.ctx.repo.deezer.getSearch(
               ctx.arg[String]("search"),
@@ -81,7 +81,7 @@ object SchemaRoot {
 
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
           Future {
             ctx.ctx.repo.trackVoteEvent.getPublic
           }
@@ -89,13 +89,13 @@ object SchemaRoot {
 
       Field("TrackVoteEventById", OptionType(TrackVoteEventField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventById) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventById) { () =>
           TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
         }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
           Future {
             ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
           }
@@ -105,7 +105,7 @@ object SchemaRoot {
 
       Field("UserGetById", OptionType(UserField),
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { () =>
           Future {
             ctx.ctx.repo.user.getById(ctx.arg[Int]("id"))
           }
@@ -123,7 +123,7 @@ object SchemaRoot {
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventNew) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () =>
           Future {
             // TODO userMaster is invited and can't be del
             ctx.ctx.repo.trackVoteEvent.`new`(
@@ -143,7 +143,7 @@ object SchemaRoot {
           :: Argument("horaire", OptionInputType(StringType))
           :: Argument("location", OptionInputType(StringType))
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { () =>
           Future {
             // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.update(
@@ -162,7 +162,7 @@ object SchemaRoot {
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { () =>
           Future {
             // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.addUser(
@@ -177,7 +177,7 @@ object SchemaRoot {
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
           Future {
             // TODO check if is userMaster
             ctx.ctx.repo.trackVoteEvent.delUser(
@@ -194,7 +194,7 @@ object SchemaRoot {
           :: Argument("musicId", IntType)
           :: Argument("up", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { () =>
           Future {
             // TODO check if is invited
             ctx.ctx.repo.trackVoteEvent.addVote(
@@ -212,7 +212,7 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Argument("musicId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { () =>
           Future {
             // TODO check if is invited
             ctx.ctx.repo.trackVoteEvent.delVote(
@@ -231,7 +231,7 @@ object SchemaRoot {
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () =>
           Future {
             ctx.ctx.repo.user.signUp(
               ctx.arg[String]("userName"),
@@ -246,7 +246,7 @@ object SchemaRoot {
         arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () =>
           UpdateCtx(ctx.ctx.repo.user.signIn(
             ctx.arg[String]("userName"),
             ctx.arg[String]("pass"),
@@ -260,7 +260,7 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddFriend) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddFriend) { () =>
           Future {
             // TODO check if is good user
             ctx.ctx.repo.user.addFriend(
@@ -275,7 +275,7 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelFriend) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelFriend) { () =>
           Future {
             // TODO check if is good user
             ctx.ctx.repo.user.delFriend(
@@ -290,7 +290,7 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { () =>
           Future {
             // TODO check if is good user
             ctx.ctx.repo.user.addMusicalPreference(
@@ -305,7 +305,7 @@ object SchemaRoot {
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { () =>
           Future {
             // TODO check if is good user
             ctx.ctx.repo.user.delMusicalPreference(
@@ -323,7 +323,7 @@ object SchemaRoot {
           :: Argument("friends", PrivacyEnum)
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { (_, _, _) =>
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
           Future {
             // TODO check if is good user
             ctx.ctx.repo.user.updatePrivacy(
