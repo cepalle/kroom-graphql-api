@@ -24,10 +24,10 @@ object SchemaUser {
     "Privacy",
     "Privacy description.",
     () ⇒ fields[SecureContext, DataUserPrivacy](
-      Field("email", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.email)),
-      Field("location", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.location)),
-      Field("friends", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.friends)),
-      Field("musicalPreferencesGenre", SchemaRoot.PrivacyEnum, resolve = ctx => Privacy.IntToPrivacy(ctx.value.musicalPreferencesGenre)),
+      Field("email", StringType, resolve = _.value.email),
+      Field("location", StringType, resolve = _.value.location),
+      Field("friends", StringType, resolve = _.value.friends),
+      Field("musicalPreferencesGenre", StringType, resolve = _.value.musicalPreferencesGenre),
     ))
 
   // TODO Permision

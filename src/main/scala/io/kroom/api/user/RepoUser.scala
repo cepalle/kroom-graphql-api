@@ -7,10 +7,10 @@ import io.kroom.api.util.TokenGenerator
 
 
 case class DataUserPrivacy(
-                            email: Int,
-                            location: Int,
-                            friends: Int,
-                            musicalPreferencesGenre: Int,
+                            email: String,
+                            location: String,
+                            friends: String,
+                            musicalPreferencesGenre: String,
                           )
 
 case class DataUser(
@@ -98,10 +98,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
                      musicalPreferencesGenre: Privacy.Value,
                    ): Option[DataUser] = {
     dbh.updatePrivacy(userId, DataUserPrivacy(
-      Privacy.PrivacyToInt(email),
-      Privacy.PrivacyToInt(location),
-      Privacy.PrivacyToInt(friends),
-      Privacy.PrivacyToInt(musicalPreferencesGenre),
+      Privacy.PrivacyToString(email),
+      Privacy.PrivacyToString(location),
+      Privacy.PrivacyToString(friends),
+      Privacy.PrivacyToString(musicalPreferencesGenre),
     ))
   }
 

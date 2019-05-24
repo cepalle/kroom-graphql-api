@@ -230,7 +230,7 @@ object DBUser {
 
     def tokenOAuthOutOfDate = column[Option[String]]("TOKEN_OUT_OF_DATE")
 
-    def privacyJson = column[String]("PRIVACY_JSON", O.Default(DataUserPrivacy(3, 3, 1, 1).asJson.toString()))
+    def privacyJson = column[String]("PRIVACY_JSON", O.Default(DataUserPrivacy("private", "private", "private", "private").asJson.toString()))
 
     def * = (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson)
   }
