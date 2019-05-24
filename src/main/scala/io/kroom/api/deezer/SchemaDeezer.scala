@@ -187,8 +187,8 @@ object SchemaDeezer {
   )
 
   lazy val SearchField: ObjectType[SecureContext, DataDeezerSearch] = ObjectType(
-    "Serach",
-    "Serach description.",
+    "Search",
+    "Search description.",
     () ⇒ fields[SecureContext, DataDeezerSearch](
       Field("id", IntType, resolve = _.value.id),
       Field("readable", BooleanType, resolve = _.value.readable),
