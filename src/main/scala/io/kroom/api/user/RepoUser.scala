@@ -47,7 +47,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     dbh.addUserWithPass(userName, email, pass.bcrypt)
   }
 
-  def authenticate(userName: String, pass: String): Option[DataUser] = {
+  def signIn(userName: String, pass: String): Option[DataUser] = {
     // TODO token cookie ?
     val token = TokenGenerator.generateToken()
 
@@ -63,10 +63,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     getById(user.id)
   }
 
-  def authorise(token: String): Option[(DataUser, List[PermissionGroup.Value])] = {
+  def getPermissionGroup(token: String): Option[(DataUser, Set[PermissionGroup.Value])] = {
     val user = dbh.getByToken(token).getOrElse(return None)
     val perms = dbh.getPermGroup(user.id)
-    Some((user, perms))
+    Some((user, perms.toSet))
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
