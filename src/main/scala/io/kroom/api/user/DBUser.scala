@@ -4,6 +4,7 @@ import io.circe.syntax._
 import io.circe.parser
 import io.circe.generic.auto._
 import io.kroom.api.Authorization
+import io.kroom.api.Authorization.PermissionGroup
 import io.kroom.api.deezer.{DBDeezer, DataDeezerGenre}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
@@ -193,10 +194,19 @@ class DBUser(private val db: H2Profile.backend.Database) {
     getById(userId)
   }
 
-  def addPermGroupe(): Unit = {
+  def addPermGroupe(userId: Int, auth: PermissionGroup.Value): Option[DataUser] = {
+    val query = joinPermGroup += (userId, Authorization.PermissionGroupToString(auth))
+    Await.ready(db.run(query), Duration.Inf)
 
+    getById(userId)
   }
 
+  def delPermGroupe(userId: Int, auth: PermissionGroup.Value): Option[DataUser] = {
+    val query = joinPermGroup.filter(e => e.idUser === userId && e.permGroup === Authorization.PermissionGroupToString(auth))
+    Await.ready(db.run(query.delete), Duration.Inf)
+
+    getById(userId)
+  }
 
 }
 
