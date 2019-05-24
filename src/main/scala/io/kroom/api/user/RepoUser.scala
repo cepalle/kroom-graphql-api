@@ -3,6 +3,7 @@ package io.kroom.api.user
 import io.kroom.api.deezer.{DataDeezerGenre, RepoDeezer}
 import com.github.t3hnar.bcrypt._
 import io.kroom.api.Authorization.{PermissionGroup, Privacy}
+import io.kroom.api.util.TokenGenerator
 
 
 case class DataUserPrivacy(
@@ -47,14 +48,19 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   }
 
   def authenticate(userName: String, pass: String): Option[DataUser] = {
-    // TODO Token
-    // TODO gen token, add in header ?
+    // TODO token cookie ?
+    val token = TokenGenerator.generateToken()
+
     val user = dbh.getByName(userName).getOrElse(return None)
-    user.passHash.flatMap(p => if (pass.isBcryptedSafe(p).getOrElse(false)) {
-      Some(user)
-    } else {
-      None
-    })
+    val passUser = user.passHash.getOrElse(return None)
+    if (!pass.isBcryptedSafe(passUser).getOrElse(false)) {
+      return None
+    }
+
+    // TODO time token
+    dbh.updateToken(user.id, Some(token), Some(""))
+
+    getById(user.id)
   }
 
   def authorise(token: String): Option[(DataUser, List[PermissionGroup.Value])] = {
