@@ -38,7 +38,11 @@ object Authorization {
     Permissions.DeezerAlbum,
     Permissions.DeezerGenre,
     Permissions.DeezerSearch,
+
+    Permissions.UserSignUp,
+    Permissions.UserSignIn,
   )
+
   val permissionsOfUser: Set[Permissions.Value] = permissionsOfPublic ++ Set[Permissions.Value](
     Permissions.TrackVoteEventsPublic,
     Permissions.TrackVoteEventById,
@@ -51,14 +55,13 @@ object Authorization {
     Permissions.TrackVoteEventDelUser,
     Permissions.TrackVoteEventAddVote,
     Permissions.TrackVoteEventDelVote,
-    Permissions.UserSignUp,
-    Permissions.UserSignIn,
     Permissions.UserAddFriend,
     Permissions.UserDelFriend,
     Permissions.UserAddMusicalPreference,
     Permissions.UserDelMusicalPreference,
     Permissions.UserUpdatePrivacy
   )
+
   val permissionsOfRoot: Set[Permissions.Value] = permissionsOfUser ++ Set[Permissions.Value](
   )
 
