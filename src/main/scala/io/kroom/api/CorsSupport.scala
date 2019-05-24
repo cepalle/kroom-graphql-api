@@ -11,7 +11,7 @@ trait CorsSupport {
     respondWithHeaders(
       `Access-Control-Allow-Origin`.*,
       `Access-Control-Allow-Credentials`(true),
-      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With")
+      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With", "Kroom-token-id")
     )
   }
 

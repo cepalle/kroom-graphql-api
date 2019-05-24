@@ -1,6 +1,7 @@
 package io.kroom.api.user
 
 import io.kroom.api.Authorization.Privacy
+import io.kroom.api.Authorization.PermissionGroupToString
 import io.kroom.api.SecureContext
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
@@ -45,7 +46,11 @@ object SchemaUser {
         ctx.ctx.repo.user.getFriends(ctx.value.id)
       }),
       Field("musicalPreferences", ListType(SchemaDeezer.GenreField), resolve = ctx => Future {
-        ctx.ctx.repo.user.getmMsicalPreferences(ctx.value.id)
+        ctx.ctx.repo.user.getMsicalPreferences(ctx.value.id)
+      }),
+
+      Field("permissionGroup", ListType(StringType), resolve = ctx => Future {
+        ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(PermissionGroupToString).toList
       }),
     ))
 

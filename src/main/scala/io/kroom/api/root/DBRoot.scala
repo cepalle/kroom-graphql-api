@@ -28,6 +28,7 @@ object DBRoot {
 
         DBUser.tabUser.schema ++
         DBUser.joinFriend.schema ++
+        DBUser.joinPermGroup.schema ++
         DBUser.joinMusicalPreferences.schema ++
 
         DBTrackVoteEvent.tabTrackVoteEvent.schema ++
@@ -44,4 +45,3 @@ object DBRoot {
   }
 
 }
-

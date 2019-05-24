@@ -6,7 +6,7 @@ import Authorization.{PermissionGroup, Permissions}
 
 class SecureContext(private var token: Option[String], val repo: RepoRoot) {
 
-  private lazy val (user: DataUser, permGrp: Set[PermissionGroup.Value]) = token.flatMap(repo.user.getPermissionGroup)
+  private lazy val (user: DataUser, permGrp: Set[PermissionGroup.Value]) = token.flatMap(repo.user.getTokenPermGroup)
     .getOrElse((
       DataUser(-1, "public", "", false, None, None, None, None, DataUserPrivacy(0, 0, 0, 0)),
       Set(PermissionGroup.public)
@@ -18,8 +18,9 @@ class SecureContext(private var token: Option[String], val repo: RepoRoot) {
     repo.user.signIn(userName, password)
       .fold(throw AuthorisationException("UserName or password is incorrect"))(identity)
 
-  def authorised[T](perms: Permissions.Value*)(fn: (DataUser, Set[PermissionGroup.Value], Set[Authorization.Permissions.Value]) ⇒ T): T =
+  def authorised[T](perms: Permissions.Value*)(fn: (DataUser, Set[PermissionGroup.Value], Set[Authorization.Permissions.Value]) ⇒ T): T = {
     if (perms.forall(permissions.contains)) fn(user, permGrp, permissions)
     else throw AuthorisationException("You do not have permission to do this operation")
+  }
 
 }

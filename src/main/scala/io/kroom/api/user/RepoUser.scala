@@ -35,7 +35,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     dbh.getFriends(userId)
   }
 
-  def getmMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
+  def getMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
     dbh.getmMsicalPreferences(userId)
   }
 
@@ -63,10 +63,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     getById(user.id)
   }
 
-  def getPermissionGroup(token: String): Option[(DataUser, Set[PermissionGroup.Value])] = {
+  def getTokenPermGroup(token: String): Option[(DataUser, Set[PermissionGroup.Value])] = {
     val user = dbh.getByToken(token).getOrElse(return None)
     val perms = dbh.getPermGroup(user.id)
-    Some((user, perms.toSet))
+    Some((user, perms))
+  }
+
+  def getUserPermGroup(userId: Int): Set[PermissionGroup.Value] = {
+    dbh.getPermGroup(userId)
   }
 
   def addFriend(userId: Int, friendId: Int): Option[DataUser] = {

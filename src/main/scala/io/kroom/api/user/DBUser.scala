@@ -83,15 +83,15 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .getOrElse(List[DataDeezerGenre]())
   }
 
-  def getPermGroup(userId: Int): List[Authorization.PermissionGroup.Value] = {
+  def getPermGroup(userId: Int): Set[Authorization.PermissionGroup.Value] = {
     val query = joinPermGroup.filter(_.idUser === userId).result
     val f = db.run(query)
 
     Await.ready(f, Duration.Inf).value
       .flatMap(_.toOption)
       .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
-      .map(_.toList)
-      .getOrElse(List[Authorization.PermissionGroup.Value]())
+      .map(_.toSet)
+      .getOrElse(Set[Authorization.PermissionGroup.Value]())
   }
 
   // Mutation
