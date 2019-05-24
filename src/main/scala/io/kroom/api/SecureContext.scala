@@ -2,7 +2,7 @@ package io.kroom.api
 
 import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.{DataUser, DataUserPrivacy}
-import Authorization.{PermissionGroup, Permissions}
+import Authorization.{PermissionGroup, Permissions, Privacy}
 
 class SecureContext(val token: Option[String], val repo: RepoRoot) {
 
@@ -23,4 +23,19 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
     else throw AuthorisationException("You do not have permission to do this operation")
   }
 
+  def checkPrivacy[T](foreignId: Int, privacy: Privacy.Value)(fn: () ⇒ T): Option[T] = {
+    if (foreignId == user.id) {
+      Some(fn())
+    } else if (privacy == Privacy.public) {
+      Some(fn())
+    } else if (privacy == Privacy.amis) {
+      if (repo.user.getFriends(foreignId).map(_.id).contains(user.id)) {
+        Some(fn())
+      } else {
+        None
+      }
+    } else {
+      None
+    }
+  }
 }
