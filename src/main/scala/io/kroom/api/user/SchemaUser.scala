@@ -35,9 +35,21 @@ object SchemaUser {
     "User",
     "User description.",
     () ⇒ fields[SecureContext, DataUser](
-      Field("id", OptionType(IntType), resolve = _.value.id),
+      Field("id", OptionType(IntType), resolve = ctx => {
+        if (ctx.ctx.user.id == ctx.value.id) {
+          Some(ctx.value.id)
+        } else {
+          None
+        }
+      }),
       Field("userName", StringType, resolve = _.value.userName),
-      Field("email", OptionType(StringType), resolve = _.value.email),
+      Field("email", OptionType(StringType), resolve = ctx => {
+        if (ctx.value.privacy.email == Privacy.privacyToString(Privacy.public)) {
+            Some(ctx.value.email)
+        } else {
+          None
+        }
+      }),
       Field("location", OptionType(StringType), resolve = _.value.location),
       Field("token", OptionType(StringType), resolve = _.value.token),
       Field("privacy", OptionType(PrivacyField), resolve = _.value.privacy),

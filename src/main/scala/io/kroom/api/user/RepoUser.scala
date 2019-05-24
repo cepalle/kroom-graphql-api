@@ -98,10 +98,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
                      musicalPreferencesGenre: Privacy.Value,
                    ): Option[DataUser] = {
     dbh.updatePrivacy(userId, DataUserPrivacy(
-      Privacy.PrivacyToString(email),
-      Privacy.PrivacyToString(location),
-      Privacy.PrivacyToString(friends),
-      Privacy.PrivacyToString(musicalPreferencesGenre),
+      Privacy.privacyToString(email),
+      Privacy.privacyToString(location),
+      Privacy.privacyToString(friends),
+      Privacy.privacyToString(musicalPreferencesGenre),
     ))
   }
 

@@ -20,7 +20,7 @@ object SchemaTrackVoteEvent {
     )(HasId(_.id))
 
   lazy val TrackVoteEventField: ObjectType[SecureContext, DataTrackVoteEvent] = ObjectType(
-    "trackVoteEvent",
+    "TrackVoteEvent",
     "TrackVoteEvent description.",
     () ⇒ fields[SecureContext, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
@@ -48,8 +48,8 @@ object SchemaTrackVoteEvent {
     ))
 
   lazy val TrackWithVoteField: ObjectType[SecureContext, DataTrackWithVote] = ObjectType(
-    "trackWithVote",
-    "trackWithVote description.",
+    "TrackWithVote",
+    "TrackWithVote description.",
     () ⇒ fields[SecureContext, DataTrackWithVote](
       Field("track", SchemaDeezer.TrackField, resolve = ctx =>
         SchemaDeezer.TrackFetcherId.defer(ctx.value.trackId)

@@ -98,7 +98,7 @@ object Authorization {
   object Privacy extends Enumeration {
     val public, amis, `private` = Value
 
-    def StringToPrivacy(nb: String): Privacy.Value = {
+    def stringToPrivacy(nb: String): Privacy.Value = {
       nb match {
         case "public" => public
         case "amis" => amis
@@ -106,7 +106,7 @@ object Authorization {
       }
     }
 
-    def PrivacyToString(e: Privacy.Value): String = {
+    def privacyToString(e: Privacy.Value): String = {
       e match {
         case Privacy.public => "public"
         case Privacy.amis => "amis"
