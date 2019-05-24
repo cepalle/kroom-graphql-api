@@ -43,12 +43,12 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   def signUp(userName: String, email: String, pass: String): Option[DataUser] = {
     // TODO verif send email
     // TODO verif userName, email, pass
-    // TODO gen token, add in header ?
     dbh.addUserWithPass(userName, email, pass.bcrypt)
   }
 
   def authenticate(userName: String, pass: String): Option[DataUser] = {
     // TODO Token
+    // TODO gen token, add in header ?
     val user = dbh.getByName(userName).getOrElse(return None)
     user.passHash.flatMap(p => if (pass.isBcryptedSafe(p).getOrElse(false)) {
       Some(user)
