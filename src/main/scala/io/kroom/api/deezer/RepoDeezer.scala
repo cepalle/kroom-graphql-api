@@ -222,7 +222,7 @@ class RepoDeezer(val dbh: DBDeezer) {
     }
   }
 
-  def getGenreById(id: Int): Option[DataDeezerGenre] = {
+  def getGenreById(id: Int): Try[DataDeezerGenre] = {
     dbh.getDeezerGenre(id) match {
       case Some(d) =>
         println(s"RepoDeezer: Genre $id get from DB")
