@@ -3,7 +3,7 @@ package io.kroom.api.root
 import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
-import io.kroom.api.user.SchemaUser
+import io.kroom.api.user.{DataUser, SchemaUser}
 import io.kroom.api.deezer.{Connections, Order}
 import sangria.schema._
 
@@ -103,11 +103,11 @@ object SchemaRoot {
 
       /* USER */
 
-      Field("UserGetById", OptionType(UserField),
+      Field("UserGetById", UserField,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { () =>
           Future {
-            ctx.ctx.repo.user.getById(ctx.arg[Int]("id"))
+            ctx.ctx.repo.user.getById(ctx.arg[Int]("id")).get
           }
         }),
 
@@ -226,7 +226,7 @@ object SchemaRoot {
 
       /* USER */
 
-      Field("UserSignUp", OptionType(UserField),
+      Field("UserSignUp", UserField,
         arguments = Argument("userName", StringType)
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
@@ -237,12 +237,12 @@ object SchemaRoot {
             ctx.arg[String]("email"),
             ctx.arg[String]("pass"),
           )) { user ⇒
-            new SecureContext(user.flatMap(_.token), ctx.ctx.repo)
+            new SecureContext(user.token, ctx.ctx.repo)
           }
         }
       ),
 
-      Field("UserSignIn", OptionType(UserField),
+      Field("UserSignIn", UserField,
         arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
@@ -251,7 +251,7 @@ object SchemaRoot {
             ctx.arg[String]("userName"),
             ctx.arg[String]("pass"),
           )) { user ⇒
-            new SecureContext(user.flatMap(_.token), ctx.ctx.repo)
+            new SecureContext(user.token, ctx.ctx.repo)
           }
         }
       ),
@@ -266,7 +266,7 @@ object SchemaRoot {
             ctx.ctx.repo.user.addFriend(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("friendId"),
-            )
+            ).get
           }
         }
       ),
@@ -281,7 +281,7 @@ object SchemaRoot {
             ctx.ctx.repo.user.delFriend(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("friendId"),
-            )
+            ).get
           }
         }
       ),
@@ -296,7 +296,7 @@ object SchemaRoot {
             ctx.ctx.repo.user.addMusicalPreference(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("genreId"),
-            )
+            ).get
           }
         }
       ),
@@ -311,7 +311,7 @@ object SchemaRoot {
             ctx.ctx.repo.user.delMusicalPreference(
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("genreId"),
-            )
+            ).get
           }
         }
       ),
@@ -332,7 +332,7 @@ object SchemaRoot {
               ctx.arg[Privacy.Value]("location"),
               ctx.arg[Privacy.Value]("friends"),
               ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
-            )
+            ).get
           }
         }
       ),

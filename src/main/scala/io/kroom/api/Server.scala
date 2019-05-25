@@ -49,7 +49,8 @@ object Server extends App with CorsSupport {
         SchemaDeezer.AlbumFetcherId,
         SchemaDeezer.GenreFetcherId,
         SchemaTrackVoteEvent.TrackVoteEventFetcherId
-      )
+      ),
+      exceptionHandler = ExceptionCustom.exceptionHandler
     )
       .map(OK → _)
       .recover {

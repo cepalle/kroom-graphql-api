@@ -11,199 +11,212 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
 
 class DBUser(private val db: H2Profile.backend.Database) {
 
   import DBUser._
 
-  def getById(id: Int): Option[DataUser] = {
+  def getById(id: Int): Try[DataUser] = {
     val query = tabUser.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjUser))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getById user.id not found")))
   }
 
-  def getByToken(token: String): Option[DataUser] = {
+  def getByToken(token: String): Try[DataUser] = {
     // TODO check time out of date
     val query = tabUser.filter(_.tokenOAuth === token).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjUser))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getByToken user.token not found")))
   }
 
-  def getByName(name: String): Option[DataUser] = {
+  def getByName(name: String): Try[DataUser] = {
     val query = tabUser.filter(_.name === name).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjUser))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getByName user.name not found")))
   }
 
-  def getByEmail(email: String): Option[DataUser] = {
+  def getByEmail(email: String): Try[DataUser] = {
     val query = tabUser.filter(_.email === email).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjUser)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjUser))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getByEmail user.email not found")))
   }
 
-  def getFriends(userId: Int): List[DataUser] = {
+  def getFriends(userId: Int): Try[List[DataUser]] = {
     val query = for {
-      ((u, jf), f) <- tabUser join joinFriend on
+      ((u, _), f) <- tabUser join joinFriend on
         (_.id === _.idUser) join tabUser on (_._2.idFriend === _.id)
       if u.id === userId
     } yield f
-    val f = db.run(query.result)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(_.map(tabToObjUser))
+    Await.ready(db.run(query.result), Duration.Inf).value
+      .map(_.map(_.map(tabToObjUser)))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getFriends user.id not found")))
       .map(_.toList)
-      .getOrElse(List[DataUser]())
   }
 
-  def getmMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
+  def getMusicalPreferences(userId: Int): Try[List[DataDeezerGenre]] = {
     val query = for {
-      ((u, jmp), mp) <- tabUser join joinMusicalPreferences on
+      ((u, _), mp) <- tabUser join joinMusicalPreferences on
         (_.id === _.idUser) join DBDeezer.tabDeezerGenre on (_._2.idDeezerGenre === _.id)
       if u.id === userId
     } yield mp
-    val f = db.run(query.result)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(_.map(DBDeezer.tabToObjDeezerGenre))
+    Await.ready(db.run(query.result), Duration.Inf).value
+      .map(_.map(_.map(DBDeezer.tabToObjDeezerGenre)))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getMusicalPreferences user.id not found")))
       .map(_.toList)
-      .getOrElse(List[DataDeezerGenre]())
   }
 
-  def getPermGroup(userId: Int): Set[Authorization.PermissionGroup.Value] = {
+  def getPermGroup(userId: Int): Try[Set[Authorization.PermissionGroup.Value]] = {
     val query = joinPermGroup.filter(_.idUser === userId).result
     val f = db.run(query)
 
     Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
+      .map(_.map(_.map(c => Authorization.StringToPermissionGroup(c._2))))
+      .getOrElse(Failure(new IllegalStateException("DBUser.getPermGroup user.id not found")))
       .map(_.toSet)
-      .getOrElse(Set[Authorization.PermissionGroup.Value]())
   }
 
   // Mutation
 
-  def addUserWithPass(name: String, email: String, passHash: String): Option[DataUser] = {
-    val query1 = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
-    Await.ready(db.run(query1), Duration.Inf)
+  def addUserWithPass(name: String, email: String, passHash: String): Try[DataUser] = {
+    val queryInsertUser = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
+    Await.ready(db.run(queryInsertUser), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
-    val user = getByEmail(email).getOrElse(return None)
+    val user = getByEmail(email) match {
+      case Failure(e) => return Failure(e)
+      case Success(s) => s
+    }
 
-    val query2 = joinPermGroup += (user.id, Authorization.PermissionGroupToString(Authorization.PermissionGroup.user))
-    Await.ready(db.run(query2), Duration.Inf)
+    val queryInsertPerm = joinPermGroup += (user.id, Authorization.PermissionGroupToString(Authorization.PermissionGroup.user))
+    Await.ready(db.run(queryInsertPerm), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(user.id)
   }
 
-  def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
+  def addFriend(userId: Int, friendId: Int): Try[DataUser] = {
     val query = DBIO.seq(
       joinFriend.map(e => (e.idUser, e.idFriend)) += (userId, friendId),
       joinFriend.map(e => (e.idUser, e.idFriend)) += (friendId, userId)
     )
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
+  def delFriend(userId: Int, friendId: Int): Try[DataUser] = {
     val query = DBIO.seq(
       joinFriend.filter(e => e.idFriend === friendId && e.idUser === userId).delete,
       joinFriend.filter(e => e.idFriend === userId && e.idUser === friendId).delete,
     )
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+  def addMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     val query = joinMusicalPreferences.map(e => (e.idUser, e.idDeezerGenre)) += (userId, genreId)
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+  def delMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     val query = joinMusicalPreferences
       .filter(e => e.idDeezerGenre === genreId && e.idUser === userId)
       .delete
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def confirmEmail(userId: Int): Option[DataUser] = {
+  def confirmEmail(userId: Int): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
       .map(e => e.emailIsconfirmed)
       .update(true)
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def updateLocation(userId: Int, location: String): Option[DataUser] = {
+  def updateLocation(userId: Int, location: String): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
       .map(e => e.location)
       .update(Some(location))
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def updateToken(userId: Int, token: Option[String], tokenOutOfDate: Option[String]): Option[DataUser] = {
+  def updateToken(userId: Int, token: Option[String], tokenOutOfDate: Option[String]): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
       .map(e => (e.tokenOAuth, e.tokenOAuthOutOfDate))
       .update((token, tokenOutOfDate))
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def updatePrivacy(userId: Int, pr: DataUserPrivacy): Option[DataUser] = {
+  def updatePrivacy(userId: Int, pr: DataUserPrivacy): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
       .map(e => e.privacyJson)
       .update(DataUserPrivacy.asJson.toString())
 
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def addPermGroupe(userId: Int, auth: PermissionGroup.Value): Option[DataUser] = {
+  def addPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
     val query = joinPermGroup += (userId, Authorization.PermissionGroupToString(auth))
-    Await.ready(db.run(query), Duration.Inf)
+
+    Await.ready(db.run(query), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }
 
-  def delPermGroupe(userId: Int, auth: PermissionGroup.Value): Option[DataUser] = {
+  def delPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
     val query = joinPermGroup.filter(e => e.idUser === userId && e.permGroup === Authorization.PermissionGroupToString(auth))
-    Await.ready(db.run(query.delete), Duration.Inf)
+
+    Await.ready(db.run(query.delete), Duration.Inf).value match {
+      case Some(Failure(e)) => return Failure(e)
+    }
 
     getById(userId)
   }

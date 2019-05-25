@@ -3,7 +3,10 @@ package io.kroom.api.user
 import io.kroom.api.deezer.{DataDeezerGenre, RepoDeezer}
 import com.github.t3hnar.bcrypt._
 import io.kroom.api.Authorization.{PermissionGroup, Privacy}
+import io.kroom.api.ExceptionCustom.{UserAuthenticationException, UserRegistrationException}
 import io.kroom.api.util.TokenGenerator
+
+import scala.util.{Failure, Success, Try}
 
 
 case class DataUserPrivacy(
@@ -27,73 +30,82 @@ case class DataUser(
 
 class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
-  def getById(id: Int): Option[DataUser] = {
+  def getById(id: Int): Try[DataUser] = {
     dbh.getById(id)
   }
 
-  def getFriends(userId: Int): List[DataUser] = {
+  def getFriends(userId: Int): Try[List[DataUser]] = {
     dbh.getFriends(userId)
   }
 
-  def getMsicalPreferences(userId: Int): List[DataDeezerGenre] = {
-    dbh.getmMsicalPreferences(userId)
+  def getMsicalPreferences(userId: Int): Try[List[DataDeezerGenre]] = {
+    dbh.getMusicalPreferences(userId)
   }
 
   // Mutation
 
-  def signUp(userName: String, email: String, pass: String): Option[DataUser] = {
+  def signUp(name: String, email: String, pass: String): Try[DataUser] = {
     // TODO verif send email
     // TODO verif userName, email, pass
     // TODO token cookie ?
-    dbh.addUserWithPass(userName, email, pass.bcrypt)
+    dbh.addUserWithPass(name, email, pass.bcrypt) match {
+      case Failure(e) => return Failure(UserRegistrationException(e.getMessage))
+    }
 
-    val token = TokenGenerator.generateToken()
-    val user = dbh.getByName(userName).getOrElse(return None)
-    dbh.updateToken(user.id, Some(token), Some(""))
+    val user = dbh.getByName(name) match {
+      case Failure(_) => return Failure(new IllegalStateException("RepoUser.signUp getByName failed"))
+      case Success(u) => u
+    }
 
-    getById(user.id)
+    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) match {
+      case Failure(_) => return Failure(new IllegalStateException("RepoUser.signUp updateToken failed"))
+    }
+
+    getById(user.id) match {
+      case Failure(_) => Failure(new IllegalStateException("RepoUser.signUp getById failed"))
+    }
   }
 
-  def signIn(userName: String, pass: String): Option[DataUser] = {
+  def signIn(userName: String, pass: String): Try[DataUser] = {
     // TODO token cookie ?
     val token = TokenGenerator.generateToken()
 
-    val user = dbh.getByName(userName).getOrElse(return None)
-    val passUser = user.passHash.getOrElse(return None)
+    val user = dbh.getByName(userName).getOrElse(throw UserAuthenticationException("userName or password invalid"))
+    val passUser = user.passHash.getOrElse(throw UserAuthenticationException("userName or password invalid"))
     if (!pass.isBcryptedSafe(passUser).getOrElse(false)) {
-      return None
+      throw UserAuthenticationException("userName or password invalid")
     }
 
     // TODO time token
     dbh.updateToken(user.id, Some(token), Some(""))
 
-    getById(user.id)
+    getById(user.id).getOrElse(throw new IllegalStateException("signIn user.id not found"))
   }
 
-  def getTokenPermGroup(token: String): Option[(DataUser, Set[PermissionGroup.Value])] = {
+  def getTokenPermGroup(token: String): Try[(DataUser, Set[PermissionGroup.Value])] = {
     val user = dbh.getByToken(token).getOrElse(return None)
     val perms = dbh.getPermGroup(user.id)
     Some((user, perms))
   }
 
-  def getUserPermGroup(userId: Int): Set[PermissionGroup.Value] = {
+  def getUserPermGroup(userId: Int): Try[Set[PermissionGroup.Value]] = {
     dbh.getPermGroup(userId)
   }
 
-  def addFriend(userId: Int, friendId: Int): Option[DataUser] = {
+  def addFriend(userId: Int, friendId: Int): Try[DataUser] = {
     dbh.addFriend(userId, friendId)
   }
 
-  def delFriend(userId: Int, friendId: Int): Option[DataUser] = {
+  def delFriend(userId: Int, friendId: Int): Try[DataUser] = {
     dbh.delFriend(userId, friendId)
   }
 
-  def addMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+  def addMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     repoDeezer.getGenreById(genreId) // get Genre in DB
     dbh.addMusicalPreference(userId, genreId)
   }
 
-  def delMusicalPreference(userId: Int, genreId: Int): Option[DataUser] = {
+  def delMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     dbh.delMusicalPreference(userId, genreId)
   }
 
@@ -103,7 +115,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
                      location: Privacy.Value,
                      friends: Privacy.Value,
                      musicalPreferencesGenre: Privacy.Value,
-                   ): Option[DataUser] = {
+                   ): Try[DataUser] = {
     dbh.updatePrivacy(userId, DataUserPrivacy(
       Privacy.privacyToString(email),
       Privacy.privacyToString(location),

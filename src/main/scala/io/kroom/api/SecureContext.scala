@@ -3,6 +3,7 @@ package io.kroom.api
 import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.{DataUser, DataUserPrivacy}
 import Authorization.{PermissionGroup, Permissions, Privacy}
+import io.kroom.api.ExceptionCustom.AuthorisationException
 
 class SecureContext(val token: Option[String], val repo: RepoRoot) {
 
@@ -13,10 +14,6 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
     ))
 
   lazy val permissions: Set[Authorization.Permissions.Value] = Authorization.PermissionGroupsToPermissions(permGrp)
-
-  def login(userName: String, password: String): DataUser =
-    repo.user.signIn(userName, password)
-      .fold(throw AuthorisationException("UserName or password is incorrect"))(identity)
 
   def authorised[T](perms: Permissions.Value*)(fn: () ⇒ T): T = {
     if (perms.forall(permissions.contains)) fn()
