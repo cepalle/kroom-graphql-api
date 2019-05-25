@@ -2,7 +2,10 @@ package io.kroom.api.deezer
 
 import io.circe.generic.auto._
 import io.circe.parser
+import io.kroom.api.ExceptionCustom.SimpleException
 import scalaj.http.{Http, HttpRequest, HttpResponse}
+
+import scala.util.{Failure, Success, Try}
 
 case class data[T](data: T)
 
@@ -146,103 +149,100 @@ object Connections extends Enumeration {
   val album, artist, history, playlist, podcast, radio, track, user = Value
 }
 
-// TODO LOG
-// cached error ?
 class RepoDeezer(val dbh: DBDeezer) {
 
-  def getTrackById(id: Int): Option[DataDeezerTrack] = {
+  def getTrackById(id: Int): Try[DataDeezerTrack] = {
     dbh.getDeezerTrack(id) match {
-      case Some(d) =>
+      case Success(d) =>
         println(s"RepoDeezer: Track $id get from DB")
-        return Some(d)
-      case _ => ()
+        return Success(d)
     }
 
     val urlEntry = s"https://api.deezer.com/track/$id"
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[DataDeezerTrack](res.body)
+    val decodingResult = parser.decode[DataDeezerTrack](res.body).toTry
 
     decodingResult match {
-      case Right(track) =>
+      case Success(track) =>
         println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerTrack(track)
-        Some(track)
-      case Left(error) =>
+        Success(track)
+      case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        None
+        Failure(SimpleException("TrackId not found"))
     }
   }
 
-  def getArtistById(id: Int): Option[DataDeezerArtist] = {
+  def getArtistById(id: Int): Try[DataDeezerArtist] = {
     dbh.getDeezerArtist(id) match {
-      case Some(d) =>
+      case Success(d) =>
         println(s"RepoDeezer: Artist $id get from DB")
-        return Some(d)
+        return Success(d)
       case _ => ()
     }
 
     val urlEntry = s"https://api.deezer.com/artist/$id"
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[DataDeezerArtist](res.body)
+    val decodingResult = parser.decode[DataDeezerArtist](res.body).toTry
 
     decodingResult match {
-      case Right(artist) =>
+      case Success(artist) =>
         println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerArtist(artist)
-        Some(artist)
-      case Left(error) =>
+        Success(artist)
+      case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        None
+        Failure(SimpleException("ArtistId not found"))
     }
   }
 
-  def getAlbumById(id: Int): Option[DataDeezerAlbum] = {
+  def getAlbumById(id: Int): Try[DataDeezerAlbum] = {
     dbh.getDeezerAlbum(id) match {
-      case Some(d) =>
+      case Success(d) =>
         println(s"RepoDeezer: Album $id get from DB")
-        return Some(d)
+        return Success(d)
       case _ => ()
     }
 
     val urlEntry = s"https://api.deezer.com/album/$id"
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[DataDeezerAlbum](res.body)
+    val decodingResult = parser.decode[DataDeezerAlbum](res.body).toTry
 
     decodingResult match {
-      case Right(album) =>
+      case Success(album) =>
         println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerAlbum(album)
-        Some(album)
-      case Left(error) =>
+        Success(album)
+      case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        None
+        Failure(SimpleException("AlbumId not found"))
     }
   }
 
   def getGenreById(id: Int): Try[DataDeezerGenre] = {
     dbh.getDeezerGenre(id) match {
-      case Some(d) =>
+      case Success(d) =>
         println(s"RepoDeezer: Genre $id get from DB")
-        return Some(d)
+        return Success(d)
       case _ => ()
     }
 
     val urlEntry = s"https://api.deezer.com/genre/$id"
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[DataDeezerGenre](res.body)
+    val decodingResult = parser.decode[DataDeezerGenre](res.body).toTry
 
     decodingResult match {
-      case Right(genre) =>
+      case Success(genre) =>
         println(s"RepoDeezer: Deezer API $urlEntry")
         dbh.addDeezerGenre(genre)
-        Some(genre)
-      case Left(error) =>
+        Success(genre)
+      case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        None
+        Failure(SimpleException("GenreId not found"))
     }
   }
 
@@ -250,7 +250,7 @@ class RepoDeezer(val dbh: DBDeezer) {
                 connections: Option[Connections.Value],
                 strict: Boolean,
                 order: Option[Order.Value]
-               ): List[DataDeezerSearch] = {
+               ): Try[List[DataDeezerSearch]] = {
     val urlEntry = s"https://api.deezer.com/search${
       connections.map(e => "/" + e).getOrElse("")
     }?q=$search${
@@ -265,15 +265,15 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[data[List[DataDeezerSearch]]](res.body)
+    val decodingResult = parser.decode[data[List[DataDeezerSearch]]](res.body).toTry
 
     decodingResult match {
-      case Right(resJson) =>
+      case Success(resJson) =>
         println(s"RepoDeezer: Deezer API $urlEntry")
-        resJson.data
-      case Left(error) =>
+        Success(resJson.data)
+      case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        List[DataDeezerSearch]()
+        Failure(SimpleException("An error occur with Deezer API"))
     }
   }
 
