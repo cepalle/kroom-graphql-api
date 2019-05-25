@@ -44,7 +44,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   def signUp(userName: String, email: String, pass: String): Option[DataUser] = {
     // TODO verif send email
     // TODO verif userName, email, pass
+    // TODO token cookie ?
     dbh.addUserWithPass(userName, email, pass.bcrypt)
+
+    val token = TokenGenerator.generateToken()
+    val user = dbh.getByName(userName).getOrElse(return None)
+    dbh.updateToken(user.id, Some(token), Some(""))
+
+    getById(user.id)
   }
 
   def signIn(userName: String, pass: String): Option[DataUser] = {

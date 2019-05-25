@@ -232,12 +232,12 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () =>
-          Future {
-            ctx.ctx.repo.user.signUp(
-              ctx.arg[String]("userName"),
-              ctx.arg[String]("email"),
-              ctx.arg[String]("pass"),
-            )
+          UpdateCtx(ctx.ctx.repo.user.signUp(
+            ctx.arg[String]("userName"),
+            ctx.arg[String]("email"),
+            ctx.arg[String]("pass"),
+          )) { user ⇒
+            new SecureContext(user.flatMap(_.token), ctx.ctx.repo)
           }
         }
       ),
