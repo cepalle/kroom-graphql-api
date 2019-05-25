@@ -18,7 +18,7 @@ class DBDeezer(private val db: H2Profile.backend.Database) {
     val query = tabDeezerGenre.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjDeezerGenre))
+      .map(_.flatMap(tabToObjDeezerGenre))
       .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerGenre genre.id not found")))
   }
 
@@ -34,7 +34,7 @@ class DBDeezer(private val db: H2Profile.backend.Database) {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjDeezerAlbum))
+      .map(_.flatMap(tabToObjDeezerAlbum))
       .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerAlbum album.id not found")))
   }
 
@@ -50,7 +50,7 @@ class DBDeezer(private val db: H2Profile.backend.Database) {
     val query = tabDeezerArtist.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjDeezerArtist))
+      .map(_.flatMap(tabToObjDeezerArtist))
       .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerArtist artist.id not found")))
   }
 
@@ -66,7 +66,7 @@ class DBDeezer(private val db: H2Profile.backend.Database) {
     val query = tabDeezerTrack.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjDeezerTrack))
+      .map(_.flatMap(tabToObjDeezerTrack))
       .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerTrack track.id not found")))
   }
 
@@ -93,8 +93,8 @@ object DBDeezer {
 
   val tabDeezerGenre = TableQuery[TabDeezerGenre]
 
-  def tabToObjDeezerGenre(t: (Int, String)): DataDeezerGenre = {
-    parser.decode[DataDeezerGenre](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
+  def tabToObjDeezerGenre(t: (Int, String)): Try[DataDeezerGenre] = {
+    parser.decode[DataDeezerGenre](t._2).toTry
   }
 
   class TabDeezerAlbum(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ALBUM") {
@@ -108,8 +108,8 @@ object DBDeezer {
 
   val tabDeezerAlbum = TableQuery[TabDeezerAlbum]
 
-  def tabToObjDeezerAlbum(t: (Int, String)): DataDeezerAlbum = {
-    parser.decode[DataDeezerAlbum](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
+  def tabToObjDeezerAlbum(t: (Int, String)): Try[DataDeezerAlbum] = {
+    parser.decode[DataDeezerAlbum](t._2).toTry
   }
 
   class TabDeezerArtist(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_ARTIST") {
@@ -123,8 +123,8 @@ object DBDeezer {
 
   val tabDeezerArtist = TableQuery[TabDeezerArtist]
 
-  def tabToObjDeezerArtist(t: (Int, String)): DataDeezerArtist = {
-    parser.decode[DataDeezerArtist](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
+  def tabToObjDeezerArtist(t: (Int, String)): Try[DataDeezerArtist] = {
+    parser.decode[DataDeezerArtist](t._2).toTry
   }
 
   class TabDeezerTrack(tag: Tag) extends Table[(Int, String)](tag, "DEEZER_TRACK") {
@@ -138,8 +138,8 @@ object DBDeezer {
 
   val tabDeezerTrack = TableQuery[TabDeezerTrack]
 
-  def tabToObjDeezerTrack(t: (Int, String)): DataDeezerTrack = {
-    parser.decode[DataDeezerTrack](t._2).getOrElse(throw new IllegalArgumentException("TabDeezerGenre: json in db is invalid"))
+  def tabToObjDeezerTrack(t: (Int, String)): Try[DataDeezerTrack] = {
+    parser.decode[DataDeezerTrack](t._2).toTry
   }
 
 }

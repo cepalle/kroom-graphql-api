@@ -16,7 +16,7 @@ object SchemaUser {
 
   lazy val UserFetcherId: Fetcher[SecureContext, DataUser, DataUser, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.user.getById(id))
+      ids.flatMap(id => ctx.repo.user.getById(id).toOption)
     }
     )(HasId(_.id))
 
@@ -58,18 +58,18 @@ object SchemaUser {
       Field("friends", OptionType(ListType(UserField)), resolve = ctx => Future {
         ctx.ctx.checkPrivacy(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.friends)) { () =>
           ctx.ctx.repo.user.getFriends(ctx.value.id)
-        }
+        }.flatMap(e => e.toOption)
       }),
       Field("musicalPreferences", OptionType(ListType(SchemaDeezer.GenreField)), resolve = ctx => Future {
         ctx.ctx.checkPrivacy(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.musicalPreferencesGenre)) { () =>
           ctx.ctx.repo.user.getMsicalPreferences(ctx.value.id)
-        }
+        }.flatMap(e => e.toOption)
       }),
 
       Field("permissionGroup", OptionType(ListType(StringType)), resolve = ctx =>
         ctx.ctx.checkPrivacy(ctx.value.id, Privacy.`private`) { () =>
-          ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(PermissionGroupToString).toList
-        }),
+          ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(_.map(PermissionGroupToString).toList)
+        }.flatMap(e => e.toOption)),
 
     ))
 
