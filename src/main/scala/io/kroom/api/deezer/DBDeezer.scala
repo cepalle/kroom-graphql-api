@@ -8,69 +8,74 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Try}
 
 class DBDeezer(private val db: H2Profile.backend.Database) {
 
   import DBDeezer._
 
-  def getDeezerGenre(id: Int): Option[DataDeezerGenre] = {
+  def getDeezerGenre(id: Int): Try[DataDeezerGenre] = {
     val query = tabDeezerGenre.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjDeezerGenre)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjDeezerGenre))
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerGenre genre.id not found")))
   }
 
-  def addDeezerGenre(dg: DataDeezerGenre): Boolean = {
-    val f = db.run(tabDeezerGenre += ((dg.id, dg.asJson.toString())))
-    Await.ready(f, Duration.Inf)
-    true
+  def addDeezerGenre(dg: DataDeezerGenre): Try[Unit] = {
+    val query = tabDeezerGenre += ((dg.id, dg.asJson.toString()))
+
+    Await.ready(db.run(query), Duration.Inf).value
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerGenre failed")))
+      .map(_ => Unit)
   }
 
-  def getDeezerAlbum(id: Int): Option[DataDeezerAlbum] = {
+  def getDeezerAlbum(id: Int): Try[DataDeezerAlbum] = {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjDeezerAlbum)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjDeezerAlbum))
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerAlbum album.id not found")))
   }
 
-  def addDeezerAlbum(dg: DataDeezerAlbum): Boolean = {
-    val f = db.run(tabDeezerAlbum += ((dg.id, dg.asJson.toString())))
-    Await.ready(f, Duration.Inf)
-    true
+  def addDeezerAlbum(dg: DataDeezerAlbum): Try[Unit] = {
+    val query = tabDeezerAlbum += ((dg.id, dg.asJson.toString()))
+
+    Await.ready(db.run(query), Duration.Inf).value
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerAlbum failed")))
+      .map(_ => Unit)
   }
 
-  def getDeezerArtist(id: Int): Option[DataDeezerArtist] = {
+  def getDeezerArtist(id: Int): Try[DataDeezerArtist] = {
     val query = tabDeezerArtist.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjDeezerArtist)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjDeezerArtist))
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerArtist artist.id not found")))
   }
 
-  def addDeezerArtist(dg: DataDeezerArtist): Boolean = {
-    val f = db.run(tabDeezerArtist += ((dg.id, dg.asJson.toString())))
-    Await.ready(f, Duration.Inf)
-    true
+  def addDeezerArtist(dg: DataDeezerArtist): Try[Unit] = {
+    val query = tabDeezerArtist += ((dg.id, dg.asJson.toString()))
+
+    Await.ready(db.run(query), Duration.Inf).value
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerArtist failed")))
+      .map(_ => Unit)
   }
 
-  def getDeezerTrack(id: Int): Option[DataDeezerTrack] = {
+  def getDeezerTrack(id: Int): Try[DataDeezerTrack] = {
     val query = tabDeezerTrack.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
-      .map(tabToObjDeezerTrack)
+    Await.ready(db.run(query), Duration.Inf).value
+      .map(_.map(tabToObjDeezerTrack))
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerTrack track.id not found")))
   }
 
-  def addDeezerTrack(dg: DataDeezerTrack): Boolean = {
-    val f = db.run(tabDeezerTrack += ((dg.id, dg.asJson.toString())))
-    Await.ready(f, Duration.Inf)
-    true
+  def addDeezerTrack(dg: DataDeezerTrack): Try[Unit] = {
+    val query = tabDeezerTrack += ((dg.id, dg.asJson.toString()))
+
+    Await.ready(db.run(query), Duration.Inf).value
+      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerTrack failed")))
+      .map(_ => Unit)
   }
 
 }
