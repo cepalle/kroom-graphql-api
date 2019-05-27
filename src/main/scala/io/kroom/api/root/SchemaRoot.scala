@@ -4,7 +4,7 @@ import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
 import io.kroom.api.user.{DataUser, SchemaUser}
-import io.kroom.api.deezer.{Connections, DataDeezerArtist, DataDeezerTrack, Order}
+import io.kroom.api.deezer._
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 
@@ -64,36 +64,46 @@ object SchemaRoot {
           ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
             case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
             case Failure(_) => DataPayload[DataDeezerArtist](None, List(
-              DataError("DeezerTrack", List("Artist Id not found")))
+              DataError("DeezerArtist", List("Artist Id not found")))
             )
           }
         }.get),
-      Field("DeezerAlbum", OptionType(AlbumField),
+      Field("DeezerAlbum", AlbumFieldPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
-          AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
+          ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
+            case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
+            case Failure(_) => DataPayload[DataDeezerAlbum](None, List(
+              DataError("DeezerAlbum", List("Album Id not found")))
+            )
+          }
         }.get),
-      Field("DeezerGenre", OptionType(GenreField),
+      Field("DeezerGenre", GenreFieldPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
-          GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
+          ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
+            case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
+            case Failure(_) => DataPayload[DataDeezerGenre](None, List(
+              DataError("DeezerGenre", List("Genre Id not found")))
+            )
+          }
         }.get),
 
-      // Option length, index ?
-      Field("DeezerSearch", ListType(SearchField),
+      Field("DeezerSearch", SearchFieldsPayload,
         arguments = Argument("search", StringType)
           :: Argument("connections", OptionInputType(ConnectionEnum))
           :: Argument("strict", BooleanType)
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
-          Future {
-            ctx.ctx.repo.deezer.getSearch(
-              ctx.arg[String]("search"),
-              ctx.argOpt[Connections.Value]("connections"),
-              ctx.arg[Boolean]("strict"),
-              ctx.argOpt[Order.Value]("order"),
-            ).get
+          ctx.ctx.repo.deezer.getSearch(
+            ctx.arg[String]("search"),
+            ctx.argOpt[Connections.Value]("connections"),
+            ctx.arg[Boolean]("strict"),
+            ctx.argOpt[Order.Value]("order"),
+          ) match {
+            case Success(value) => DataPayload[List[DataDeezerSearch]](Some(value), List())
+            case Failure(_) => DataPayload[List[DataDeezerSearch]](Some(List()), List())
           }
         }.get),
 
