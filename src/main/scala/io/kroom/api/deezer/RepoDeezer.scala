@@ -2,7 +2,6 @@ package io.kroom.api.deezer
 
 import io.circe.generic.auto._
 import io.circe.parser
-import io.kroom.api.ExceptionCustom.SimpleException
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
@@ -168,7 +167,7 @@ class RepoDeezer(val dbh: DBDeezer) {
         Success(track)
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        Failure(SimpleException("TrackId not found"))
+        Failure(error)
     }
   }
 
@@ -190,7 +189,7 @@ class RepoDeezer(val dbh: DBDeezer) {
         Success(artist)
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        Failure(SimpleException("ArtistId not found"))
+        Failure(error)
     }
   }
 
@@ -212,7 +211,7 @@ class RepoDeezer(val dbh: DBDeezer) {
         Success(album)
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        Failure(SimpleException("AlbumId not found"))
+        Failure(error)
     }
   }
 
@@ -234,7 +233,7 @@ class RepoDeezer(val dbh: DBDeezer) {
         Success(genre)
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
-        Failure(SimpleException("GenreId not found"))
+        Failure(error)
     }
   }
 
@@ -266,7 +265,7 @@ class RepoDeezer(val dbh: DBDeezer) {
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
         println(res.body)
-        Failure(SimpleException("An error occur with Deezer API"))
+        Failure(error)
     }
   }
 

@@ -1,6 +1,8 @@
 package io.kroom.api.deezer
 
 import io.kroom.api.SecureContext
+import io.kroom.api.root.SchemaRoot
+import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, EnumType, EnumValue, Field, FloatType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
@@ -99,6 +101,14 @@ object SchemaDeezer {
       Field("artistId", IntType, resolve = _.value.artist.id),
       Field("artist", ArtistField, resolve = ctx => ArtistFetcherId.defer(ctx.value.artist.id)),
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
+    ))
+
+  lazy val TrackFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerTrack]] = ObjectType(
+    "TrackFieldPayload",
+    "TrackFieldPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
+      Field("id", OptionType(TrackField), resolve = _.value.data),
+      Field("readable", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
   lazy val TrackField: ObjectType[SecureContext, DataDeezerTrack] = ObjectType(

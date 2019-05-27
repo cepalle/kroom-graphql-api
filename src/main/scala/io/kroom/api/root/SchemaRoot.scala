@@ -4,10 +4,12 @@ import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
 import io.kroom.api.user.{DataUser, SchemaUser}
-import io.kroom.api.deezer.{Connections, Order}
+import io.kroom.api.deezer.{Connections, DataDeezerTrack, Order}
+import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * Defines a GraphQL schema for the current project
@@ -33,15 +35,28 @@ object SchemaRoot {
     )
   )
 
+  lazy val ErrorField: ObjectType[SecureContext, DataError] = ObjectType(
+    "Error",
+    "Error description.",
+    () ⇒ fields[SecureContext, DataError](
+      Field("field", StringType, resolve = _.value.field),
+      Field("errors", ListType(StringType), resolve = _.value.errors),
+    ))
+
   lazy val Query = ObjectType(
     "Query", fields[SecureContext, Unit](
 
       /* DEEZER */
 
-      Field("DeezerTrack", OptionType(TrackField),
+      Field("DeezerTrack", TrackFieldPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
-          TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
+          ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
+            case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
+            case Failure(_) => DataPayload[DataDeezerTrack](None, List(
+              DataError("DeezerTrack", List("Track Id not found")))
+            )
+          }
         }.get),
       Field("DeezerArtist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,

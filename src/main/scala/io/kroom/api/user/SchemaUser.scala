@@ -34,7 +34,7 @@ object SchemaUser {
     "User description.",
     () ⇒ fields[SecureContext, DataUser](
       Field("id", OptionType(IntType), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.`private`) { () =>
+        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
           ctx.value.id
         }),
       Field("userName", StringType, resolve = _.value.userName),
@@ -51,7 +51,7 @@ object SchemaUser {
           ctx.value.token
         }.flatMap(e => e)),
       Field("privacy", OptionType(PrivacyField), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.`private`) { () =>
+        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
           ctx.value.privacy
         }),
       Field("friends", OptionType(ListType(UserField)), resolve = ctx => Future {
@@ -66,7 +66,7 @@ object SchemaUser {
       }),
 
       Field("permissionGroup", OptionType(ListType(StringType)), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.`private`) { () =>
+        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
           ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(_.map(PermissionGroupToString).toList)
         }.flatMap(e => e.toOption)),
 
