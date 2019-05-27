@@ -36,6 +36,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     dbh.getByName(name)
   }
 
+  def getByEmail(email: String): Try[DataUser] = {
+    dbh.getByEmail(email)
+  }
+
   def getFriends(userId: Int): Try[List[DataUser]] = {
     dbh.getFriends(userId)
   }

@@ -284,39 +284,38 @@ object SchemaRoot {
 
       /* USER */
 
-      Field("UserSignUp", UserField,
+      Field("UserSignUp", UserSignUpPayload,
         arguments = Argument("userName", StringType)
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () => {
-          // TODO verif send email
+          // TODO send email
+          val userName = ctx.arg[String]("userName")
+          val email = ctx.arg[String]("email")
+          val pass = ctx.arg[String]("pass")
+
           // TODO verif userName, email, pass
-          /*
-          val userByName = dbh.getByName(name) match {
-            case Success(_) => Failure(UserRegistrationException("userName already exist"))
-            case Failure(_) => Success(Unit)
+
+          val userByName = ctx.ctx.repo.user.getByName(userName).toEither match {
+            case Left(_) => Left(DataError("userName", List("userName already exist")))
+            case Right(_) => Right(Unit)
           }
-          val userByemail = dbh.getByEmail(email) match {
-            case Success(_) => Failure(UserRegistrationException("email already exist"))
-            case Failure(_) => Success(Unit)
+          val userByemail = ctx.ctx.repo.user.getByEmail(email).toEither match {
+            case Right(_) => Left(DataError("email", List("email already exist")))
+            case Left(_) => Right(Unit)
           }
 
-          val lCheck = List(userByName, userByemail) collect { case Failure(e) => e }
-
-          if (lCheck.nonEmpty) {
-            return Failure(MultipleException(lCheck))
+          val errors = List(userByName, userByemail) collect { case Left(e) => e }
+          val payload = if (errors.isEmpty) {
+            val user = ctx.ctx.repo.user.signUp(userName, email, pass).get
+            DataPayload[DataUser](Some(user), List())
+          } else {
+            DataPayload[DataUser](None, errors)
           }
-          */
 
-          val user = ctx.ctx.repo.user.signUp(
-            ctx.arg[String]("userName"),
-            ctx.arg[String]("email"),
-            ctx.arg[String]("pass"),
-          )
-
-          UpdateCtx(user) { user ⇒
-            new SecureContext(user.token, ctx.ctx.repo)
+          UpdateCtx(payload) { p ⇒
+            new SecureContext(p.data.flatMap(_.token), ctx.ctx.repo)
           }
         }
         }.get
@@ -327,18 +326,18 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () => {
-          ctx.ctx.repo.user.signIn(
+          val res = ctx.ctx.repo.user.signIn(
             ctx.arg[String]("userName"),
             ctx.arg[String]("pass"),
           ) match {
             case Success(value) =>
-              UpdateCtx(value) { user ⇒
-                new SecureContext(user.token, ctx.ctx.repo)
-              }
               DataPayload[DataUser](Some(value), List())
             case Failure(_) => DataPayload[DataUser](None, List(
               DataError("userName/pass", List("username or password invalid")))
             )
+          }
+          UpdateCtx(res) { userPayload ⇒
+            new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
           }
         }
         }.get

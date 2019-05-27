@@ -6,11 +6,9 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
-case class data[T](data: T)
+case class Data[T](data: T)
 
 case class Id(id: Int)
-
-case class DataListId(data: List[Id])
 
 case class DataDeezerGenre(
                             id: Int,
@@ -67,7 +65,7 @@ case class DataDeezerAlbum(
                             explicit_content_cover: Int,
                             contributors: List[Id],
                             artist: Id,
-                            tracks: DataListId,
+                            tracks: Data[List[Id]],
                           )
 
 case class DataDeezerArtist(
@@ -256,7 +254,7 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     val request: HttpRequest = Http(urlEntry)
     val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[data[List[DataDeezerSearch]]](res.body).toTry
+    val decodingResult = parser.decode[Data[List[DataDeezerSearch]]](res.body).toTry
 
     decodingResult match {
       case Success(resJson) =>
