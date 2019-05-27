@@ -26,9 +26,8 @@ case class DataTrackVoteEvent(
 class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer, private val repoUser: RepoUser) {
 
   def getById(id: Int): Try[DataTrackVoteEvent] = {
-    dbh.getTrackVoteEventById(id) match {
-      case Failure(_) => Failure(SimpleException("trackVoteEventId not found"))
-      case Success(s) => Success(s)
+    dbh.getTrackVoteEventById(id) recover {
+      case _ => return Failure(SimpleException("trackVoteEventId not found"))
     }
   }
 
@@ -37,23 +36,20 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   }
 
   def getByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
-    dbh.getTrackVoteEventByUserId(userId) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    dbh.getTrackVoteEventByUserId(userId) recover {
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 
   def getTrackWithVote(eventId: Int): Try[List[DataTrackWithVote]] = {
-    dbh.getTrackWithVote(eventId) match {
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-      case Success(s) => Success(s)
+    dbh.getTrackWithVote(eventId) recover {
+      case _ => return Failure(SimpleException("eventId not found"))
     }
   }
 
   def getUserInvited(eventId: Int): Try[List[DataUser]] = {
-    dbh.getUserInvited(eventId) match {
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-      case Success(s) => Success(s)
+    dbh.getUserInvited(eventId) recover {
+      case _ => return Failure(SimpleException("eventId not found"))
     }
   }
 
@@ -63,9 +59,8 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
             name: String,
             public: Boolean,
            ): Try[DataTrackVoteEvent] = {
-    dbh.`new`(userIdMaster, name, public) match {
-      case Failure(_) => Failure(SimpleException("name us already used"))
-      case Success(s) => Success(s)
+    dbh.`new`(userIdMaster, name, public) recover {
+      case _ => return Failure(SimpleException("name us already used"))
     }
   }
 

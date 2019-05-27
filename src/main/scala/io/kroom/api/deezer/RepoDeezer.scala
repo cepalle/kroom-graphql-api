@@ -152,12 +152,10 @@ object Connections extends Enumeration {
 class RepoDeezer(val dbh: DBDeezer) {
 
   def getTrackById(id: Int): Try[DataDeezerTrack] = {
-    dbh.getDeezerTrack(id) match {
-      case Success(d) =>
-        println(s"RepoDeezer: Track $id get from DB")
-        return Success(d)
-      case _ => Unit
-    }
+    dbh.getDeezerTrack(id).map(d => {
+      println(s"RepoDeezer: Track $id get from DB")
+      return Success(d)
+    })
 
     val urlEntry = s"https://api.deezer.com/track/$id"
     val request: HttpRequest = Http(urlEntry)
@@ -176,12 +174,10 @@ class RepoDeezer(val dbh: DBDeezer) {
   }
 
   def getArtistById(id: Int): Try[DataDeezerArtist] = {
-    dbh.getDeezerArtist(id) match {
-      case Success(d) =>
-        println(s"RepoDeezer: Artist $id get from DB")
-        return Success(d)
-      case _ => Unit
-    }
+    dbh.getDeezerArtist(id).map(d => {
+      println(s"RepoDeezer: Artist $id get from DB")
+      return Success(d)
+    })
 
     val urlEntry = s"https://api.deezer.com/artist/$id"
     val request: HttpRequest = Http(urlEntry)
@@ -200,12 +196,10 @@ class RepoDeezer(val dbh: DBDeezer) {
   }
 
   def getAlbumById(id: Int): Try[DataDeezerAlbum] = {
-    dbh.getDeezerAlbum(id) match {
-      case Success(d) =>
-        println(s"RepoDeezer: Album $id get from DB")
-        return Success(d)
-      case _ => Unit
-    }
+    dbh.getDeezerAlbum(id).map(d => {
+      println(s"RepoDeezer: Album $id get from DB")
+      return Success(d)
+    })
 
     val urlEntry = s"https://api.deezer.com/album/$id"
     val request: HttpRequest = Http(urlEntry)
@@ -224,12 +218,10 @@ class RepoDeezer(val dbh: DBDeezer) {
   }
 
   def getGenreById(id: Int): Try[DataDeezerGenre] = {
-    dbh.getDeezerGenre(id) match {
-      case Success(d) =>
-        println(s"RepoDeezer: Genre $id get from DB")
-        return Success(d)
-      case _ => Unit
-    }
+    dbh.getDeezerGenre(id).map(d => {
+      println(s"RepoDeezer: Genre $id get from DB")
+      return Success(d)
+    })
 
     val urlEntry = s"https://api.deezer.com/genre/$id"
     val request: HttpRequest = Http(urlEntry)

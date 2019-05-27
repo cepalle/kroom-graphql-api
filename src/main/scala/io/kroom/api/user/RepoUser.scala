@@ -30,30 +30,26 @@ case class DataUser(
 class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
   def getById(id: Int): Try[DataUser] = {
-    dbh.getById(id) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    dbh.getById(id) recover {
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 
   def getByName(name: String): Try[DataUser] = {
-    dbh.getByName(name) match {
-      case Failure(_) => Failure(SimpleException("userName not found"))
-      case Success(s) => Success(s)
+    dbh.getByName(name) recover {
+      case _ => return Failure(SimpleException("userName not found"))
     }
   }
 
   def getFriends(userId: Int): Try[List[DataUser]] = {
-    dbh.getFriends(userId) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    dbh.getFriends(userId) recover {
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 
   def getMsicalPreferences(userId: Int): Try[List[DataDeezerGenre]] = {
-    dbh.getMusicalPreferences(userId) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    dbh.getMusicalPreferences(userId) recover {
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 
@@ -78,20 +74,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
       return Failure(MultipleException(lCheck))
     }
 
-    dbh.addUserWithPass(name, email, pass.bcrypt) match {
-      case Failure(e) => return Failure(e)
-      case _ => Unit
-    }
+    dbh.addUserWithPass(name, email, pass.bcrypt) recover { case e => return Failure(e) }
 
     val user = dbh.getByName(name) match {
       case Failure(e) => return Failure(e)
-      case Success(u) => u
+      case Success(s) => s
     }
 
-    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) match {
-      case Failure(e) => return Failure(e)
-      case _ => Unit
-    }
+    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
 
     getById(user.id)
   }
@@ -111,10 +101,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
     // TODO time token
     // TODO token cookie ?
-    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) match {
-      case Failure(e) => return Failure(e)
-      case _ => Unit
-    }
+    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
 
     getById(user.id)
   }
@@ -132,31 +119,27 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   }
 
   def getUserPermGroup(userId: Int): Try[Set[PermissionGroup.Value]] = {
-    dbh.getPermGroup(userId) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    dbh.getPermGroup(userId) recover {
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 
   def addFriend(userId: Int, friendId: Int): Try[DataUser] = {
-    dbh.addFriend(userId, friendId) match {
-      case Failure(_) => Failure(SimpleException("userId or friendId not found"))
-      case Success(s) => Success(s)
+    dbh.addFriend(userId, friendId) recover {
+      case _ => return Failure(SimpleException("userId or friendId not found"))
     }
   }
 
   def delFriend(userId: Int, friendId: Int): Try[DataUser] = {
-    dbh.delFriend(userId, friendId) match {
-      case Failure(_) => Failure(SimpleException("Delete Friend failed"))
-      case Success(s) => Success(s)
+    dbh.delFriend(userId, friendId) recover {
+      case _ => return Failure(SimpleException("Delete Friend failed"))
     }
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     // get Genre in DB
-    repoDeezer.getGenreById(genreId) match {
-      case Failure(_) => Failure(SimpleException("genreId not found"))
-      case _ => Unit
+    repoDeezer.getGenreById(genreId) recover {
+      case _ => return Failure(SimpleException("genreId not found"))
     }
     dbh.addMusicalPreference(userId, genreId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
@@ -165,9 +148,8 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   }
 
   def delMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
-    dbh.delMusicalPreference(userId, genreId) match {
-      case Failure(_) => Failure(SimpleException("Delete MusicalPreference failed"))
-      case Success(s) => Success(s)
+    dbh.delMusicalPreference(userId, genreId) recover {
+      case _ => return Failure(SimpleException("Delete MusicalPreference failed"))
     }
   }
 
