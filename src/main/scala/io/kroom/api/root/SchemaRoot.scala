@@ -42,22 +42,22 @@ object SchemaRoot {
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
           TrackFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
+        }.get),
       Field("DeezerArtist", OptionType(ArtistField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
           ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
+        }.get),
       Field("DeezerAlbum", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
           AlbumFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
+        }.get),
       Field("DeezerGenre", OptionType(GenreField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
           GenreFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
+        }.get),
 
       // Option length, index ?
       Field("DeezerSearch", ListType(SearchField),
@@ -73,9 +73,9 @@ object SchemaRoot {
               ctx.argOpt[Connections.Value]("connections"),
               ctx.arg[Boolean]("strict"),
               ctx.argOpt[Order.Value]("order"),
-            )
+            ).get
           }
-        }),
+        }.get),
 
       /* TRACK_VOTE_EVENT */
 
@@ -83,23 +83,23 @@ object SchemaRoot {
         arguments = Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
           Future {
-            ctx.ctx.repo.trackVoteEvent.getPublic
+            ctx.ctx.repo.trackVoteEvent.getPublic.get
           }
-        }),
+        }.get),
 
       Field("TrackVoteEventById", OptionType(TrackVoteEventField),
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventById) { () =>
           TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }),
+        }.get),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
           Future {
-            ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId"))
+            ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId")).get
           }
-        }),
+        }.get),
 
       /* USER */
 
@@ -109,7 +109,7 @@ object SchemaRoot {
           Future {
             ctx.ctx.repo.user.getById(ctx.arg[Int]("id")).get
           }
-        }),
+        }.get),
 
     ))
 
@@ -130,9 +130,9 @@ object SchemaRoot {
               ctx.arg[Int]("userIdMaster"),
               ctx.arg[String]("name"),
               ctx.arg[Boolean]("public"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       Field("TrackVoteEventUpdate", OptionType(TrackVoteEventField),
@@ -153,9 +153,9 @@ object SchemaRoot {
               ctx.arg[Boolean]("public"),
               ctx.argOpt[String]("horaire"),
               ctx.argOpt[String]("location"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       Field("TrackVoteEventAddUser", OptionType(TrackVoteEventField),
@@ -168,9 +168,9 @@ object SchemaRoot {
             ctx.ctx.repo.trackVoteEvent.addUser(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       Field("TrackVoteEventDelUser", OptionType(TrackVoteEventField),
@@ -183,9 +183,9 @@ object SchemaRoot {
             ctx.ctx.repo.trackVoteEvent.delUser(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       Field("TrackVoteEventAddVote", OptionType(TrackVoteEventField),
@@ -202,9 +202,9 @@ object SchemaRoot {
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("musicId"),
               ctx.arg[Boolean]("up"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       Field("TrackVoteEventDelVote", OptionType(TrackVoteEventField),
@@ -219,9 +219,9 @@ object SchemaRoot {
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),
               ctx.arg[Int]("musicId"),
-            )
+            ).get
           }
-        }
+        }.get
       ),
 
       /* USER */
@@ -239,7 +239,7 @@ object SchemaRoot {
           )) { user ⇒
             new SecureContext(user.token, ctx.ctx.repo)
           }
-        }
+        }.get
       ),
 
       Field("UserSignIn", UserField,
@@ -253,7 +253,7 @@ object SchemaRoot {
           )) { user ⇒
             new SecureContext(user.token, ctx.ctx.repo)
           }
-        }
+        }.get
       ),
 
       Field("UserAddFriend", OptionType(UserField),
@@ -268,7 +268,7 @@ object SchemaRoot {
               ctx.arg[Int]("friendId"),
             ).get
           }
-        }
+        }.get
       ),
 
       Field("UserDelFriend", OptionType(UserField),
@@ -283,7 +283,7 @@ object SchemaRoot {
               ctx.arg[Int]("friendId"),
             ).get
           }
-        }
+        }.get
       ),
 
       Field("UserAddMusicalPreference", OptionType(UserField),
@@ -298,7 +298,7 @@ object SchemaRoot {
               ctx.arg[Int]("genreId"),
             ).get
           }
-        }
+        }.get
       ),
 
       Field("UserDelMusicalPreference", OptionType(UserField),
@@ -313,7 +313,7 @@ object SchemaRoot {
               ctx.arg[Int]("genreId"),
             ).get
           }
-        }
+        }.get
       ),
 
       Field("UserUpdatePrivacy", OptionType(UserField),
@@ -334,7 +334,7 @@ object SchemaRoot {
               ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
             ).get
           }
-        }
+        }.get
       ),
 
     )

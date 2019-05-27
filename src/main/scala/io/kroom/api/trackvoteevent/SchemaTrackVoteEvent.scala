@@ -15,7 +15,7 @@ object SchemaTrackVoteEvent {
 
   lazy val TrackVoteEventFetcherId: Fetcher[SecureContext, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.trackVoteEvent.getById(id))
+      ids.flatMap(id => ctx.repo.trackVoteEvent.getById(id).toOption)
     }
     )(HasId(_.id))
 
@@ -36,14 +36,14 @@ object SchemaTrackVoteEvent {
         SchemaDeezer.TrackFetcherId.deferOpt(ctx.value.currentTrackId)
       ),
       Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx => Future {
-        ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id)
+        ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id).get
       }),
 
       Field("schedule", OptionType(StringType), resolve = _.value.schedule),
       Field("location", OptionType(StringType), resolve = _.value.location),
 
       Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
-        ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id)
+        ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id).get
       }),
     ))
 
