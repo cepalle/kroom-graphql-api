@@ -6,7 +6,7 @@ import sangria.marshalling.ResultMarshaller
 
 object ExceptionCustom {
 
-  case class MultipleException(e: Throwable*) extends Exception("MultipleException")
+  case class MultipleException(e: List[Throwable]) extends Exception("MultipleException")
 
   case class UserRegistrationException(message: String) extends Exception(message)
 

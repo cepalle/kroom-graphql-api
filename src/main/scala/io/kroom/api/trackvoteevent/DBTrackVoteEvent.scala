@@ -21,6 +21,13 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .map(tabToObjTrackVoteEvent)
   }
 
+  def getTrackVoteEventByName(name: String): Try[DataTrackVoteEvent] = {
+    val query = tabTrackVoteEvent.filter(_.name === name).result.head
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjTrackVoteEvent)
+  }
+
   def getTrackVoteEventPublic: Try[List[DataTrackVoteEvent]] = {
     val query = tabTrackVoteEvent.filter(_.public).result
 
@@ -42,7 +49,6 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   }
 
   def getTrackWithVote(eventId: Int): Try[List[DataTrackWithVote]] = {
-    // One query ?
     val qVoteTrue = (for {
       (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
       if e.id === eventId
@@ -164,7 +170,7 @@ object DBTrackVoteEvent {
 
     def userMasterId = column[Int]("USER_MASTER_ID")
 
-    def name = column[String]("NAME")
+    def name = column[String]("NAME", O.Unique)
 
     def public = column[Boolean]("PUBLIC")
 

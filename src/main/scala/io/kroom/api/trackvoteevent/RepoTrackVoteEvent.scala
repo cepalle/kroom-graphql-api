@@ -1,7 +1,10 @@
 package io.kroom.api.trackvoteevent
 
+import io.kroom.api.ExceptionCustom.{MultipleException, SimpleException}
 import io.kroom.api.deezer.RepoDeezer
-import io.kroom.api.user.DataUser
+import io.kroom.api.user.{DataUser, RepoUser}
+
+import scala.util.{Failure, Success, Try}
 
 case class DataTrackWithVote(
                               trackId: Int,
@@ -20,26 +23,34 @@ case class DataTrackVoteEvent(
                                location: Option[String]
                              )
 
-class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer) {
+class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer, private val repoUser: RepoUser) {
 
-  def getById(id: Int): Option[DataTrackVoteEvent] = {
-    dbh.getTrackVoteEventById(id)
+  def getById(id: Int): Try[DataTrackVoteEvent] = {
+    dbh.getTrackVoteEventById(id) match {
+      case Failure(_) => Failure(SimpleException("trackVoteEventId not found"))
+    }
   }
 
-  def getPublic: List[DataTrackVoteEvent] = {
+  def getPublic: Try[List[DataTrackVoteEvent]] = {
     dbh.getTrackVoteEventPublic
   }
 
-  def getByUserId(userId: Int): List[DataTrackVoteEvent] = {
-    dbh.getTrackVoteEventByUserId(userId)
+  def getByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
+    dbh.getTrackVoteEventByUserId(userId) match {
+      case Failure(_) => Failure(SimpleException("userId not found"))
+    }
   }
 
-  def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
-    dbh.getTrackWithVote(eventId)
+  def getTrackWithVote(eventId: Int): Try[List[DataTrackWithVote]] = {
+    dbh.getTrackWithVote(eventId) match {
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
   }
 
-  def getUserInvited(eventId: Int): List[DataUser] = {
-    dbh.getUserInvited(eventId)
+  def getUserInvited(eventId: Int): Try[List[DataUser]] = {
+    dbh.getUserInvited(eventId) match {
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
   }
 
   // Mutation
@@ -47,8 +58,10 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   def `new`(userIdMaster: Int,
             name: String,
             public: Boolean,
-           ): Option[DataTrackVoteEvent] = {
-    dbh.`new`(userIdMaster, name, public)
+           ): Try[DataTrackVoteEvent] = {
+    dbh.`new`(userIdMaster, name, public) match {
+      case Failure(_) => Failure(SimpleException("name us already used"))
+    }
   }
 
   def update(eventId: Int,
@@ -57,7 +70,27 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
              public: Boolean,
              schedule: Option[String],
              location: Option[String]
-            ): Option[DataTrackVoteEvent] = {
+            ): Try[DataTrackVoteEvent] = {
+
+    val userTry = repoUser.getById(userIdMaster) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+    }
+    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
+    val eventNameTry = dbh.getTrackVoteEventByName(name) match {
+      case Success(_) => Failure(SimpleException("trackVoteEvent name already used"))
+      case Failure(_) => Success(Unit)
+    }
+
+    val lCheck = List(userTry, eventNameTry, eventIdTry) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
+    }
+
     dbh.update(
       eventId,
       userIdMaster,
@@ -68,20 +101,87 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
     )
   }
 
-  def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+  def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
+    val userTry = repoUser.getById(userId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+    }
+    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
+
+    val lCheck = List(userTry, eventIdTry) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
+    }
+
     dbh.addUser(eventId, userId)
   }
 
-  def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+  def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
+    val userTry = repoUser.getById(userId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+    }
+    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
+
+    val lCheck = List(userTry, eventIdTry) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
+    }
+
     dbh.delUser(eventId, userId)
   }
 
-  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
-    repoDeezer.getTrackById(musicId) // get Track in DB
+  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+    val musicTry = repoDeezer.getTrackById(musicId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("musicId not found"))
+    }
+    val userTry = repoUser.getById(userId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+    }
+    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
+
+    val lCheck = List(userTry, eventIdTry, musicTry) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
+    }
+
     dbh.addVote(eventId, userId, musicId, up)
   }
 
-  def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
+  def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
+    val musicTry = repoDeezer.getTrackById(musicId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("musicId not found"))
+    }
+    val userTry = repoUser.getById(userId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+    }
+    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+      case Success(_) => Success(Unit)
+      case Failure(_) => Failure(SimpleException("eventId not found"))
+    }
+
+    val lCheck = List(userTry, eventIdTry, musicTry) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
+    }
+
     dbh.delVote(eventId, userId, musicId)
   }
 

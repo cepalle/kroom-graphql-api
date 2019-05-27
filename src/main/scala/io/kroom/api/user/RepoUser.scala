@@ -35,6 +35,12 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     }
   }
 
+  def getByName(name: String): Try[DataUser] = {
+    dbh.getByName(name) match {
+      case Failure(_) => Failure(SimpleException("userName not found"))
+    }
+  }
+
   def getFriends(userId: Int): Try[List[DataUser]] = {
     dbh.getFriends(userId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
@@ -53,16 +59,19 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     // TODO verif send email
     // TODO verif userName, email, pass
     // TODO token cookie ?
-    val userByName = dbh.getByName(name)
-    val userByemail = dbh.getByEmail(email)
+    val userByName = dbh.getByName(name) match {
+      case Success(_) => Failure(UserRegistrationException("userName already exist"))
+      case Failure(_) => Success(Unit)
+    }
+    val userByemail = dbh.getByEmail(email) match {
+      case Success(_) => Failure(UserRegistrationException("email already exist"))
+      case Failure(_) => Success(Unit)
+    }
 
-    (userByemail, userByName) match {
-      case (Success(_), Success(_)) => return Failure(MultipleException(
-        UserRegistrationException("userName already exist"),
-        UserRegistrationException("email already exist")
-      ))
-      case (Success(_), _) => return Failure(UserRegistrationException("email already exist"))
-      case (_, Success(_)) => return Failure(UserRegistrationException("userName already exist"))
+    val lCheck = List(userByName, userByemail) collect { case Failure(e) => e }
+
+    if (lCheck.nonEmpty) {
+      return Failure(MultipleException(lCheck))
     }
 
     dbh.addUserWithPass(name, email, pass.bcrypt) match {
