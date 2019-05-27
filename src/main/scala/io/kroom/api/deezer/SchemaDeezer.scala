@@ -44,7 +44,7 @@ object SchemaDeezer {
     "GenreFieldPayload",
     "GenreFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerGenre]](
-      Field("data", OptionType(GenreField), resolve = _.value.data),
+      Field("genre", OptionType(GenreField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
@@ -52,7 +52,7 @@ object SchemaDeezer {
     "ArtistFieldPayload",
     "ArtistFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerArtist]](
-      Field("data", OptionType(ArtistField), resolve = _.value.data),
+      Field("artist", OptionType(ArtistField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
@@ -60,7 +60,7 @@ object SchemaDeezer {
     "AlbumFieldPayload",
     "AlbumFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerAlbum]](
-      Field("data", OptionType(AlbumField), resolve = _.value.data),
+      Field("album", OptionType(AlbumField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
@@ -68,7 +68,7 @@ object SchemaDeezer {
     "TrackFieldPayload",
     "TrackFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
-      Field("data", OptionType(TrackField), resolve = _.value.data),
+      Field("track", OptionType(TrackField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
@@ -76,7 +76,7 @@ object SchemaDeezer {
     "SearchFieldsPayload",
     "SearchFieldsPayload description.",
     () ⇒ fields[SecureContext, DataPayload[List[DataDeezerSearch]]](
-      Field("data", OptionType(ListType(SearchField)), resolve = _.value.data),
+      Field("search", OptionType(ListType(SearchField)), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 

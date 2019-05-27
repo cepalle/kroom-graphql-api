@@ -29,7 +29,7 @@ object SchemaUser {
     "UserGetByIdPayload",
     "UserGetByIdPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataUser]](
-      Field("data", OptionType(UserField), resolve = _.value.data),
+      Field("user", OptionType(UserField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 

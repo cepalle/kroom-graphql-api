@@ -29,7 +29,7 @@ object SchemaTrackVoteEvent {
     "TrackVoteEventByIdPayload",
     "TrackVoteEventByIdPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataTrackVoteEvent]](
-      Field("data", OptionType(TrackVoteEventField), resolve = _.value.data),
+      Field("trackVoteEvent", OptionType(TrackVoteEventField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
@@ -37,7 +37,7 @@ object SchemaTrackVoteEvent {
     "TrackVoteEventByUserIdPayload",
     "TrackVoteEventByUserIdPayload description.",
     () ⇒ fields[SecureContext, DataPayload[List[DataTrackVoteEvent]]](
-      Field("data", OptionType(ListType(TrackVoteEventField)), resolve = _.value.data),
+      Field("trackVoteEvents", OptionType(ListType(TrackVoteEventField)), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
