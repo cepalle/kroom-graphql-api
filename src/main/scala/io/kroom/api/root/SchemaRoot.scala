@@ -5,6 +5,7 @@ import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
 import io.kroom.api.user.{DataUser, SchemaUser}
 import io.kroom.api.deezer._
+import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 
@@ -55,7 +56,7 @@ object SchemaRoot {
             ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
               case Failure(_) => DataPayload[DataDeezerTrack](None, List(
-                DataError("DeezerTrack", List("Track Id not found")))
+                DataError("id", List("Track Id not found")))
               )
             }
           }.get
@@ -67,7 +68,7 @@ object SchemaRoot {
             ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
               case Failure(_) => DataPayload[DataDeezerArtist](None, List(
-                DataError("DeezerArtist", List("Artist Id not found")))
+                DataError("id", List("Artist Id not found")))
               )
             }
           }.get
@@ -79,7 +80,7 @@ object SchemaRoot {
             ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
               case Failure(_) => DataPayload[DataDeezerAlbum](None, List(
-                DataError("DeezerAlbum", List("Album Id not found")))
+                DataError("id", List("Album Id not found")))
               )
             }
           }.get
@@ -91,7 +92,7 @@ object SchemaRoot {
             ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
               case Failure(_) => DataPayload[DataDeezerGenre](None, List(
-                DataError("DeezerGenre", List("Genre Id not found")))
+                DataError("id", List("Genre Id not found")))
               )
             }
           }.get
@@ -127,11 +128,18 @@ object SchemaRoot {
           }.get
         }),
 
-      Field("TrackVoteEventById", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventById", TrackVoteEventByIdPayload,
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventById) { () =>
-          TrackVoteEventFetcherId.deferOpt(ctx.arg[Int]("id"))
-        }.get),
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventById) { () =>
+            ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())
+              case Failure(_) => DataPayload[DataTrackVoteEvent](None, List(
+                DataError("id", List("TrackVoteEvent Id not found")))
+              )
+            }
+          }.get
+        }),
 
       Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
         arguments = Argument("userId", IntType) :: Nil,
