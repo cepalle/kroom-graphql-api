@@ -12,6 +12,8 @@ object SchemaDeezer {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  /* FETCHER */
+
   lazy val GenreFetcherId: Fetcher[SecureContext, DataDeezerGenre, DataDeezerGenre, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.repo.deezer.getGenreById(id).toOption)
@@ -36,6 +38,8 @@ object SchemaDeezer {
     }
     )(HasId(_.id))
 
+  /* PAYLOAD */
+
   lazy val DeezerGenrePayload: ObjectType[SecureContext, DataPayload[DataDeezerGenre]] = ObjectType(
     "GenreFieldPayload",
     "GenreFieldPayload description.",
@@ -43,6 +47,40 @@ object SchemaDeezer {
       Field("data", OptionType(GenreField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
+
+  lazy val DeezerArtistPayload: ObjectType[SecureContext, DataPayload[DataDeezerArtist]] = ObjectType(
+    "ArtistFieldPayload",
+    "ArtistFieldPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataDeezerArtist]](
+      Field("data", OptionType(ArtistField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val DeezerAlbumPayload: ObjectType[SecureContext, DataPayload[DataDeezerAlbum]] = ObjectType(
+    "AlbumFieldPayload",
+    "AlbumFieldPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataDeezerAlbum]](
+      Field("data", OptionType(AlbumField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val DeezerTrackPayload: ObjectType[SecureContext, DataPayload[DataDeezerTrack]] = ObjectType(
+    "TrackFieldPayload",
+    "TrackFieldPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
+      Field("data", OptionType(TrackField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val DeezerSearchPayload: ObjectType[SecureContext, DataPayload[List[DataDeezerSearch]]] = ObjectType(
+    "SearchFieldsPayload",
+    "SearchFieldsPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[List[DataDeezerSearch]]](
+      Field("data", OptionType(ListType(SearchField)), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  /* FIELD */
 
   lazy val GenreField: ObjectType[SecureContext, DataDeezerGenre] = ObjectType(
     "Genre",
@@ -55,14 +93,6 @@ object SchemaDeezer {
       Field("pictureMedium", StringType, resolve = _.value.picture_medium),
       Field("pictureBig", StringType, resolve = _.value.picture_big),
       Field("pictureXl", StringType, resolve = _.value.picture_xl),
-    ))
-
-  lazy val DeezerArtistPayload: ObjectType[SecureContext, DataPayload[DataDeezerArtist]] = ObjectType(
-    "ArtistFieldPayload",
-    "ArtistFieldPayload description.",
-    () ⇒ fields[SecureContext, DataPayload[DataDeezerArtist]](
-      Field("data", OptionType(ArtistField), resolve = _.value.data),
-      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
   lazy val ArtistField: ObjectType[SecureContext, DataDeezerArtist] = ObjectType(
@@ -81,14 +111,6 @@ object SchemaDeezer {
       Field("nbAlbum", IntType, resolve = _.value.nb_album),
       Field("nbFan", IntType, resolve = _.value.nb_fan),
       Field("tracklist", StringType, resolve = _.value.tracklist),
-    ))
-
-  lazy val DeezerAlbumPayload: ObjectType[SecureContext, DataPayload[DataDeezerAlbum]] = ObjectType(
-    "AlbumFieldPayload",
-    "AlbumFieldPayload description.",
-    () ⇒ fields[SecureContext, DataPayload[DataDeezerAlbum]](
-      Field("data", OptionType(AlbumField), resolve = _.value.data),
-      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
   lazy val AlbumField: ObjectType[SecureContext, DataDeezerAlbum] = ObjectType(
@@ -125,14 +147,6 @@ object SchemaDeezer {
       Field("artistId", IntType, resolve = _.value.artist.id),
       Field("artist", ArtistField, resolve = ctx => ArtistFetcherId.defer(ctx.value.artist.id)),
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
-    ))
-
-  lazy val DeezerTrackPayload: ObjectType[SecureContext, DataPayload[DataDeezerTrack]] = ObjectType(
-    "TrackFieldPayload",
-    "TrackFieldPayload description.",
-    () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
-      Field("data", OptionType(TrackField), resolve = _.value.data),
-      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
   lazy val TrackField: ObjectType[SecureContext, DataDeezerTrack] = ObjectType(
@@ -219,14 +233,6 @@ object SchemaDeezer {
         value = Order.trackDESC),
     )
   )
-
-  lazy val DeezerSearchPayload: ObjectType[SecureContext, DataPayload[List[DataDeezerSearch]]] = ObjectType(
-    "SearchFieldsPayload",
-    "SearchFieldsPayload description.",
-    () ⇒ fields[SecureContext, DataPayload[List[DataDeezerSearch]]](
-      Field("data", OptionType(ListType(SearchField)), resolve = _.value.data),
-      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
-    ))
 
   lazy val SearchField: ObjectType[SecureContext, DataDeezerSearch] = ObjectType(
     "Search",

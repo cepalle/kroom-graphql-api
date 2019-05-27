@@ -15,11 +15,15 @@ object SchemaTrackVoteEvent {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  /* FETCHER */
+
   lazy val TrackVoteEventFetcherId: Fetcher[SecureContext, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.repo.trackVoteEvent.getById(id).toOption)
     }
     )(HasId(_.id))
+
+  /* PAYLOAD */
 
   lazy val TrackVoteEventByIdPayload: ObjectType[SecureContext, DataPayload[DataTrackVoteEvent]] = ObjectType(
     "TrackVoteEventByIdPayload",
@@ -28,6 +32,16 @@ object SchemaTrackVoteEvent {
       Field("data", OptionType(TrackVoteEventField), resolve = _.value.data),
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
+
+  lazy val TrackVoteEventByUserIdPayload: ObjectType[SecureContext, DataPayload[List[DataTrackVoteEvent]]] = ObjectType(
+    "TrackVoteEventByUserIdPayload",
+    "TrackVoteEventByUserIdPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[List[DataTrackVoteEvent]]](
+      Field("data", OptionType(ListType(TrackVoteEventField)), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  /* FIELD */
 
   lazy val TrackVoteEventField: ObjectType[SecureContext, DataTrackVoteEvent] = ObjectType(
     "TrackVoteEvent",

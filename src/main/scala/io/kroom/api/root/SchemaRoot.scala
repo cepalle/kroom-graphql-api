@@ -141,21 +141,31 @@ object SchemaRoot {
           }.get
         }),
 
-      Field("TrackVoteEventByUserId", ListType(TrackVoteEventField),
+      Field("TrackVoteEventByUserId", TrackVoteEventByUserIdPayload,
         arguments = Argument("userId", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
-          Future {
-            ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId")).get
-          }
-        }.get),
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
+            ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId")) match {
+              case Success(value) => DataPayload[List[DataTrackVoteEvent]](Some(value), List())
+              case Failure(_) => DataPayload[List[DataTrackVoteEvent]](None, List(
+                DataError("userId", List("User Id not found")))
+              )
+            }
+          }.get
+        }),
 
       /* USER */
 
-      Field("UserGetById", UserField,
+      Field("UserGetById", UserGetByIdPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { () =>
           Future {
-            ctx.ctx.repo.user.getById(ctx.arg[Int]("id")).get
+            ctx.ctx.repo.user.getById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataUser](Some(value), List())
+              case Failure(_) => DataPayload[DataUser](None, List(
+                DataError("id", List("User Id not found")))
+              )
+            }
           }
         }.get),
 

@@ -4,6 +4,8 @@ import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.PermissionGroupToString
 import io.kroom.api.SecureContext
 import io.kroom.api.deezer.SchemaDeezer
+import io.kroom.api.root.SchemaRoot
+import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
@@ -13,11 +15,25 @@ object SchemaUser {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  /* FETCHER */
+
   lazy val UserFetcherId: Fetcher[SecureContext, DataUser, DataUser, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
       ids.flatMap(id => ctx.repo.user.getById(id).toOption)
     }
     )(HasId(_.id))
+
+  /* PAYLOAD */
+
+  lazy val UserGetByIdPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserGetByIdPayload",
+    "UserGetByIdPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("data", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  /* FIELD */
 
   lazy val PrivacyField: ObjectType[SecureContext, DataUserPrivacy] = ObjectType(
     "Privacy",
