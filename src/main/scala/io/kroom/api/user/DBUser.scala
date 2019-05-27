@@ -155,7 +155,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def updatePrivacy(userId: Int, pr: DataUserPrivacy): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
       .map(e => e.privacyJson)
-      .update(DataUserPrivacy.asJson.toString())
+      .update(pr.asJson.toString())
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(userId))

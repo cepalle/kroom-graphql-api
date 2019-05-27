@@ -137,7 +137,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   }
 
   def addMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
-    // get Genre in DB
+    // may need fetch Genre in DB
     repoDeezer.getGenreById(genreId) recover {
       case _ => return Failure(SimpleException("genreId not found"))
     }
@@ -166,9 +166,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
       Privacy.privacyToString(friends),
       Privacy.privacyToString(musicalPreferencesGenre),
     )) recover {
-      case e =>
-        println(e)
-        return Failure(SimpleException("userId not found"))
+      case _ => return Failure(SimpleException("userId not found"))
     }
   }
 

@@ -4,7 +4,6 @@ import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.PermissionGroupToString
 import io.kroom.api.SecureContext
 import io.kroom.api.deezer.SchemaDeezer
-import io.kroom.api.root.SchemaRoot
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
 
