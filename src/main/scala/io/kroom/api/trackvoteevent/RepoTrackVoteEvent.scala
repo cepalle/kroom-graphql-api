@@ -28,6 +28,7 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   def getById(id: Int): Try[DataTrackVoteEvent] = {
     dbh.getTrackVoteEventById(id) match {
       case Failure(_) => Failure(SimpleException("trackVoteEventId not found"))
+      case Success(s) => Success(s)
     }
   }
 
@@ -38,18 +39,21 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   def getByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
     dbh.getTrackVoteEventByUserId(userId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def getTrackWithVote(eventId: Int): Try[List[DataTrackWithVote]] = {
     dbh.getTrackWithVote(eventId) match {
       case Failure(_) => Failure(SimpleException("eventId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def getUserInvited(eventId: Int): Try[List[DataUser]] = {
     dbh.getUserInvited(eventId) match {
       case Failure(_) => Failure(SimpleException("eventId not found"))
+      case Success(s) => Success(s)
     }
   }
 
@@ -61,6 +65,7 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
            ): Try[DataTrackVoteEvent] = {
     dbh.`new`(userIdMaster, name, public) match {
       case Failure(_) => Failure(SimpleException("name us already used"))
+      case Success(s) => Success(s)
     }
   }
 

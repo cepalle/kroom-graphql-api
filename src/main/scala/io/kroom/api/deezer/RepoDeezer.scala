@@ -156,6 +156,7 @@ class RepoDeezer(val dbh: DBDeezer) {
       case Success(d) =>
         println(s"RepoDeezer: Track $id get from DB")
         return Success(d)
+      case _ => Unit
     }
 
     val urlEntry = s"https://api.deezer.com/track/$id"
@@ -179,7 +180,7 @@ class RepoDeezer(val dbh: DBDeezer) {
       case Success(d) =>
         println(s"RepoDeezer: Artist $id get from DB")
         return Success(d)
-      case _ => ()
+      case _ => Unit
     }
 
     val urlEntry = s"https://api.deezer.com/artist/$id"
@@ -203,7 +204,7 @@ class RepoDeezer(val dbh: DBDeezer) {
       case Success(d) =>
         println(s"RepoDeezer: Album $id get from DB")
         return Success(d)
-      case _ => ()
+      case _ => Unit
     }
 
     val urlEntry = s"https://api.deezer.com/album/$id"
@@ -227,7 +228,7 @@ class RepoDeezer(val dbh: DBDeezer) {
       case Success(d) =>
         println(s"RepoDeezer: Genre $id get from DB")
         return Success(d)
-      case _ => ()
+      case _ => Unit
     }
 
     val urlEntry = s"https://api.deezer.com/genre/$id"

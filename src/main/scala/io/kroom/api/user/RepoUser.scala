@@ -32,24 +32,28 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   def getById(id: Int): Try[DataUser] = {
     dbh.getById(id) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def getByName(name: String): Try[DataUser] = {
     dbh.getByName(name) match {
       case Failure(_) => Failure(SimpleException("userName not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def getFriends(userId: Int): Try[List[DataUser]] = {
     dbh.getFriends(userId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def getMsicalPreferences(userId: Int): Try[List[DataDeezerGenre]] = {
     dbh.getMusicalPreferences(userId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
@@ -76,6 +80,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
     dbh.addUserWithPass(name, email, pass.bcrypt) match {
       case Failure(e) => return Failure(e)
+      case _ => Unit
     }
 
     val user = dbh.getByName(name) match {
@@ -85,6 +90,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
     dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) match {
       case Failure(e) => return Failure(e)
+      case _ => Unit
     }
 
     getById(user.id)
@@ -107,6 +113,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     // TODO token cookie ?
     dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) match {
       case Failure(e) => return Failure(e)
+      case _ => Unit
     }
 
     getById(user.id)
@@ -119,6 +126,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     }
     val perms = dbh.getPermGroup(user.id) match {
       case Failure(e) => return Failure(e)
+      case Success(s) => s
     }
     Success((user, perms))
   }
@@ -126,18 +134,21 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   def getUserPermGroup(userId: Int): Try[Set[PermissionGroup.Value]] = {
     dbh.getPermGroup(userId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def addFriend(userId: Int, friendId: Int): Try[DataUser] = {
     dbh.addFriend(userId, friendId) match {
       case Failure(_) => Failure(SimpleException("userId or friendId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def delFriend(userId: Int, friendId: Int): Try[DataUser] = {
     dbh.delFriend(userId, friendId) match {
       case Failure(_) => Failure(SimpleException("Delete Friend failed"))
+      case Success(s) => Success(s)
     }
   }
 
@@ -145,15 +156,18 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     // get Genre in DB
     repoDeezer.getGenreById(genreId) match {
       case Failure(_) => Failure(SimpleException("genreId not found"))
+      case _ => Unit
     }
     dbh.addMusicalPreference(userId, genreId) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
   def delMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     dbh.delMusicalPreference(userId, genreId) match {
       case Failure(_) => Failure(SimpleException("Delete MusicalPreference failed"))
+      case Success(s) => Success(s)
     }
   }
 
@@ -171,6 +185,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
       Privacy.privacyToString(musicalPreferencesGenre),
     )) match {
       case Failure(_) => Failure(SimpleException("userId not found"))
+      case Success(s) => Success(s)
     }
   }
 
