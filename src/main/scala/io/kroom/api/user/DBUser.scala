@@ -21,7 +21,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
     val query = tabUser.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(tabToObjUser)
+      .flatMap(tabToObjUser)
   }
 
   def getByToken(token: String): Try[DataUser] = {
@@ -29,21 +29,21 @@ class DBUser(private val db: H2Profile.backend.Database) {
     val query = tabUser.filter(_.tokenOAuth === token).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(tabToObjUser)
+      .flatMap(tabToObjUser)
   }
 
   def getByName(name: String): Try[DataUser] = {
     val query = tabUser.filter(_.name === name).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(tabToObjUser)
+      .flatMap(tabToObjUser)
   }
 
   def getByEmail(email: String): Try[DataUser] = {
     val query = tabUser.filter(_.email === email).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(tabToObjUser)
+      .flatMap(tabToObjUser)
   }
 
   def getFriends(userId: Int): Try[List[DataUser]] = {
@@ -54,7 +54,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
     } yield f
 
     Await.ready(db.run(query.result), Duration.Inf).value.get
-      .map(_.map(tabToObjUser))
+      .map(_.map(tabToObjUser) collect { case Success(s) => s })
       .map(_.toList)
   }
 
@@ -72,9 +72,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
   def getPermGroup(userId: Int): Try[Set[Authorization.PermissionGroup.Value]] = {
     val query = joinPermGroup.filter(_.idUser === userId).result
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value.get
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
       .map(_.toSet)
   }
@@ -205,11 +204,15 @@ object DBUser {
 
   val tabUser = TableQuery[TabUser]
 
-  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)) => DataUser = {
-    case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson) => DataUser(
-      id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate,
-      parser.decode[DataUserPrivacy](privacyJson).getOrElse(throw new IllegalArgumentException("TabUser: json in db is invalid"))
-    )
+  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)) => Try[DataUser] = {
+    case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson) =>
+      parser.decode[DataUserPrivacy](privacyJson).toTry.map(p => {
+        println(p)
+        DataUser(
+          id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, p
+        )
+      }
+      )
   }
 
   class JoinFriend(tag: Tag) extends Table[(Int, Int)](tag, "JOIN_FRIEND") {

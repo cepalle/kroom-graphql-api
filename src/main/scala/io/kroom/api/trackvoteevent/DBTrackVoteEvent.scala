@@ -7,7 +7,7 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
@@ -88,7 +88,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
     } yield u
 
     Await.ready(db.run(query.result), Duration.Inf).value.get
-      .map(_.map(DBUser.tabToObjUser))
+      .map(_.map(DBUser.tabToObjUser) collect { case Success(s) => s })
       .map(_.toList)
   }
 

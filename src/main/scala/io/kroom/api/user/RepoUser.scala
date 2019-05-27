@@ -165,9 +165,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
       Privacy.privacyToString(location),
       Privacy.privacyToString(friends),
       Privacy.privacyToString(musicalPreferencesGenre),
-    )) match {
-      case Failure(_) => Failure(SimpleException("userId not found"))
-      case Success(s) => Success(s)
+    )) recover {
+      case e =>
+        println(e)
+        return Failure(SimpleException("userId not found"))
     }
   }
 
