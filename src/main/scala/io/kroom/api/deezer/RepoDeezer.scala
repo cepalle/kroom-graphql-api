@@ -129,7 +129,6 @@ case class DataDeezerSearch(
                              readable: Boolean,
                              title: String,
                              title_short: String,
-                             title_version: String,
                              // url,
                              link: String,
                              duration: Int,
@@ -266,6 +265,7 @@ class RepoDeezer(val dbh: DBDeezer) {
         Success(resJson.data)
       case Failure(error) =>
         println(s"RepoDeezer: Deezer API $urlEntry $error")
+        println(res.body)
         Failure(SimpleException("An error occur with Deezer API"))
     }
   }

@@ -194,7 +194,6 @@ object SchemaDeezer {
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
       Field("titleShort", StringType, resolve = _.value.title_short),
-      Field("titleVersion", StringType, resolve = _.value.title_version),
 
       Field("link", StringType, resolve = _.value.link),
       Field("duration", IntType, resolve = _.value.duration),
