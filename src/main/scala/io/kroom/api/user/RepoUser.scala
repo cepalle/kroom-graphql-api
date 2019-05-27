@@ -47,25 +47,6 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   // Mutation
 
   def signUp(name: String, email: String, pass: String): Try[DataUser] = {
-    // TODO verif send email
-    // TODO verif userName, email, pass
-    // TODO token cookie ?
-    /*
-    val userByName = dbh.getByName(name) match {
-      case Success(_) => Failure(UserRegistrationException("userName already exist"))
-      case Failure(_) => Success(Unit)
-    }
-    val userByemail = dbh.getByEmail(email) match {
-      case Success(_) => Failure(UserRegistrationException("email already exist"))
-      case Failure(_) => Success(Unit)
-    }
-
-    val lCheck = List(userByName, userByemail) collect { case Failure(e) => e }
-
-    if (lCheck.nonEmpty) {
-      return Failure(MultipleException(lCheck))
-    }
-    */
     dbh.addUserWithPass(name, email, pass.bcrypt) recover { case e => return Failure(e) }
 
     val user = dbh.getByName(name) match {
@@ -73,26 +54,27 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
       case Success(s) => s
     }
 
+    // TODO token cookie ?
     dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
 
     getById(user.id)
   }
 
   def signIn(userName: String, pass: String): Try[DataUser] = {
+    // TODO time token
+    // TODO token cookie ?
     val user = dbh.getByName(userName) match {
-      case Failure(_) => return Failure(new IllegalStateException("userName or password invalid"))
+      case Failure(e) => return Failure(e)
       case Success(s) => s
     }
 
     val passUser = user.passHash.getOrElse(
-      return Failure(new IllegalStateException("userName or password invalid"))
+      return Failure(new IllegalStateException("user has empty password"))
     )
     if (!pass.isBcryptedSafe(passUser).getOrElse(false)) {
-      return Failure(new IllegalStateException("userName or password invalid"))
+      return Failure(new IllegalStateException("password invalid"))
     }
 
-    // TODO time token
-    // TODO token cookie ?
     dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
 
     getById(user.id)

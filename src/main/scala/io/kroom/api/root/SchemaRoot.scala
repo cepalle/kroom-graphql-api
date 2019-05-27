@@ -181,16 +181,16 @@ object SchemaRoot {
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () =>
-          Future {
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () =>
             // TODO userMaster is invited and can't be del
             ctx.ctx.repo.trackVoteEvent.`new`(
               ctx.arg[Int]("userIdMaster"),
               ctx.arg[String]("name"),
               ctx.arg[Boolean]("public"),
             ).get
-          }
-        }.get
+          }.get
+        }
       ),
 
       Field("TrackVoteEventUpdate", OptionType(TrackVoteEventField),
@@ -289,28 +289,58 @@ object SchemaRoot {
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () =>
-          UpdateCtx(ctx.ctx.repo.user.signUp(
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () => {
+          // TODO verif send email
+          // TODO verif userName, email, pass
+          /*
+          val userByName = dbh.getByName(name) match {
+            case Success(_) => Failure(UserRegistrationException("userName already exist"))
+            case Failure(_) => Success(Unit)
+          }
+          val userByemail = dbh.getByEmail(email) match {
+            case Success(_) => Failure(UserRegistrationException("email already exist"))
+            case Failure(_) => Success(Unit)
+          }
+
+          val lCheck = List(userByName, userByemail) collect { case Failure(e) => e }
+
+          if (lCheck.nonEmpty) {
+            return Failure(MultipleException(lCheck))
+          }
+          */
+
+          val user = ctx.ctx.repo.user.signUp(
             ctx.arg[String]("userName"),
             ctx.arg[String]("email"),
             ctx.arg[String]("pass"),
-          )) { user ⇒
+          )
+
+          UpdateCtx(user) { user ⇒
             new SecureContext(user.token, ctx.ctx.repo)
           }
+        }
         }.get
       ),
 
-      Field("UserSignIn", UserField,
+      Field("UserSignIn", UserSignInPayload,
         arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () =>
-          UpdateCtx(ctx.ctx.repo.user.signIn(
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () => {
+          ctx.ctx.repo.user.signIn(
             ctx.arg[String]("userName"),
             ctx.arg[String]("pass"),
-          )) { user ⇒
-            new SecureContext(user.token, ctx.ctx.repo)
+          ) match {
+            case Success(value) =>
+              UpdateCtx(value) { user ⇒
+                new SecureContext(user.token, ctx.ctx.repo)
+              }
+              DataPayload[DataUser](Some(value), List())
+            case Failure(_) => DataPayload[DataUser](None, List(
+              DataError("userName/pass", List("username or password invalid")))
+            )
           }
+        }
         }.get
       ),
 

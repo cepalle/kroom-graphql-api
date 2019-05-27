@@ -33,6 +33,14 @@ object SchemaUser {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
+  lazy val UserSignInPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserSignInPayload",
+    "UserSignInPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   /* FIELD */
 
   lazy val PrivacyField: ObjectType[SecureContext, DataUserPrivacy] = ObjectType(
