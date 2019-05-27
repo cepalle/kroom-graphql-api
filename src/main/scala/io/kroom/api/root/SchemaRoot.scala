@@ -4,7 +4,7 @@ import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
 import io.kroom.api.user.{DataUser, SchemaUser}
-import io.kroom.api.deezer.{Connections, DataDeezerTrack, Order}
+import io.kroom.api.deezer.{Connections, DataDeezerArtist, DataDeezerTrack, Order}
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 
@@ -58,10 +58,15 @@ object SchemaRoot {
             )
           }
         }.get),
-      Field("DeezerArtist", OptionType(ArtistField),
+      Field("DeezerArtist", ArtistFieldPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
-          ArtistFetcherId.deferOpt(ctx.arg[Int]("id"))
+          ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
+            case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
+            case Failure(_) => DataPayload[DataDeezerArtist](None, List(
+              DataError("DeezerTrack", List("Artist Id not found")))
+            )
+          }
         }.get),
       Field("DeezerAlbum", OptionType(AlbumField),
         arguments = Argument("id", IntType) :: Nil,

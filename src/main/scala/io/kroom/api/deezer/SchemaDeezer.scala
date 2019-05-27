@@ -49,6 +49,14 @@ object SchemaDeezer {
       Field("pictureXl", StringType, resolve = _.value.picture_xl),
     ))
 
+  lazy val ArtistFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerArtist]] = ObjectType(
+    "ArtistFieldPayload",
+    "ArtistFieldPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataDeezerArtist]](
+      Field("data", OptionType(ArtistField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   lazy val ArtistField: ObjectType[SecureContext, DataDeezerArtist] = ObjectType(
     "Artist",
     "Artist description.",
@@ -107,8 +115,8 @@ object SchemaDeezer {
     "TrackFieldPayload",
     "TrackFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
-      Field("id", OptionType(TrackField), resolve = _.value.data),
-      Field("readable", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+      Field("data", OptionType(TrackField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
   lazy val TrackField: ObjectType[SecureContext, DataDeezerTrack] = ObjectType(
