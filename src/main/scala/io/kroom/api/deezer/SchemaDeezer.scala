@@ -36,7 +36,7 @@ object SchemaDeezer {
     }
     )(HasId(_.id))
 
-  lazy val GenreFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerGenre]] = ObjectType(
+  lazy val DeezerGenrePayload: ObjectType[SecureContext, DataPayload[DataDeezerGenre]] = ObjectType(
     "GenreFieldPayload",
     "GenreFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerGenre]](
@@ -57,7 +57,7 @@ object SchemaDeezer {
       Field("pictureXl", StringType, resolve = _.value.picture_xl),
     ))
 
-  lazy val ArtistFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerArtist]] = ObjectType(
+  lazy val DeezerArtistPayload: ObjectType[SecureContext, DataPayload[DataDeezerArtist]] = ObjectType(
     "ArtistFieldPayload",
     "ArtistFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerArtist]](
@@ -83,7 +83,7 @@ object SchemaDeezer {
       Field("tracklist", StringType, resolve = _.value.tracklist),
     ))
 
-  lazy val AlbumFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerAlbum]] = ObjectType(
+  lazy val DeezerAlbumPayload: ObjectType[SecureContext, DataPayload[DataDeezerAlbum]] = ObjectType(
     "AlbumFieldPayload",
     "AlbumFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerAlbum]](
@@ -127,7 +127,7 @@ object SchemaDeezer {
       Field("tracks", ListType(TrackField), resolve = ctx => TrackFetcherId.deferSeqOpt(ctx.value.tracks.data.map(_.id))),
     ))
 
-  lazy val TrackFieldPayload: ObjectType[SecureContext, DataPayload[DataDeezerTrack]] = ObjectType(
+  lazy val DeezerTrackPayload: ObjectType[SecureContext, DataPayload[DataDeezerTrack]] = ObjectType(
     "TrackFieldPayload",
     "TrackFieldPayload description.",
     () ⇒ fields[SecureContext, DataPayload[DataDeezerTrack]](
@@ -220,7 +220,7 @@ object SchemaDeezer {
     )
   )
 
-  lazy val SearchFieldsPayload: ObjectType[SecureContext, DataPayload[List[DataDeezerSearch]]] = ObjectType(
+  lazy val DeezerSearchPayload: ObjectType[SecureContext, DataPayload[List[DataDeezerSearch]]] = ObjectType(
     "SearchFieldsPayload",
     "SearchFieldsPayload description.",
     () ⇒ fields[SecureContext, DataPayload[List[DataDeezerSearch]]](

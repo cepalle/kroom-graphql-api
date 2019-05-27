@@ -2,7 +2,9 @@ package io.kroom.api.trackvoteevent
 
 import io.kroom.api.SecureContext
 import io.kroom.api.deezer.SchemaDeezer
+import io.kroom.api.root.SchemaRoot
 import io.kroom.api.user.SchemaUser
+import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
 import sangria.schema.{BooleanType, Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
 

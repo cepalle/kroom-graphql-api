@@ -48,74 +48,84 @@ object SchemaRoot {
 
       /* DEEZER */
 
-      Field("DeezerTrack", TrackFieldPayload,
+      Field("DeezerTrack", DeezerTrackPayload,
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
-          ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
-            case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
-            case Failure(_) => DataPayload[DataDeezerTrack](None, List(
-              DataError("DeezerTrack", List("Track Id not found")))
-            )
-          }
-        }.get),
-      Field("DeezerArtist", ArtistFieldPayload,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
+            ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
+              case Failure(_) => DataPayload[DataDeezerTrack](None, List(
+                DataError("DeezerTrack", List("Track Id not found")))
+              )
+            }
+          }.get
+        }),
+      Field("DeezerArtist", DeezerArtistPayload,
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
-          ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
-            case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
-            case Failure(_) => DataPayload[DataDeezerArtist](None, List(
-              DataError("DeezerArtist", List("Artist Id not found")))
-            )
-          }
-        }.get),
-      Field("DeezerAlbum", AlbumFieldPayload,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
+            ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
+              case Failure(_) => DataPayload[DataDeezerArtist](None, List(
+                DataError("DeezerArtist", List("Artist Id not found")))
+              )
+            }
+          }.get
+        }),
+      Field("DeezerAlbum", DeezerAlbumPayload,
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
-          ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
-            case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
-            case Failure(_) => DataPayload[DataDeezerAlbum](None, List(
-              DataError("DeezerAlbum", List("Album Id not found")))
-            )
-          }
-        }.get),
-      Field("DeezerGenre", GenreFieldPayload,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
+            ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
+              case Failure(_) => DataPayload[DataDeezerAlbum](None, List(
+                DataError("DeezerAlbum", List("Album Id not found")))
+              )
+            }
+          }.get
+        }),
+      Field("DeezerGenre", DeezerGenrePayload,
         arguments = Argument("id", IntType) :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
-          ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
-            case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
-            case Failure(_) => DataPayload[DataDeezerGenre](None, List(
-              DataError("DeezerGenre", List("Genre Id not found")))
-            )
-          }
-        }.get),
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
+            ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
+              case Failure(_) => DataPayload[DataDeezerGenre](None, List(
+                DataError("DeezerGenre", List("Genre Id not found")))
+              )
+            }
+          }.get
+        }),
 
-      Field("DeezerSearch", SearchFieldsPayload,
+      Field("DeezerSearch", DeezerSearchPayload,
         arguments = Argument("search", StringType)
           :: Argument("connections", OptionInputType(ConnectionEnum))
           :: Argument("strict", BooleanType)
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
-          ctx.ctx.repo.deezer.getSearch(
-            ctx.arg[String]("search"),
-            ctx.argOpt[Connections.Value]("connections"),
-            ctx.arg[Boolean]("strict"),
-            ctx.argOpt[Order.Value]("order"),
-          ) match {
-            case Success(value) => DataPayload[List[DataDeezerSearch]](Some(value), List())
-            case Failure(_) => DataPayload[List[DataDeezerSearch]](Some(List()), List())
-          }
-        }.get),
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
+            ctx.ctx.repo.deezer.getSearch(
+              ctx.arg[String]("search"),
+              ctx.argOpt[Connections.Value]("connections"),
+              ctx.arg[Boolean]("strict"),
+              ctx.argOpt[Order.Value]("order"),
+            ) match {
+              case Success(value) => DataPayload[List[DataDeezerSearch]](Some(value), List())
+              case Failure(_) => DataPayload[List[DataDeezerSearch]](Some(List()), List())
+            }
+          }.get
+        }),
 
       /* TRACK_VOTE_EVENT */
 
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
-          Future {
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
             ctx.ctx.repo.trackVoteEvent.getPublic.get
-          }
-        }.get),
+          }.get
+        }),
 
       Field("TrackVoteEventById", OptionType(TrackVoteEventField),
         arguments = Argument("id", IntType) :: Nil,

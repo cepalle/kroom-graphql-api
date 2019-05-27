@@ -60,25 +60,25 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
              schedule: Option[String],
              location: Option[String]
             ): Try[DataTrackVoteEvent] = {
-/*
-    val userTry = repoUser.getById(userIdMaster) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
-    }
-    val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-    }
-    val eventNameTry = dbh.getTrackVoteEventByName(name) match {
-      case Success(_) => Failure(SimpleException("trackVoteEvent name already used"))
-      case Failure(_) => Success(Unit)
-    }
+    /*
+        val userTry = repoUser.getById(userIdMaster) match {
+          case Success(_) => Success(Unit)
+          case Failure(_) => Failure(SimpleException("userIdMaster not found"))
+        }
+        val eventIdTry = dbh.getTrackVoteEventById(eventId) match {
+          case Success(_) => Success(Unit)
+          case Failure(_) => Failure(SimpleException("eventId not found"))
+        }
+        val eventNameTry = dbh.getTrackVoteEventByName(name) match {
+          case Success(_) => Failure(SimpleException("trackVoteEvent name already used"))
+          case Failure(_) => Success(Unit)
+        }
 
-    val lCheck = List(userTry, eventNameTry, eventIdTry) collect { case Failure(e) => e }
+        val lCheck = List(userTry, eventNameTry, eventIdTry) collect { case Failure(e) => e }
 
-    if (lCheck.nonEmpty) {
-      return Failure(MultipleException(lCheck))
-    }*/
+        if (lCheck.nonEmpty) {
+          return Failure(MultipleException(lCheck))
+        }*/
 
     dbh.update(
       eventId,
