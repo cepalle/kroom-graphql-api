@@ -7,48 +7,41 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Try}
 
 class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
   import DBTrackVoteEvent._
   import DBUser._
 
-  def getTrackVoteEventById(id: Int): Option[DataTrackVoteEvent] = {
+  def getTrackVoteEventById(id: Int): Try[DataTrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.id === id).result.head
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(tabToObjTrackVoteEvent)
   }
 
-  def getTrackVoteEventPublic: List[DataTrackVoteEvent] = {
+  def getTrackVoteEventPublic: Try[List[DataTrackVoteEvent]] = {
     val query = tabTrackVoteEvent.filter(_.public).result
-    val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_.map(tabToObjTrackVoteEvent))
       .map(_.toList)
-      .getOrElse(List[DataTrackVoteEvent]())
   }
 
-  def getTrackVoteEventByUserId(userId: Int): List[DataTrackVoteEvent] = {
+  def getTrackVoteEventByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
     val query = for {
       ((u, j), e) <- tabUser join joinTrackVoteEventUser on
         (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
       if u.id === userId
     } yield e
-    val f = db.run(query.result)
 
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(query.result), Duration.Inf).value.get
       .map(_.map(tabToObjTrackVoteEvent))
       .map(_.toList)
-      .getOrElse(List[DataTrackVoteEvent]())
   }
 
-  def getTrackWithVote(eventId: Int): List[DataTrackWithVote] = {
+  def getTrackWithVote(eventId: Int): Try[List[DataTrackWithVote]] = {
     // One query ?
     val qVoteTrue = (for {
       (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
@@ -69,10 +62,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
         case (idDeezerTrack, css) => (idDeezerTrack, css.length)
       })
 
-    val f = db.run(qVoteTrue.result zip qVoteAll.result)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(qVoteTrue.result zip qVoteAll.result), Duration.Inf).value.get
       .map(d => {
         val (voteTrue, allVote) = d
 
@@ -83,22 +73,17 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
         })
       })
       .map(_.toList)
-      .getOrElse(List[DataTrackWithVote]())
   }
 
-  def getUserInvited(eventId: Int): List[DataUser] = {
+  def getUserInvited(eventId: Int): Try[List[DataUser]] = {
     val query = for {
       ((e, ju), u) <- tabTrackVoteEvent join joinTrackVoteEventUser on (_.id === _.idTrackVoteEvent) join DBUser.tabUser on (_._2.idUser === _.id)
       if e.id === eventId
     } yield u
 
-    val f = db.run(query.result)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(query.result), Duration.Inf).value.get
       .map(_.map(DBUser.tabToObjUser))
       .map(_.toList)
-      .getOrElse(List[DataUser]())
   }
 
   // Mutation
@@ -106,16 +91,13 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   def `new`(userIdMaster: Int,
             name: String,
             public: Boolean,
-              ): Option[DataTrackVoteEvent] = {
+           ): Try[DataTrackVoteEvent] = {
     val query = (tabTrackVoteEvent
       .map(e => (e.userMasterId, e.name, public))
       returning tabTrackVoteEvent.map(_.id)
       ) += (userIdMaster, name, public)
 
-    val f = db.run(query)
-
-    Await.ready(f, Duration.Inf).value
-      .flatMap(_.toOption)
+    Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(id => getTrackVoteEventById(id))
   }
 
@@ -125,52 +107,50 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
              public: Boolean,
              schedule: Option[String],
              location: Option[String]
-            ): Option[DataTrackVoteEvent] = {
-    Await.ready(db.run(
-      tabTrackVoteEvent
-        .filter(_.id === eventId)
-        .map(e => (e.userMasterId, e.name, e.public, e.schedule, e.location))
-        .update((userIdMaster, name, public, schedule, location))
-    ), Duration.Inf)
-
-    getTrackVoteEventById(eventId)
+            ): Try[DataTrackVoteEvent] = {
+    Await.ready(
+      db.run(
+        tabTrackVoteEvent
+          .filter(_.id === eventId)
+          .map(e => (e.userMasterId, e.name, e.public, e.schedule, e.location))
+          .update((userIdMaster, name, public, schedule, location))
+      ),
+      Duration.Inf
+    ).value.get
+      .flatMap(_ => getTrackVoteEventById(eventId))
   }
 
-  def addUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+  def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val query = joinTrackVoteEventUser
       .map(e => (e.idTrackVoteEvent, e.idUser)) += (eventId, userId)
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
 
-    getTrackVoteEventById(eventId)
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getTrackVoteEventById(eventId))
   }
 
-  def delUser(eventId: Int, userId: Int): Option[DataTrackVoteEvent] = {
+  def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val query = joinTrackVoteEventUser
       .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId).delete
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
 
-    getTrackVoteEventById(eventId)
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getTrackVoteEventById(eventId))
   }
 
-  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Option[DataTrackVoteEvent] = {
+  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
     val query = joinTrackVoteEventUserVoteTrack
       .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack)) += (eventId, userId, musicId)
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
 
-    getTrackVoteEventById(eventId)
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getTrackVoteEventById(eventId))
   }
 
-  def delVote(eventId: Int, userId: Int, musicId: Int): Option[DataTrackVoteEvent] = {
+  def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
     val query = joinTrackVoteEventUserVoteTrack
       .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId && e.idDeezerTrack === musicId)
       .delete
-    val f = db.run(query)
-    Await.ready(f, Duration.Inf)
 
-    getTrackVoteEventById(eventId)
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getTrackVoteEventById(eventId))
   }
 
 }

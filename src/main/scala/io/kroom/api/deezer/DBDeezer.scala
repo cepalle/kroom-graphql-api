@@ -17,64 +17,56 @@ class DBDeezer(private val db: H2Profile.backend.Database) {
   def getDeezerGenre(id: Int): Try[DataDeezerGenre] = {
     val query = tabDeezerGenre.filter(_.id === id).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.flatMap(tabToObjDeezerGenre))
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerGenre genre.id not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(tabToObjDeezerGenre)
   }
 
   def addDeezerGenre(dg: DataDeezerGenre): Try[Unit] = {
     val query = tabDeezerGenre += ((dg.id, dg.asJson.toString()))
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerGenre failed")))
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_ => Unit)
   }
 
   def getDeezerAlbum(id: Int): Try[DataDeezerAlbum] = {
     val query = tabDeezerAlbum.filter(_.id === id).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.flatMap(tabToObjDeezerAlbum))
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerAlbum album.id not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(tabToObjDeezerAlbum)
   }
 
   def addDeezerAlbum(dg: DataDeezerAlbum): Try[Unit] = {
     val query = tabDeezerAlbum += ((dg.id, dg.asJson.toString()))
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerAlbum failed")))
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_ => Unit)
   }
 
   def getDeezerArtist(id: Int): Try[DataDeezerArtist] = {
     val query = tabDeezerArtist.filter(_.id === id).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.flatMap(tabToObjDeezerArtist))
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerArtist artist.id not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(tabToObjDeezerArtist)
   }
 
   def addDeezerArtist(dg: DataDeezerArtist): Try[Unit] = {
     val query = tabDeezerArtist += ((dg.id, dg.asJson.toString()))
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerArtist failed")))
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_ => Unit)
   }
 
   def getDeezerTrack(id: Int): Try[DataDeezerTrack] = {
     val query = tabDeezerTrack.filter(_.id === id).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.flatMap(tabToObjDeezerTrack))
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.getDeezerTrack track.id not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(tabToObjDeezerTrack)
   }
 
   def addDeezerTrack(dg: DataDeezerTrack): Try[Unit] = {
     val query = tabDeezerTrack += ((dg.id, dg.asJson.toString()))
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .getOrElse(Failure(new IllegalStateException("DBDeezer.addDeezerTrack failed")))
+    Await.ready(db.run(query), Duration.Inf).value.get
       .map(_ => Unit)
   }
 

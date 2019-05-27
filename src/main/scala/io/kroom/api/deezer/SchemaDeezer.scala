@@ -12,25 +12,25 @@ object SchemaDeezer {
 
   lazy val GenreFetcherId: Fetcher[SecureContext, DataDeezerGenre, DataDeezerGenre, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.deezer.getGenreById(id))
+      ids.flatMap(id => ctx.repo.deezer.getGenreById(id).toOption)
     }
     )(HasId(_.id))
 
   lazy val ArtistFetcherId: Fetcher[SecureContext, DataDeezerArtist, DataDeezerArtist, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.deezer.getArtistById(id))
+      ids.flatMap(id => ctx.repo.deezer.getArtistById(id).toOption)
     }
     )(HasId(_.id))
 
   lazy val AlbumFetcherId: Fetcher[SecureContext, DataDeezerAlbum, DataDeezerAlbum, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.deezer.getAlbumById(id))
+      ids.flatMap(id => ctx.repo.deezer.getAlbumById(id).toOption)
     }
     )(HasId(_.id))
 
   lazy val TrackFetcherId: Fetcher[SecureContext, DataDeezerTrack, DataDeezerTrack, Int] =
     Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.deezer.getTrackById(id))
+      ids.flatMap(id => ctx.repo.deezer.getTrackById(id).toOption)
     }
     )(HasId(_.id))
 

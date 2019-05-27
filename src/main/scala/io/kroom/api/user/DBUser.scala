@@ -20,34 +20,30 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def getById(id: Int): Try[DataUser] = {
     val query = tabUser.filter(_.id === id).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjUser))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getById user.id not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjUser)
   }
 
   def getByToken(token: String): Try[DataUser] = {
     // TODO check time out of date
     val query = tabUser.filter(_.tokenOAuth === token).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjUser))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getByToken user.token not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjUser)
   }
 
   def getByName(name: String): Try[DataUser] = {
     val query = tabUser.filter(_.name === name).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjUser))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getByName user.name not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjUser)
   }
 
   def getByEmail(email: String): Try[DataUser] = {
     val query = tabUser.filter(_.email === email).result.head
 
-    Await.ready(db.run(query), Duration.Inf).value
-      .map(_.map(tabToObjUser))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getByEmail user.email not found")))
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjUser)
   }
 
   def getFriends(userId: Int): Try[List[DataUser]] = {
@@ -57,9 +53,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       if u.id === userId
     } yield f
 
-    Await.ready(db.run(query.result), Duration.Inf).value
-      .map(_.map(_.map(tabToObjUser)))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getFriends user.id not found")))
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_.map(tabToObjUser))
       .map(_.toList)
   }
 
@@ -70,9 +65,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       if u.id === userId
     } yield mp
 
-    Await.ready(db.run(query.result), Duration.Inf).value
-      .map(_.map(_.map(DBDeezer.tabToObjDeezerGenre)))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getMusicalPreferences user.id not found")))
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_.map(DBDeezer.tabToObjDeezerGenre).collect({ case Success(x) => x })) // /!\ Silent parsing error
       .map(_.toList)
   }
 
@@ -80,9 +74,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
     val query = joinPermGroup.filter(_.idUser === userId).result
     val f = db.run(query)
 
-    Await.ready(f, Duration.Inf).value
-      .map(_.map(_.map(c => Authorization.StringToPermissionGroup(c._2))))
-      .getOrElse(Failure(new IllegalStateException("DBUser.getPermGroup user.id not found")))
+    Await.ready(f, Duration.Inf).value.get
+      .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
       .map(_.toSet)
   }
 
@@ -90,8 +83,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
   def addUserWithPass(name: String, email: String, passHash: String): Try[DataUser] = {
     val queryInsertUser = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, Some(passHash))
-    Await.ready(db.run(queryInsertUser), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(queryInsertUser), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     val user = getByEmail(email) match {
@@ -100,8 +93,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
     }
 
     val queryInsertPerm = joinPermGroup += (user.id, Authorization.PermissionGroupToString(Authorization.PermissionGroup.user))
-    Await.ready(db.run(queryInsertPerm), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(queryInsertPerm), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(user.id)
@@ -112,8 +105,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       joinFriend.map(e => (e.idUser, e.idFriend)) += (userId, friendId),
       joinFriend.map(e => (e.idUser, e.idFriend)) += (friendId, userId)
     )
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -124,8 +117,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       joinFriend.filter(e => e.idFriend === friendId && e.idUser === userId).delete,
       joinFriend.filter(e => e.idFriend === userId && e.idUser === friendId).delete,
     )
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -134,8 +127,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def addMusicalPreference(userId: Int, genreId: Int): Try[DataUser] = {
     val query = joinMusicalPreferences.map(e => (e.idUser, e.idDeezerGenre)) += (userId, genreId)
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -146,8 +139,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .filter(e => e.idDeezerGenre === genreId && e.idUser === userId)
       .delete
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -158,8 +151,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(e => e.emailIsconfirmed)
       .update(true)
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -170,8 +163,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(e => e.location)
       .update(Some(location))
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -182,8 +175,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(e => (e.tokenOAuth, e.tokenOAuthOutOfDate))
       .update((token, tokenOutOfDate))
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -194,8 +187,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(e => e.privacyJson)
       .update(DataUserPrivacy.asJson.toString())
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -204,8 +197,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def addPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
     val query = joinPermGroup += (userId, Authorization.PermissionGroupToString(auth))
 
-    Await.ready(db.run(query), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
@@ -214,8 +207,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
   def delPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
     val query = joinPermGroup.filter(e => e.idUser === userId && e.permGroup === Authorization.PermissionGroupToString(auth))
 
-    Await.ready(db.run(query.delete), Duration.Inf).value match {
-      case Some(Failure(e)) => return Failure(e)
+    Await.ready(db.run(query.delete), Duration.Inf).value.get match {
+      case Failure(e) => return Failure(e)
     }
 
     getById(userId)
