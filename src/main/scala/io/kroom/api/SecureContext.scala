@@ -4,6 +4,7 @@ import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.{DataUser, DataUserPrivacy}
 import Authorization.{PermissionGroup, Permissions, Privacy}
 import io.kroom.api.ExceptionCustom.AuthorisationException
+import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,7 +26,7 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
       Failure(AuthorisationException("You do not have permission to do this operation"))
   }
 
-  def checkPrivacy[T](foreignId: Int, privacy: Privacy.Value)(fn: () ⇒ T): Option[T] = {
+  def checkPrivacyUser[T](foreignId: Int, privacy: Privacy.Value)(fn: () ⇒ T): Option[T] = {
     if (foreignId == user.id) {
       Some(fn())
     } else if (privacy == Privacy.public) {
@@ -40,4 +41,15 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
       None
     }
   }
+
+  def checkPrivacyTrackEvent[T](eventId: Int, public: Boolean)(fn: () ⇒ T): Option[T] = {
+    if (public) {
+      Some(fn())
+    } else if (repo.trackVoteEvent.getUserInvited(eventId).get.map(_.id).contains(user.id)) {
+      Some(fn())
+    } else {
+      None
+    }
+  }
+
 }

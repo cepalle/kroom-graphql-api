@@ -60,39 +60,39 @@ object SchemaUser {
     "User description.",
     () ⇒ fields[SecureContext, DataUser](
       Field("id", OptionType(IntType), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.public) { () =>
           ctx.value.id
         }),
       Field("userName", StringType, resolve = _.value.userName),
       Field("email", OptionType(StringType), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.email)) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.email)) { () =>
           ctx.value.email
         }),
       Field("location", OptionType(StringType), resolve = ctx =>
-        ctx.ctx.checkPrivacy[Option[String]](ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.location)) { () =>
+        ctx.ctx.checkPrivacyUser[Option[String]](ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.location)) { () =>
           ctx.value.location
         }.flatMap(e => e)),
       Field("token", OptionType(StringType), resolve = ctx =>
-        ctx.ctx.checkPrivacy[Option[String]](ctx.value.id, Privacy.`private`) { () =>
+        ctx.ctx.checkPrivacyUser[Option[String]](ctx.value.id, Privacy.`private`) { () =>
           ctx.value.token
         }.flatMap(e => e)),
       Field("privacy", OptionType(PrivacyField), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.public) { () =>
           ctx.value.privacy
         }),
       Field("friends", OptionType(ListType(UserField)), resolve = ctx => Future {
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.friends)) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.friends)) { () =>
           ctx.ctx.repo.user.getFriends(ctx.value.id)
         }.flatMap(e => e.toOption)
       }),
       Field("musicalPreferences", OptionType(ListType(SchemaDeezer.GenreField)), resolve = ctx => Future {
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.musicalPreferencesGenre)) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.musicalPreferencesGenre)) { () =>
           ctx.ctx.repo.user.getMsicalPreferences(ctx.value.id)
         }.flatMap(e => e.toOption)
       }),
 
       Field("permissionGroup", OptionType(ListType(StringType)), resolve = ctx =>
-        ctx.ctx.checkPrivacy(ctx.value.id, Privacy.public) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.public) { () =>
           ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(_.map(PermissionGroupToString).toList)
         }.flatMap(e => e.toOption)),
 

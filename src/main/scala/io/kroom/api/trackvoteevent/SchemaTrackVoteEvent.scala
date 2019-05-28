@@ -60,24 +60,40 @@ object SchemaTrackVoteEvent {
       Field("id", IntType, resolve = _.value.id),
 
       Field("userMaster", OptionType(SchemaUser.UserField), resolve = ctx => Future {
-        ctx.ctx.repo.user.getById(ctx.value.userMasterId).get
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.ctx.repo.user.getById(ctx.value.userMasterId).get
+        }
       }),
 
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),
 
-      Field("currentTrack", OptionType(SchemaDeezer.TrackField), resolve = ctx =>
-        SchemaDeezer.TrackFetcherId.deferOpt(ctx.value.currentTrackId)
-      ),
-      Field("trackWithVote", ListType(TrackWithVoteField), resolve = ctx => Future {
-        ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id).get
+      Field("currentTrack", OptionType(SchemaDeezer.TrackField), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.value.currentTrackId.map(id => ctx.ctx.repo.deezer.getTrackById(id).get)
+        }.flatten
+      }),
+      Field("trackWithVote", OptionType(ListType(TrackWithVoteField)), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id).get
+        }
       }),
 
-      Field("schedule", OptionType(StringType), resolve = _.value.schedule),
-      Field("location", OptionType(StringType), resolve = _.value.location),
+      Field("schedule", OptionType(StringType), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.value.schedule
+        }.flatten
+      }),
+      Field("location", OptionType(StringType), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.value.location
+        }.flatten
+      }),
 
-      Field("userInvited", ListType(SchemaUser.UserField), resolve = ctx => Future {
-        ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id).get
+      Field("userInvited", OptionType(ListType(SchemaUser.UserField)), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id).get
+        }
       }),
     ))
 
