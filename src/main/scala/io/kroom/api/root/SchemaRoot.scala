@@ -62,6 +62,7 @@ object SchemaRoot {
             }
           }.get
         }),
+
       Field("DeezerArtist", DeezerArtistPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
@@ -74,6 +75,7 @@ object SchemaRoot {
             }
           }.get
         }),
+
       Field("DeezerAlbum", DeezerAlbumPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
@@ -86,6 +88,7 @@ object SchemaRoot {
             }
           }.get
         }),
+
       Field("DeezerGenre", DeezerGenrePayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {

@@ -73,6 +73,7 @@ object SchemaTrackVoteEvent {
           ctx.value.currentTrackId.map(id => ctx.ctx.repo.deezer.getTrackById(id).get)
         }.flatten
       }),
+
       Field("trackWithVote", OptionType(ListType(TrackWithVoteField)), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
           ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id).get
@@ -84,6 +85,7 @@ object SchemaTrackVoteEvent {
           ctx.value.schedule
         }.flatten
       }),
+
       Field("location", OptionType(StringType), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
           ctx.value.location
