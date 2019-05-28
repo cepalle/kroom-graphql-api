@@ -47,8 +47,7 @@ object Server extends App with CorsSupport {
         SchemaDeezer.TrackFetcherId,
         SchemaDeezer.ArtistFetcherId,
         SchemaDeezer.AlbumFetcherId,
-        SchemaDeezer.GenreFetcherId,
-        SchemaTrackVoteEvent.TrackVoteEventFetcherId
+        SchemaDeezer.GenreFetcherId
       ),
       exceptionHandler = ExceptionCustom.exceptionHandler
     )

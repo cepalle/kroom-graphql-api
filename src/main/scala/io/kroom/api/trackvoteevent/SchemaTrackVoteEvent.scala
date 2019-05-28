@@ -17,12 +17,6 @@ object SchemaTrackVoteEvent {
 
   /* FETCHER */
 
-  lazy val TrackVoteEventFetcherId: Fetcher[SecureContext, DataTrackVoteEvent, DataTrackVoteEvent, Int] =
-    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.trackVoteEvent.getById(id).toOption)
-    }
-    )(HasId(_.id))
-
   /* PAYLOAD */
 
   lazy val TrackVoteEventByIdPayload: ObjectType[SecureContext, DataPayload[DataTrackVoteEvent]] = ObjectType(
