@@ -29,7 +29,8 @@ libraryDependencies ++= Seq(
 
 
   "com.h2database" % "h2" % "1.4.199",
-  "com.github.t3hnar" %% "scala-bcrypt" % "4.0"
+  "com.github.t3hnar" %% "scala-bcrypt" % "4.0",
+  "javax.mail" % "mail" % "1.4.1"
 )
 
 Revolver.settings
