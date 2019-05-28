@@ -54,8 +54,8 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
             name: String,
             public: Boolean,
            ): Try[DataTrackVoteEvent] = {
-    val trackEvent = dbh.add(userIdMaster, name, public).get
-    dbh.addUser(trackEvent.id, userIdMaster)
+    dbh.add(userIdMaster, name, public)
+      .flatMap(trackEvent => dbh.addUser(trackEvent.id, userIdMaster))
   }
 
   def update(eventId: Int,
@@ -65,19 +65,19 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
              schedule: Option[String],
              location: Option[String]
             ): Try[DataTrackVoteEvent] = {
-    val track = dbh.getById(eventId).get
-
-    if (track.userMasterId != userIdMaster) {
-      dbh.addUser(eventId, userIdMaster)
-    }
-    dbh.update(
-      eventId,
-      userIdMaster,
-      name,
-      public,
-      schedule,
-      location
-    )
+    dbh.getById(eventId).flatMap(track => {
+      if (track.userMasterId != userIdMaster) {
+        dbh.addUser(eventId, userIdMaster)
+      }
+      dbh.update(
+        eventId,
+        userIdMaster,
+        name,
+        public,
+        schedule,
+        location
+      )
+    })
   }
 
   def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
@@ -89,7 +89,11 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   }
 
   def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
-    dbh.addOrUpdateVote(eventId, userId, musicId, up)
+    dbh.haseVote(eventId, userId, musicId).flatMap(b => if (b) {
+      dbh.updateVote(eventId, userId, musicId, up)
+    } else {
+      dbh.addVote(eventId, userId, musicId, up)
+    })
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {

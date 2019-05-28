@@ -78,7 +78,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
         allVote.map(v => {
           val (id, nbTot) = v
-          val nbUp = voteTrue.find(_._1 == id).map(_._1).getOrElse(0)
+          val nbUp = voteTrue.find(_._1 == id).map(_._2).getOrElse(0)
           DataTrackWithVote(id, 2 * nbUp - nbTot, nbUp, nbTot - nbUp)
         })
       })
@@ -146,12 +146,26 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(eventId))
   }
 
-  def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+  def haseVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
+    val query = joinTrackVoteEventUserVoteTrack
+      .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId && e.idDeezerTrack === musicId)
 
-    // TODO check if alredy Vote
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(res => res.nonEmpty)
+  }
 
+  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
     val query = joinTrackVoteEventUserVoteTrack
       .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack, e.voteUp)) += (eventId, userId, musicId, up)
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getById(eventId))
+  }
+
+  def updateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+    val query = joinTrackVoteEventUserVoteTrack
+      .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId && e.idDeezerTrack === musicId)
+      .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack, e.voteUp)).update((eventId, userId, musicId, up))
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(eventId))
