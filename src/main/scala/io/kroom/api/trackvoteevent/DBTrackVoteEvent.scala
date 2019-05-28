@@ -146,7 +146,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(eventId))
   }
 
-  def haseVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
+  def hasVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
     val query = joinTrackVoteEventUserVoteTrack
       .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId && e.idDeezerTrack === musicId)
 

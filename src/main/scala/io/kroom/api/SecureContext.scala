@@ -4,7 +4,6 @@ import io.kroom.api.root.RepoRoot
 import io.kroom.api.user.{DataUser, DataUserPrivacy}
 import Authorization.{PermissionGroup, Permissions, Privacy}
 import io.kroom.api.ExceptionCustom.AuthorisationException
-import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 
 import scala.util.{Failure, Success, Try}
 

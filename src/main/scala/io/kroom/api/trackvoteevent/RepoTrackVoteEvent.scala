@@ -89,11 +89,15 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   }
 
   def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
-    dbh.haseVote(eventId, userId, musicId).flatMap(b => if (b) {
+    dbh.hasVote(eventId, userId, musicId).flatMap(b => if (b) {
       dbh.updateVote(eventId, userId, musicId, up)
     } else {
       dbh.addVote(eventId, userId, musicId, up)
     })
+  }
+
+  def hasVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
+    dbh.hasVote(eventId, userId, musicId)
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
