@@ -8,6 +8,7 @@ import io.kroom.api.deezer._
 import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
+import javax.mail.internet.{InternetAddress, MimeMessage}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -300,10 +301,12 @@ object SchemaRoot {
               val emailRegex =
                 """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])""".r
 
+              val emailAddr: Nothing = new InternetAddress(email)
+
               DataError("email", List[Option[String]](
-                email match {
-                  case emailRegex(_*) => None
-                  case _ => Some("email bad format")
+                emailRegex.findFirstMatchIn(email) match {
+                  case Some(_) => None
+                  case None => Some("email bad format")
                 },
                 ctx.ctx.repo.user.getByEmail(email) match {
                   case Success(_) => Some("email already exist")
@@ -319,21 +322,21 @@ object SchemaRoot {
               val length8 = """(?=.{8,})""".r
 
               DataError("pass", List[Option[String]](
-                pass match {
-                  case lower1(_*) => None
-                  case _ => Some("Password need a lowercase")
+                lower1.findFirstMatchIn(pass) match {
+                  case Some(_) => None
+                  case None => Some("Password need a lowercase")
                 },
-                pass match {
-                  case upper1(_*) => None
-                  case _ => Some("Password need a uppercase")
+                upper1.findFirstMatchIn(pass) match {
+                  case Some(_) => None
+                  case None => Some("Password need a uppercase")
                 },
-                pass match {
-                  case numeric1(_*) => None
-                  case _ => Some("Password need a number")
+                numeric1.findFirstMatchIn(pass) match {
+                  case Some(_) => None
+                  case None => Some("Password need a number")
                 },
-                pass match {
-                  case length8(_*) => None
-                  case _ => Some("Password need 8 character")
+                length8.findFirstMatchIn(pass) match {
+                  case Some(_) => None
+                  case None => Some("Password need 8 character")
                 },
               ) collect { case Some(s) => s })
             }
@@ -343,18 +346,18 @@ object SchemaRoot {
               val charValid = """^([a-zA-Z0-9_-]*)$""".r
               val length4 = """(?=.{4,})""".r
 
-              DataError("pass", List[Option[String]](
-                pass match {
-                  case length4(_*) => None
-                  case _ => Some("username need 4 character")
+              DataError("userName", List[Option[String]](
+                length4.findFirstMatchIn(userName) match {
+                  case Some(_) => None
+                  case None => Some("username need 4 character")
                 },
-                pass match {
-                  case lower1(_*) => None
-                  case _ => Some("username need 1 lowercase")
+                lower1.findFirstMatchIn(userName) match {
+                  case Some(_) => None
+                  case None => Some("username need 1 lowercase")
                 },
-                pass match {
-                  case charValid(_*) => None
-                  case _ => Some("username can only contain lowercase, uppercase, underscore and hyphen")
+                charValid.findFirstMatchIn(userName) match {
+                  case Some(_) => None
+                  case None => Some("username can only contain lowercase, uppercase, underscore and hyphen")
                 },
                 ctx.ctx.repo.user.getByName(userName) match {
                   case Success(_) => Some("userName already exist")
