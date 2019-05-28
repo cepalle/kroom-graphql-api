@@ -59,6 +59,8 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
         case (idDeezerTrack, css) => (idDeezerTrack, css.length)
       })
 
+    val voteTrue = Await.ready(db.run(qVoteTrue.result), Duration.Inf).value.get
+
     val qVoteAll = (for {
       (e, jv) <- tabTrackVoteEvent join joinTrackVoteEventUserVoteTrack on (_.id === _.idTrackVoteEvent)
       if e.id === eventId
@@ -68,7 +70,9 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
         case (idDeezerTrack, css) => (idDeezerTrack, css.length)
       })
 
-    Await.ready(db.run(qVoteTrue.result zip qVoteAll.result), Duration.Inf).value.get
+    val allVote = Await.ready(db.run(qVoteAll.result), Duration.Inf).value.get
+
+    voteTrue.flatMap(v => allVote.map(a => (v, a)))
       .map(d => {
         val (voteTrue, allVote) = d
 
@@ -142,9 +146,12 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(eventId))
   }
 
-  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+  def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+
+    // TODO check if alredy Vote
+
     val query = joinTrackVoteEventUserVoteTrack
-      .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack)) += (eventId, userId, musicId)
+      .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack, e.voteUp)) += (eventId, userId, musicId, up)
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(eventId))

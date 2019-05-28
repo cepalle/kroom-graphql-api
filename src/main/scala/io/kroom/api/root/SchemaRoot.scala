@@ -444,23 +444,75 @@ object SchemaRoot {
         }
       ),
 
-      Field("TrackVoteEventAddVote", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventAddOrUpdate", TrackVoteEventAddOrUpdateVotePayload,
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Argument("musicId", IntType)
           :: Argument("up", BooleanType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { () =>
-          Future {
-            // TODO check if is invited
-            ctx.ctx.repo.trackVoteEvent.addVote(
-              ctx.arg[Int]("eventId"),
-              ctx.arg[Int]("userId"),
-              ctx.arg[Int]("musicId"),
-              ctx.arg[Boolean]("up"),
-            ).get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { () => {
+            val eventId = ctx.arg[Int]("eventId")
+            val userId = ctx.arg[Int]("userId")
+            val musicId = ctx.arg[Int]("musicId")
+            val up = ctx.arg[Boolean]("up")
+
+            val errors = {
+              val eventIdErrors = {
+                DataError("eventId", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId) match {
+                    case Success(s) => if (s.public) {
+                      None
+                    } else {
+                      ctx.ctx.repo.trackVoteEvent.getUserInvited(eventId)
+                        .toOption
+                        .map(_.map(_.id))
+                        .map(_.contains(userId))
+                        .flatMap(e => if (!e) {
+                          Some("user isn't invited in a private event")
+                        } else {
+                          None
+                        })
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val musicIdErrors = {
+                DataError("musicId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getTrackById(musicId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("musicId not found")
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              List(eventIdErrors, userIdErrors, musicIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.addOrUpdateVote(eventId, userId, musicId, up).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
           }
-        }.get
+          }.get
+        }
       ),
 
       Field("TrackVoteEventDelVote", OptionType(TrackVoteEventField),

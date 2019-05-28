@@ -85,73 +85,14 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
   }
 
   def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
-    /*
-    val userTry = repoUser.getById(userId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
-    }
-    val eventIdTry = dbh.getById(eventId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-    }
-
-    val lCheck = List(userTry, eventIdTry) collect { case Failure(e) => e }
-
-    if (lCheck.nonEmpty) {
-      return Failure(MultipleException(lCheck))
-    }
-    */
-
     dbh.delUser(eventId, userId)
   }
 
-  def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
-    /*
-    val musicTry = repoDeezer.getTrackById(musicId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("musicId not found"))
-    }
-    val userTry = repoUser.getById(userId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
-    }
-    val eventIdTry = dbh.getById(eventId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-    }
-
-    val lCheck = List(userTry, eventIdTry, musicTry) collect { case Failure(e) => e }
-
-    if (lCheck.nonEmpty) {
-      return Failure(MultipleException(lCheck))
-    }
-    */
-
-    dbh.addVote(eventId, userId, musicId, up)
+  def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
+    dbh.addOrUpdateVote(eventId, userId, musicId, up)
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
-    /*
-    val musicTry = repoDeezer.getTrackById(musicId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("musicId not found"))
-    }
-    val userTry = repoUser.getById(userId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("userIdMaster not found"))
-    }
-    val eventIdTry = dbh.getById(eventId) match {
-      case Success(_) => Success(Unit)
-      case Failure(_) => Failure(SimpleException("eventId not found"))
-    }
-
-    val lCheck = List(userTry, eventIdTry, musicTry) collect { case Failure(e) => e }
-
-    if (lCheck.nonEmpty) {
-      return Failure(MultipleException(lCheck))
-    }
-    */
-
     dbh.delVote(eventId, userId, musicId)
   }
 
