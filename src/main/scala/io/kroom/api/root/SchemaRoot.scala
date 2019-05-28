@@ -295,18 +295,77 @@ object SchemaRoot {
           val email = ctx.arg[String]("email")
           val pass = ctx.arg[String]("pass")
 
-          // TODO verif userName, email, pass
+          val errors = {
+            val emailErrors = {
+              val emailRegex =
+                """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])""".r
 
-          val userByName = ctx.ctx.repo.user.getByName(userName).toEither match {
-            case Left(_) => Left(DataError("userName", List("userName already exist")))
-            case Right(_) => Right(Unit)
-          }
-          val userByemail = ctx.ctx.repo.user.getByEmail(email).toEither match {
-            case Right(_) => Left(DataError("email", List("email already exist")))
-            case Left(_) => Right(Unit)
+              DataError("email", List[Option[String]](
+                email match {
+                  case emailRegex(_*) => None
+                  case _ => Some("email bad format")
+                },
+                ctx.ctx.repo.user.getByEmail(email) match {
+                  case Success(_) => Some("email already exist")
+                  case Failure(_) => None
+                }
+              ) collect { case Some(s) => s })
+            }
+
+            val passErrors = {
+              val lower1 = """(?=.*[a-z])""".r
+              val upper1 = """(?=.*[A-Z])""".r
+              val numeric1 = """(?=.*[0-9])""".r
+              val length8 = """(?=.{8,})""".r
+
+              DataError("pass", List[Option[String]](
+                pass match {
+                  case lower1(_*) => None
+                  case _ => Some("Password need a lowercase")
+                },
+                pass match {
+                  case upper1(_*) => None
+                  case _ => Some("Password need a uppercase")
+                },
+                pass match {
+                  case numeric1(_*) => None
+                  case _ => Some("Password need a number")
+                },
+                pass match {
+                  case length8(_*) => None
+                  case _ => Some("Password need 8 character")
+                },
+              ) collect { case Some(s) => s })
+            }
+
+            val userNameErrors = {
+              val lower1 = """(?=.*[a-z])""".r
+              val charValid = """^([a-zA-Z0-9_-]*)$""".r
+              val length4 = """(?=.{4,})""".r
+
+              DataError("pass", List[Option[String]](
+                pass match {
+                  case length4(_*) => None
+                  case _ => Some("username need 4 character")
+                },
+                pass match {
+                  case lower1(_*) => None
+                  case _ => Some("username need 1 lowercase")
+                },
+                pass match {
+                  case charValid(_*) => None
+                  case _ => Some("username can only contain lowercase, uppercase, underscore and hyphen")
+                },
+                ctx.ctx.repo.user.getByName(userName) match {
+                  case Success(_) => Some("userName already exist")
+                  case Failure(_) => None
+                }
+              ) collect { case Some(s) => s })
+            }
+
+            List(emailErrors, passErrors, userNameErrors).filter(e => e.errors.nonEmpty)
           }
 
-          val errors = List(userByName, userByemail) collect { case Left(e) => e }
           val payload = if (errors.isEmpty) {
             val user = ctx.ctx.repo.user.signUp(userName, email, pass).get
             DataPayload[DataUser](Some(user), List())
@@ -333,7 +392,7 @@ object SchemaRoot {
             case Success(value) =>
               DataPayload[DataUser](Some(value), List())
             case Failure(_) => DataPayload[DataUser](None, List(
-              DataError("userName/pass", List("username or password invalid")))
+              DataError("login", List("username or password invalid")))
             )
           }
           UpdateCtx(res) { userPayload ⇒
