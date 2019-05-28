@@ -328,19 +328,58 @@ object SchemaRoot {
         }
       ),
 
-      Field("TrackVoteEventAddUser", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventAddUser", TrackVoteEventAddUserPayload,
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { () =>
-          Future {
-            // TODO check if is userMaster
-            ctx.ctx.repo.trackVoteEvent.addUser(
-              ctx.arg[Int]("eventId"),
-              ctx.arg[Int]("userId"),
-            ).get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { () => {
+            val eventId = ctx.arg[Int]("eventId")
+            val userId = ctx.arg[Int]("userId")
+
+            val errors = {
+              val eventIdErrors = {
+                DataError("eventId", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => ctx.ctx.repo.trackVoteEvent.getUserInvited(eventId)
+                      .toOption
+                      .map(_.map(_.id))
+                      .map(_.contains(userId))
+                      .flatMap(e => if (e) {
+                        Some("user already invited")
+                      } else {
+                        None
+                      })
+                    case Failure(_) => Some("userId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(eventIdErrors, userIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.addUser(eventId, userId).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
           }
-        }.get
+          }.get
+        }
       ),
 
       Field("TrackVoteEventDelUser", OptionType(TrackVoteEventField),
