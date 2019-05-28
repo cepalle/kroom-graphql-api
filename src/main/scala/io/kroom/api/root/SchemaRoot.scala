@@ -133,6 +133,7 @@ object SchemaRoot {
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
           ctx.ctx.authorised(Permissions.TrackVoteEventById) { () =>
+            // TODO check public
             ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())
               case Failure(_) => DataPayload[DataTrackVoteEvent](None, List(
@@ -177,44 +178,151 @@ object SchemaRoot {
 
       /* TRACK_VOTE_EVENT */
 
-      Field("TrackVoteEventNew", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventNew", TrackVoteEventNewPayload,
         arguments = Argument("userIdMaster", IntType)
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () =>
-            // TODO userMaster is invited and can't be del
-            ctx.ctx.repo.trackVoteEvent.`new`(
-              ctx.arg[Int]("userIdMaster"),
-              ctx.arg[String]("name"),
-              ctx.arg[Boolean]("public"),
-            ).get
+          ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
+            val userIdMaster = ctx.arg[Int]("userIdMaster")
+            val name = ctx.arg[String]("name")
+            val public = ctx.arg[Boolean]("public")
+
+            val errors = {
+              val userIdMasterErrors = {
+                DataError("userIdMaster", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userIdMaster) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userIdMaster not found")
+                  },
+                  userIdMaster == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userIdMaster isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val nameErrors = {
+                val lower1 = """(?=.*[a-z])""".r
+                val charValid = """^([a-zA-Z0-9_-]*)$""".r
+                val length4 = """(?=.{4,})""".r
+
+                DataError("name", List[Option[String]](
+                  length4.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name need 4 character")
+                  },
+                  lower1.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name need 1 lowercase")
+                  },
+                  charValid.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name can only contain lowercase, uppercase, underscore and hyphen")
+                  },
+                  ctx.ctx.repo.trackVoteEvent.getByName(name) match {
+                    case Success(_) => Some("name already exist")
+                    case Failure(_) => None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdMasterErrors, nameErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.`new`(userIdMaster, name, public).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
+          }
           }.get
         }
       ),
 
-      Field("TrackVoteEventUpdate", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventUpdate", TrackVoteEventUpdatePayload,
         arguments = Argument("eventId", IntType)
           :: Argument("userIdMaster", IntType)
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
-          :: Argument("horaire", OptionInputType(StringType))
+          :: Argument("schedule", OptionInputType(StringType))
           :: Argument("location", OptionInputType(StringType))
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { () =>
-          Future {
-            // TODO check if is userMaster
-            ctx.ctx.repo.trackVoteEvent.update(
-              ctx.arg[Int]("eventId"),
-              ctx.arg[Int]("userIdMaster"),
-              ctx.arg[String]("name"),
-              ctx.arg[Boolean]("public"),
-              ctx.argOpt[String]("horaire"),
-              ctx.argOpt[String]("location"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { () =>
+
+            val eventId = ctx.arg[Int]("eventId")
+            val userIdMaster = ctx.arg[Int]("userIdMaster")
+            val name = ctx.arg[String]("name")
+            val public = ctx.arg[Boolean]("public")
+            val schedule = ctx.argOpt[String]("schedule")
+            val location = ctx.argOpt[String]("location")
+
+            val errors = {
+              val eventIdErrors = {
+                DataError("eventId", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val userIdMasterErrors = {
+                DataError("userIdMaster", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userIdMaster) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userIdMaster not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val nameErrors = {
+                val lower1 = """(?=.*[a-z])""".r
+                val charValid = """^([a-zA-Z0-9_-]*)$""".r
+                val length4 = """(?=.{4,})""".r
+
+                DataError("name", List[Option[String]](
+                  length4.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name need 4 character")
+                  },
+                  lower1.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name need 1 lowercase")
+                  },
+                  charValid.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name can only contain lowercase, uppercase, underscore and hyphen")
+                  },
+                  ctx.ctx.repo.trackVoteEvent.getByName(name) match {
+                    case Success(s) => if (s.id == eventId) {
+                      None
+                    } else {
+                      Some("name already exist")
+                    }
+                    case Failure(_) => None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(eventIdErrors, userIdMasterErrors, nameErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.update(eventId, userIdMaster, name, public, schedule, location).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
+          }.get
+        }
       ),
 
       Field("TrackVoteEventAddUser", OptionType(TrackVoteEventField),
@@ -239,6 +347,7 @@ object SchemaRoot {
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
           Future {
             // TODO check if is userMaster
+            // TODO can't del userMaster
             ctx.ctx.repo.trackVoteEvent.delUser(
               ctx.arg[Int]("eventId"),
               ctx.arg[Int]("userId"),

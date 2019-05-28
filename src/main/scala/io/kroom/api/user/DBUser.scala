@@ -207,7 +207,6 @@ object DBUser {
   val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)) => Try[DataUser] = {
     case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson) =>
       parser.decode[DataUserPrivacy](privacyJson).toTry.map(p => {
-        println(p)
         DataUser(
           id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, p
         )

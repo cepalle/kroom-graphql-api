@@ -17,12 +17,6 @@ object SchemaUser {
 
   /* FETCHER */
 
-  lazy val UserFetcherId: Fetcher[SecureContext, DataUser, DataUser, Int] =
-    Fetcher.caching((ctx: SecureContext, ids: Seq[Int]) ⇒ Future {
-      ids.flatMap(id => ctx.repo.user.getById(id).toOption)
-    }
-    )(HasId(_.id))
-
   /* PAYLOAD */
 
   lazy val UserGetByIdPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(

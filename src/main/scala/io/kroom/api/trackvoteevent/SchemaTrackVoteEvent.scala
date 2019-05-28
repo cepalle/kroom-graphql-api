@@ -41,6 +41,22 @@ object SchemaTrackVoteEvent {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
+  lazy val TrackVoteEventNewPayload: ObjectType[SecureContext, DataPayload[DataTrackVoteEvent]] = ObjectType(
+    "TrackVoteEventNewPayload",
+    "TrackVoteEventNewPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataTrackVoteEvent]](
+      Field("trackVoteEvent", OptionType(TrackVoteEventField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val TrackVoteEventUpdatePayload: ObjectType[SecureContext, DataPayload[DataTrackVoteEvent]] = ObjectType(
+    "TrackVoteEventUpdatePayload",
+    "TrackVoteEventUpdatePayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataTrackVoteEvent]](
+      Field("trackVoteEvent", OptionType(TrackVoteEventField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   /* FIELD */
 
   lazy val TrackVoteEventField: ObjectType[SecureContext, DataTrackVoteEvent] = ObjectType(
@@ -49,9 +65,9 @@ object SchemaTrackVoteEvent {
     () ⇒ fields[SecureContext, DataTrackVoteEvent](
       Field("id", IntType, resolve = _.value.id),
 
-      Field("userMaster", SchemaUser.UserField, resolve = ctx =>
-        SchemaUser.UserFetcherId.defer(ctx.value.userMasterId)
-      ),
+      Field("userMaster", OptionType(SchemaUser.UserField), resolve = ctx => Future {
+        ctx.ctx.repo.user.getById(ctx.value.userMasterId).get
+      }),
 
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),

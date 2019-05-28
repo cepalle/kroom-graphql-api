@@ -14,21 +14,21 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
   import DBTrackVoteEvent._
   import DBUser._
 
-  def getTrackVoteEventById(id: Int): Try[DataTrackVoteEvent] = {
+  def getById(id: Int): Try[DataTrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .map(tabToObjTrackVoteEvent)
   }
 
-  def getTrackVoteEventByName(name: String): Try[DataTrackVoteEvent] = {
+  def getByName(name: String): Try[DataTrackVoteEvent] = {
     val query = tabTrackVoteEvent.filter(_.name === name).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .map(tabToObjTrackVoteEvent)
   }
 
-  def getTrackVoteEventPublic: Try[List[DataTrackVoteEvent]] = {
+  def getPublic: Try[List[DataTrackVoteEvent]] = {
     val query = tabTrackVoteEvent.filter(_.public).result
 
     Await.ready(db.run(query), Duration.Inf).value.get
@@ -36,7 +36,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .map(_.toList)
   }
 
-  def getTrackVoteEventByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
+  def getByUserId(userId: Int): Try[List[DataTrackVoteEvent]] = {
     val query = for {
       ((u, j), e) <- tabUser join joinTrackVoteEventUser on
         (_.id === _.idUser) join tabTrackVoteEvent on (_._2.idTrackVoteEvent === _.id)
@@ -94,17 +94,17 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
   // Mutation
 
-  def `new`(userIdMaster: Int,
-            name: String,
-            public: Boolean,
-           ): Try[DataTrackVoteEvent] = {
+  def add(userIdMaster: Int,
+          name: String,
+          public: Boolean,
+         ): Try[DataTrackVoteEvent] = {
     val query = (tabTrackVoteEvent
-      .map(e => (e.userMasterId, e.name, public))
+      .map(e => (e.userMasterId, e.name, e.public))
       returning tabTrackVoteEvent.map(_.id)
       ) += (userIdMaster, name, public)
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(id => getTrackVoteEventById(id))
+      .flatMap(id => getById(id))
   }
 
   def update(eventId: Int,
@@ -123,7 +123,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       ),
       Duration.Inf
     ).value.get
-      .flatMap(_ => getTrackVoteEventById(eventId))
+      .flatMap(_ => getById(eventId))
   }
 
   def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
@@ -131,7 +131,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .map(e => (e.idTrackVoteEvent, e.idUser)) += (eventId, userId)
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getTrackVoteEventById(eventId))
+      .flatMap(_ => getById(eventId))
   }
 
   def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
@@ -139,7 +139,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .filter(e => e.idTrackVoteEvent === eventId && e.idUser === userId).delete
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getTrackVoteEventById(eventId))
+      .flatMap(_ => getById(eventId))
   }
 
   def addVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
@@ -147,7 +147,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .map(e => (e.idTrackVoteEvent, e.idUser, e.idDeezerTrack)) += (eventId, userId, musicId)
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getTrackVoteEventById(eventId))
+      .flatMap(_ => getById(eventId))
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
@@ -156,7 +156,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .delete
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getTrackVoteEventById(eventId))
+      .flatMap(_ => getById(eventId))
   }
 
 }
