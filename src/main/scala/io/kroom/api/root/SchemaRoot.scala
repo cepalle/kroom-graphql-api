@@ -382,20 +382,66 @@ object SchemaRoot {
         }
       ),
 
-      Field("TrackVoteEventDelUser", OptionType(TrackVoteEventField),
+      Field("TrackVoteEventDelUser", TrackVoteEventDelUserPayload,
         arguments = Argument("eventId", IntType)
           :: Argument("userId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
-          Future {
-            // TODO check if is userMaster
-            // TODO can't del userMaster
-            ctx.ctx.repo.trackVoteEvent.delUser(
-              ctx.arg[Int]("eventId"),
-              ctx.arg[Int]("userId"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
+            val eventId = ctx.arg[Int]("eventId")
+            val userId = ctx.arg[Int]("userId")
+
+            val errors = {
+              val eventIdErrors = {
+                DataError("eventId", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => ctx.ctx.repo.trackVoteEvent.getUserInvited(eventId)
+                      .toOption
+                      .map(_.map(_.id))
+                      .map(_.contains(userId))
+                      .flatMap(e => if (!e) {
+                        Some("user isn't invited")
+                      } else {
+                        None
+                      })
+                    case Failure(_) => Some("userId not found")
+                  },
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId)
+                    .toOption
+                    .map(_.userMasterId)
+                    .map(_ == userId)
+                    .flatMap(e => if (e) {
+                      Some("you can't delete the master")
+                    } else {
+                      None
+                    })
+                ) collect { case Some(s) => s })
+              }
+
+              List(eventIdErrors, userIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.delUser(eventId, userId).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
+          }.get
+        }
       ),
 
       Field("TrackVoteEventAddVote", OptionType(TrackVoteEventField),
