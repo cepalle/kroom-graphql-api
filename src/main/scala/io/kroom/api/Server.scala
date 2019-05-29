@@ -1,6 +1,6 @@
 package io.kroom.api
 
-import sangria.ast.Document
+import sangria.ast.{Document, OperationType}
 import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
@@ -8,6 +8,7 @@ import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
@@ -35,27 +36,59 @@ object Server extends App with CorsSupport {
 
   private val db = Database.forConfig("h2mem1")
 
-  def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]) = {
-    complete(Executor.execute(
-      schema = SchemaRoot.KroomSchema,
-      queryAst = query,
-      userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
-      variables = if (variables.isNull) Json.obj() else variables,
-      operationName = operationName,
-      middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
-      deferredResolver = DeferredResolver.fetchers(
-        SchemaDeezer.TrackFetcherId,
-        SchemaDeezer.ArtistFetcherId,
-        SchemaDeezer.AlbumFetcherId,
-        SchemaDeezer.GenreFetcherId
-      ),
-      exceptionHandler = ExceptionCustom.exceptionHandler
-    )
-      .map(OK → _)
-      .recover {
-        case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
-        case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
-      })
+  val executorSubscription = Executor(
+    SchemaRoot.KroomSchema,
+    deferredResolver = DeferredResolver.fetchers(
+      SchemaDeezer.TrackFetcherId,
+      SchemaDeezer.ArtistFetcherId,
+      SchemaDeezer.AlbumFetcherId,
+      SchemaDeezer.GenreFetcherId
+    ),
+  )
+
+  def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
+    query.operationType(operationName) match {
+      case Some(OperationType.Subscription) =>
+        complete(executorSubscription.prepare(
+          queryAst,
+          ctx,
+          (),
+          operation,
+          variables
+        ).map { preparedQuery ⇒
+          ToResponseMarshallable(preparedQuery.execute()
+            .map(result ⇒ ServerSentEvent(result.compactPrint))
+            .recover { case NonFatal(error) ⇒
+              logger.error(error, "Unexpected error during event stream processing.")
+              ServerSentEvent(error.getMessage)
+            })
+        }
+          .recover {
+            case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
+            case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
+          })
+      case _ =>
+        complete(Executor.execute(
+          schema = SchemaRoot.KroomSchema,
+          queryAst = query,
+          userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
+          variables = if (variables.isNull) Json.obj() else variables,
+          operationName = operationName,
+          middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
+          deferredResolver = DeferredResolver.fetchers(
+            SchemaDeezer.TrackFetcherId,
+            SchemaDeezer.ArtistFetcherId,
+            SchemaDeezer.AlbumFetcherId,
+            SchemaDeezer.GenreFetcherId
+          ),
+          exceptionHandler = ExceptionCustom.exceptionHandler
+        )
+          .map(OK → _)
+          .recover {
+            case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
+            case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
+          })
+    }
   }
 
   def formatError(error: Throwable): Json = error match {

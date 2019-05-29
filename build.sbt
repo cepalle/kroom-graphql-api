@@ -30,7 +30,9 @@ libraryDependencies ++= Seq(
 
   "com.h2database" % "h2" % "1.4.199",
   "com.github.t3hnar" %% "scala-bcrypt" % "4.0",
-  "javax.mail" % "mail" % "1.4.1"
+  "javax.mail" % "mail" % "1.4.1",
+  "io.monix" %% "monix" % "3.0.0-RC2",
+  "org.sangria-graphql" %% "sangria-monix" % "1.0.0"
 )
 
 Revolver.settings
