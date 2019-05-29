@@ -2,7 +2,7 @@ package io.kroom.api
 
 import sangria.ast.{Document, OperationType}
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
+import sangria.execution.{ErrorWithResolver, Executor, PreparedQuery, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
@@ -12,6 +12,8 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
@@ -26,6 +28,8 @@ import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
+
+import scala.concurrent.Future
 
 object Server extends App with CorsSupport {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
@@ -49,45 +53,41 @@ object Server extends App with CorsSupport {
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
       case Some(OperationType.Subscription) =>
-        complete(executorSubscription.prepare(
-          queryAst,
-          ctx,
-          (),
-          operation,
-          variables
-        ).map { preparedQuery ⇒
-          ToResponseMarshallable(preparedQuery.execute()
-            .map(result ⇒ ServerSentEvent(result.compactPrint))
-            .recover { case NonFatal(error) ⇒
-              logger.error(error, "Unexpected error during event stream processing.")
-              ServerSentEvent(error.getMessage)
-            })
-        }
-          .recover {
-            case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
-            case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
-          })
-      case _ =>
-        complete(Executor.execute(
-          schema = SchemaRoot.KroomSchema,
-          queryAst = query,
-          userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
-          variables = if (variables.isNull) Json.obj() else variables,
-          operationName = operationName,
-          middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
-          deferredResolver = DeferredResolver.fetchers(
-            SchemaDeezer.TrackFetcherId,
-            SchemaDeezer.ArtistFetcherId,
-            SchemaDeezer.AlbumFetcherId,
-            SchemaDeezer.GenreFetcherId
-          ),
-          exceptionHandler = ExceptionCustom.exceptionHandler
+        complete(
+          executorSubscription.prepare(
+            queryAst = query,
+            userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
+            root = (),
+            operationName = operationName,
+            variables = if (variables.isNull) Json.obj() else variables,
+          )
+            .map(preparedQuery ⇒
+              preparedQuery.execute()
+            )
         )
-          .map(OK → _)
-          .recover {
-            case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
-            case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
-          })
+      case _ =>
+        complete(
+          Executor.execute(
+            schema = SchemaRoot.KroomSchema,
+            queryAst = query,
+            userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
+            variables = if (variables.isNull) Json.obj() else variables,
+            operationName = operationName,
+            middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
+            deferredResolver = DeferredResolver.fetchers(
+              SchemaDeezer.TrackFetcherId,
+              SchemaDeezer.ArtistFetcherId,
+              SchemaDeezer.AlbumFetcherId,
+              SchemaDeezer.GenreFetcherId
+            ),
+            exceptionHandler = ExceptionCustom.exceptionHandler
+          )
+            .map(OK → _)
+            .recover {
+              case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
+              case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
+            }
+        )
     }
   }
 
