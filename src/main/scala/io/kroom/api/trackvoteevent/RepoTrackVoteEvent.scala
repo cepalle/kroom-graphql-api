@@ -2,6 +2,8 @@ package io.kroom.api.trackvoteevent
 
 import io.kroom.api.deezer.RepoDeezer
 import io.kroom.api.user.{DataUser, RepoUser}
+import monix.reactive.subjects.ConcurrentSubject
+import monix.execution.Scheduler.Implicits.global
 
 import scala.util.{Failure, Success, Try}
 
@@ -23,6 +25,8 @@ case class DataTrackVoteEvent(
                              )
 
 class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer, private val repoUser: RepoUser) {
+
+  val source: ConcurrentSubject[DataTrackVoteEvent, DataTrackVoteEvent] = ConcurrentSubject.publish[DataTrackVoteEvent]
 
   def getById(id: Int): Try[DataTrackVoteEvent] = {
     dbh.getById(id)

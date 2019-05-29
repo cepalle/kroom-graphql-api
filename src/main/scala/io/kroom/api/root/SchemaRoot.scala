@@ -9,6 +9,7 @@ import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 import javax.mail.internet.{AddressException, InternetAddress}
+import sangria.macros.derive.Interfaces
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -21,7 +22,6 @@ object SchemaRoot {
   import SchemaUser._
   import io.kroom.api.deezer.SchemaDeezer._
   import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent._
-
   import scala.concurrent.ExecutionContext.Implicits.global
 
   lazy val PrivacyEnum = EnumType(
@@ -974,5 +974,20 @@ object SchemaRoot {
     )
   )
 
-  val KroomSchema = Schema(Query, Some(Mutation))
+  import sangria.streaming.monix._
+  import sangria.execution.ExecutionScheme.Stream
+
+  val SubscriptionType = ObjectType(
+    "Subscription", fields[SecureContext, Unit](
+      Field.subs(
+        "TrackVoteEvent", TrackVoteEventField, resolve = ctx => {
+          ctx.ctx.repo.trackVoteEvent.source
+            .dump("graphQL")
+            .map(Action(_))
+        }
+      )
+    )
+  )
+
+  val KroomSchema = Schema(Query, Some(Mutation), Some(SubscriptionType))
 }

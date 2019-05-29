@@ -53,6 +53,9 @@ object Server extends App with CorsSupport {
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
       case Some(OperationType.Subscription) =>
+        import sangria.streaming.monix._
+        import sangria.execution.ExecutionScheme.Stream
+
         complete(
           executorSubscription.prepare(
             queryAst = query,
