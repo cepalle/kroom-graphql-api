@@ -65,7 +65,7 @@ object Authorization {
   val permissionsOfRoot: Set[Permissions.Value] = permissionsOfUser ++ Set[Permissions.Value](
   )
 
-  def PermissionGroupToPermissions(grp: PermissionGroup.Value): Set[Permissions.Value] = {
+  def permissionGroupToPermissions(grp: PermissionGroup.Value): Set[Permissions.Value] = {
     grp match {
       case PermissionGroup.root => permissionsOfRoot
       case PermissionGroup.public => permissionsOfPublic
@@ -73,13 +73,13 @@ object Authorization {
     }
   }
 
-  def PermissionGroupsToPermissions(grps: Set[PermissionGroup.Value]): Set[Permissions.Value] = {
+  def permissionGroupsToPermissions(grps: Set[PermissionGroup.Value]): Set[Permissions.Value] = {
     grps.foldLeft(Set[Permissions.Value]()) { (acc: Set[Permissions.Value], cur: PermissionGroup.Value) =>
-      acc ++ PermissionGroupToPermissions(cur)
+      acc ++ permissionGroupToPermissions(cur)
     }
   }
 
-  def PermissionGroupToString(g: PermissionGroup.Value): String = {
+  def permissionGroupToString(g: PermissionGroup.Value): String = {
     g match {
       case PermissionGroup.root => "root"
       case PermissionGroup.public => "public"
@@ -87,7 +87,7 @@ object Authorization {
     }
   }
 
-  def StringToPermissionGroup(g: String): PermissionGroup.Value = {
+  def stringToPermissionGroup(g: String): PermissionGroup.Value = {
     g match {
       case "root" => PermissionGroup.root
       case "user" => PermissionGroup.user
@@ -96,12 +96,12 @@ object Authorization {
   }
 
   object Privacy extends Enumeration {
-    val public, amis, `private` = Value
+    val public, friends, `private` = Value
 
     def stringToPrivacy(nb: String): Privacy.Value = {
       nb match {
         case "public" => public
-        case "amis" => amis
+        case "friends" => friends
         case _ => `private`
       }
     }
@@ -109,7 +109,7 @@ object Authorization {
     def privacyToString(e: Privacy.Value): String = {
       e match {
         case Privacy.public => "public"
-        case Privacy.amis => "amis"
+        case Privacy.friends => "friends"
         case _ => "private"
       }
     }

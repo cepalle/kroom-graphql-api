@@ -1,8 +1,8 @@
 package io.kroom.api.user
 
 import io.kroom.api.Authorization.Privacy
-import io.kroom.api.Authorization.PermissionGroupToString
-import io.kroom.api.SecureContext
+import io.kroom.api.Authorization.permissionGroupToString
+import io.kroom.api.{Authorization, SecureContext}
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
 import io.kroom.api.util.DataPayload
@@ -43,16 +43,56 @@ object SchemaUser {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
+  lazy val UserAddFriendPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserAddFriendPayload",
+    "UserAddFriendPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val UserDelFriendPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserDelFriendPayload",
+    "UserDelFriendPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val UserAddMusicalPreferencePayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserAddMusicalPreferencePayload",
+    "UserAddMusicalPreferencePayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val UserDelMusicalPreferencePayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserDelMusicalPreferencePayload",
+    "UserDelMusicalPreferencePayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val UserUpdatePrivacyPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+    "UserUpdatePrivacyPayload",
+    "UserUpdatePrivacyPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataUser]](
+      Field("user", OptionType(UserField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   /* FIELD */
 
   lazy val PrivacyField: ObjectType[SecureContext, DataUserPrivacy] = ObjectType(
     "Privacy",
     "Privacy description.",
     () ⇒ fields[SecureContext, DataUserPrivacy](
-      Field("email", StringType, resolve = _.value.email),
-      Field("location", StringType, resolve = _.value.location),
-      Field("friends", StringType, resolve = _.value.friends),
-      Field("musicalPreferencesGenre", StringType, resolve = _.value.musicalPreferencesGenre),
+      Field("email", SchemaRoot.PrivacyEnum, resolve = ctx => Authorization.Privacy.stringToPrivacy(ctx.value.email)),
+      Field("location", SchemaRoot.PrivacyEnum, resolve = ctx => Authorization.Privacy.stringToPrivacy(ctx.value.location)),
+      Field("friends", SchemaRoot.PrivacyEnum, resolve = ctx => Authorization.Privacy.stringToPrivacy(ctx.value.friends)),
+      Field("musicalPreferencesGenre", SchemaRoot.PrivacyEnum, resolve = ctx => Authorization.Privacy.stringToPrivacy(ctx.value.musicalPreferencesGenre)),
     ))
 
   lazy val UserField: ObjectType[SecureContext, DataUser] = ObjectType(
@@ -93,7 +133,7 @@ object SchemaUser {
 
       Field("permissionGroup", OptionType(ListType(StringType)), resolve = ctx =>
         ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.public) { () =>
-          ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(_.map(PermissionGroupToString).toList)
+          ctx.ctx.repo.user.getUserPermGroup(ctx.value.id).map(_.map(permissionGroupToString).toList)
         }.flatMap(e => e.toOption)),
 
     ))

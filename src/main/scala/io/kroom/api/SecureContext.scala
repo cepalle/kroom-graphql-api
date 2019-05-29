@@ -16,7 +16,7 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
       Set(PermissionGroup.public)
     ))
 
-  lazy val permissions: Set[Authorization.Permissions.Value] = Authorization.PermissionGroupsToPermissions(permGrp)
+  lazy val permissions: Set[Authorization.Permissions.Value] = Authorization.permissionGroupsToPermissions(permGrp)
 
   def authorised[T](perms: Permissions.Value*)(fn: () ⇒ T): Try[T] = {
     if (perms.forall(permissions.contains))
@@ -30,7 +30,7 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
       Some(fn())
     } else if (privacy == Privacy.public) {
       Some(fn())
-    } else if (privacy == Privacy.amis) {
+    } else if (privacy == Privacy.friends) {
       if (repo.user.getFriends(foreignId).toOption.exists(_.map(_.id).contains(user.id))) {
         Some(fn())
       } else {

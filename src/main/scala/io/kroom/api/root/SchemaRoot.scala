@@ -30,8 +30,8 @@ object SchemaRoot {
     List(
       EnumValue("PUBLIC",
         value = Privacy.public),
-      EnumValue("AMIS",
-        value = Privacy.amis),
+      EnumValue("FRIENDS",
+        value = Privacy.friends),
       EnumValue("PRIVATE",
         value = Privacy.`private`),
     )
@@ -703,85 +703,272 @@ object SchemaRoot {
         }.get
       ),
 
-      Field("UserAddFriend", OptionType(UserField),
+      Field("UserAddFriend", UserAddFriendPayload,
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddFriend) { () =>
+        resolve = ctx ⇒
           Future {
-            // TODO check if is good user
-            ctx.ctx.repo.user.addFriend(
-              ctx.arg[Int]("userId"),
-              ctx.arg[Int]("friendId"),
-            ).get
+            ctx.ctx.authorised(Permissions.UserAddFriend) { () =>
+              val userId = ctx.arg[Int]("userId")
+              val friendId = ctx.arg[Int]("friendId")
+
+              val errors = {
+
+                val userIdErrors = {
+                  DataError("userId", List[Option[String]](
+                    ctx.ctx.repo.user.getById(userId) match {
+                      case Success(_) => None
+                      case Failure(_) => Some("userId not found")
+                    },
+                    ctx.ctx.repo.user.getFriends(userId)
+                      .toOption
+                      .map(_.map(_.id))
+                      .map(_.contains(friendId))
+                      .flatMap(b => if (b) {
+                        Some("you are already friend")
+                      } else {
+                        None
+                      }),
+                    userId == ctx.ctx.user.id match {
+                      case true => None
+                      case false => Some("userId isn't you")
+                    }
+                  ) collect { case Some(s) => s })
+                }
+
+                val friendIdErrors = {
+                  DataError("friendId", List[Option[String]](
+                    ctx.ctx.repo.user.getById(friendId) match {
+                      case Success(_) => None
+                      case Failure(_) => Some("friendId not found")
+                    },
+                    userId == friendId match {
+                      case true => Some("you can't be friend with you :'( it's sad")
+                      case false => None
+                    }
+                  ) collect { case Some(s) => s })
+                }
+
+                List(userIdErrors, friendIdErrors).filter(e => e.errors.nonEmpty)
+              }
+
+              if (errors.isEmpty) {
+                val user = ctx.ctx.repo.user.addFriend(userId, friendId).get
+                DataPayload[DataUser](Some(user), List())
+              } else {
+                DataPayload[DataUser](None, errors)
+              }
+            }.get
           }
-        }.get
       ),
 
-      Field("UserDelFriend", OptionType(UserField),
+      Field("UserDelFriend", UserDelFriendPayload,
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelFriend) { () =>
-          Future {
-            // TODO check if is good user
-            ctx.ctx.repo.user.delFriend(
-              ctx.arg[Int]("userId"),
-              ctx.arg[Int]("friendId"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.UserDelFriend) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val friendId = ctx.arg[Int]("friendId")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  ctx.ctx.repo.user.getFriends(userId)
+                    .toOption
+                    .map(_.map(_.id))
+                    .map(_.contains(friendId))
+                    .flatMap(b => if (!b) {
+                      Some("you aren't friend")
+                    } else {
+                      None
+                    }),
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val friendIdErrors = {
+                DataError("friendId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(friendId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("friendId not found")
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors, friendIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.delFriend(userId, friendId).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
       ),
 
-      Field("UserAddMusicalPreference", OptionType(UserField),
+      Field("UserAddMusicalPreference", UserAddMusicalPreferencePayload,
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { () =>
-          Future {
-            // TODO check if is good user
-            ctx.ctx.repo.user.addMusicalPreference(
-              ctx.arg[Int]("userId"),
-              ctx.arg[Int]("genreId"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val genreId = ctx.arg[Int]("genreId")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val genreIdErrors = {
+                DataError("genreId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getGenreById(genreId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("genreId not found")
+                  },
+                  ctx.ctx.repo.user.getMsicalPreferences(userId)
+                    .toOption
+                    .map(_.map(_.id))
+                    .map(_.contains(genreId))
+                    .flatMap(b => if (b) {
+                      Some("you already have this genre in your preferences")
+                    } else {
+                      None
+                    })
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors, genreIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.addMusicalPreference(userId, genreId).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
       ),
 
-      Field("UserDelMusicalPreference", OptionType(UserField),
+      Field("UserDelMusicalPreference", UserDelMusicalPreferencePayload,
         arguments = Argument("userId", IntType)
           :: Argument("genreId", IntType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { () =>
-          Future {
-            // TODO check if is good user
-            ctx.ctx.repo.user.delMusicalPreference(
-              ctx.arg[Int]("userId"),
-              ctx.arg[Int]("genreId"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val genreId = ctx.arg[Int]("genreId")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val genreIdErrors = {
+                DataError("genreId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getGenreById(genreId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("genreId not found")
+                  },
+                  ctx.ctx.repo.user.getMsicalPreferences(userId)
+                    .toOption
+                    .map(_.map(_.id))
+                    .map(_.contains(genreId))
+                    .flatMap(b => if (!b) {
+                      Some("you don't have this genre in your preferences")
+                    } else {
+                      None
+                    })
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors, genreIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.delMusicalPreference(userId, genreId).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
       ),
 
-      Field("UserUpdatePrivacy", OptionType(UserField),
+      Field("UserUpdatePrivacy", UserUpdatePrivacyPayload,
         arguments = Argument("userId", IntType)
           :: Argument("email", PrivacyEnum)
           :: Argument("location", PrivacyEnum)
           :: Argument("friends", PrivacyEnum)
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
-          Future {
-            // TODO check if is good user
-            ctx.ctx.repo.user.updatePrivacy(
-              ctx.arg[Int]("userId"),
-              ctx.arg[Privacy.Value]("email"),
-              ctx.arg[Privacy.Value]("location"),
-              ctx.arg[Privacy.Value]("friends"),
-              ctx.arg[Privacy.Value]("musicalPreferencesGenre"),
-            ).get
-          }
-        }.get
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val email = ctx.arg[Privacy.Value]("email")
+            val location = ctx.arg[Privacy.Value]("location")
+            val friends = ctx.arg[Privacy.Value]("friends")
+            val musicalPreferencesGenre = ctx.arg[Privacy.Value]("musicalPreferencesGenre")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.updatePrivacy(userId, email, location, friends, musicalPreferencesGenre).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
       ),
 
     )

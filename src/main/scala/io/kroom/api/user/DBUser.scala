@@ -74,7 +74,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
     val query = joinPermGroup.filter(_.idUser === userId).result
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(_.map(c => Authorization.StringToPermissionGroup(c._2)))
+      .map(_.map(c => Authorization.stringToPermissionGroup(c._2)))
       .map(_.toSet)
   }
 
@@ -85,7 +85,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
     Await.ready(db.run(queryInsertUser), Duration.Inf).value.get
       .flatMap(_ => getByEmail(email))
       .flatMap(user => {
-        val queryInsertPerm = joinPermGroup += (user.id, Authorization.PermissionGroupToString(Authorization.PermissionGroup.user))
+        val queryInsertPerm = joinPermGroup += (user.id, Authorization.permissionGroupToString(Authorization.PermissionGroup.user))
         Await.ready(db.run(queryInsertPerm), Duration.Inf).value.get
           .flatMap(_ => getById(user.id))
       })
@@ -162,14 +162,14 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def addPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
-    val query = joinPermGroup += (userId, Authorization.PermissionGroupToString(auth))
+    val query = joinPermGroup += (userId, Authorization.permissionGroupToString(auth))
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(userId))
   }
 
   def delPermGroupe(userId: Int, auth: PermissionGroup.Value): Try[DataUser] = {
-    val query = joinPermGroup.filter(e => e.idUser === userId && e.permGroup === Authorization.PermissionGroupToString(auth))
+    val query = joinPermGroup.filter(e => e.idUser === userId && e.permGroup === Authorization.permissionGroupToString(auth))
 
     Await.ready(db.run(query.delete), Duration.Inf).value.get
       .flatMap(_ => getById(userId))
