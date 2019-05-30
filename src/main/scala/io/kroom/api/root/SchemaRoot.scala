@@ -974,20 +974,24 @@ object SchemaRoot {
     )
   )
 
-  import sangria.streaming.monix._
-  import sangria.execution.ExecutionScheme.Stream
 
-  val SubscriptionType = ObjectType(
-    "Subscription", fields[SecureContext, Unit](
-      Field.subs(
-        "TrackVoteEvent", TrackVoteEventField, resolve = ctx => {
-          ctx.ctx.repo.trackVoteEvent.source
-            .dump("graphQL")
-            .map(Action(_))
-        }
+  val SubscriptionType = {
+    import monix.execution.Scheduler.Implicits.global
+    import sangria.execution.ExecutionScheme.Stream
+    import sangria.streaming.monix._
+
+    ObjectType(
+      "Subscription", fields[SecureContext, Unit](
+        Field.subs("TrackVoteEvent", TrackVoteEventField,
+          resolve = (ctx: Context[SecureContext, Unit]) => {
+            val obs = ctx.ctx.repo.trackVoteEvent.source
+              .map(Action(_))
+            obs
+          }
+        )
       )
     )
-  )
+  }
 
   val KroomSchema = Schema(Query, Some(Mutation), Some(SubscriptionType))
 }

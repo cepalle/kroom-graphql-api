@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.4.2",
   "org.sangria-graphql" %% "sangria-slowlog" % "0.1.8",
   "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
+  "org.sangria-graphql" %% "sangria-monix" % "1.0.0",
 
   "com.typesafe.akka" %% "akka-http" % "10.1.3",
   "de.heikoseeberger" %% "akka-http-circe" % "1.21.0",
@@ -27,12 +28,10 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-nop" % "1.6.4",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.0",
 
-
   "com.h2database" % "h2" % "1.4.199",
   "com.github.t3hnar" %% "scala-bcrypt" % "4.0",
   "javax.mail" % "mail" % "1.4.1",
   "io.monix" %% "monix" % "3.0.0-RC2",
-  "org.sangria-graphql" %% "sangria-monix" % "1.0.0"
 )
 
 Revolver.settings

@@ -25,6 +25,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
 import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent
+import monix.reactive.Observable
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
@@ -40,33 +41,34 @@ object Server extends App with CorsSupport {
 
   private val db = Database.forConfig("h2mem1")
 
-  val executorSubscription = Executor(
-    SchemaRoot.KroomSchema,
-    deferredResolver = DeferredResolver.fetchers(
-      SchemaDeezer.TrackFetcherId,
-      SchemaDeezer.ArtistFetcherId,
-      SchemaDeezer.AlbumFetcherId,
-      SchemaDeezer.GenreFetcherId
-    ),
-  )
-
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
       case Some(OperationType.Subscription) =>
-        import sangria.streaming.monix._
-        import sangria.execution.ExecutionScheme.Stream
 
-        complete(
-          executorSubscription.prepare(
+        val stream = {
+          import monix.execution.Scheduler.Implicits.global
+          import sangria.streaming.monix._
+          import sangria.execution.ExecutionScheme.Stream
+
+          Executor.execute(
+            schema = SchemaRoot.KroomSchema,
             queryAst = query,
             userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
-            root = (),
-            operationName = operationName,
             variables = if (variables.isNull) Json.obj() else variables,
+            operationName = operationName,
+            middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
+            deferredResolver = DeferredResolver.fetchers(
+              SchemaDeezer.TrackFetcherId,
+              SchemaDeezer.ArtistFetcherId,
+              SchemaDeezer.AlbumFetcherId,
+              SchemaDeezer.GenreFetcherId
+            ),
+            exceptionHandler = ExceptionCustom.exceptionHandler
           )
-            .map(preparedQuery ⇒
-              preparedQuery.execute()
-            )
+        }
+
+        complete(
+
         )
       case _ =>
         complete(
