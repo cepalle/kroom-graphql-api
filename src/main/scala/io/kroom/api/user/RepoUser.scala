@@ -78,14 +78,12 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     // TODO token cookie ?
     import io.circe.generic.auto._
     import io.circe.parser
-    import scalaj.http.{Http, HttpRequest, HttpResponse}
+    import scalaj.http.Http
 
     case class TokenInfo(email: String, name: String)
 
     val urlEntry = s"https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=$token"
-    val request: HttpRequest = Http(urlEntry)
-    val res: HttpResponse[String] = request.asString
-    val decodingResult = parser.decode[TokenInfo](res.body).toTry
+    val decodingResult = parser.decode[TokenInfo](Http(urlEntry).asString.body).toTry
 
     decodingResult
       .flatMap(tkInfo => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None))

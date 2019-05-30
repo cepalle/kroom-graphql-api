@@ -713,7 +713,7 @@ object SchemaRoot {
             case Success(value) =>
               DataPayload[DataUser](Some(value), List())
             case Failure(_) => DataPayload[DataUser](None, List(
-              DataError("login", List("username or password invalid")))
+              DataError("token", List("token invalid")))
             )
           }
           UpdateCtx(res) { userPayload ⇒
