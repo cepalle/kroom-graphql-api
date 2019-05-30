@@ -84,6 +84,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     getById(user.id)
   }
 
+  def signWithGoogle(token: String): Try[DataUser] = {
+    // TODO time token
+    // TODO token cookie ?
+
+
+    Failure(new IllegalAccessException("not implemented"))
+  }
+
   def getTokenPermGroup(token: String): Try[(DataUser, Set[PermissionGroup.Value])] = {
     val user = dbh.getByToken(token) match {
       case Failure(e) => return Failure(e)

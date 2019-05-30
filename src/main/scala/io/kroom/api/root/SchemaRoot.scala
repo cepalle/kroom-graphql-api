@@ -703,6 +703,26 @@ object SchemaRoot {
         }.get
       ),
 
+      Field("UserSignWithGoogle", UserSignInPayload,
+        arguments = Argument("token", StringType)
+          :: Nil,
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () => {
+          val res = ctx.ctx.repo.user.signWithGoogle(
+            ctx.arg[String]("token"),
+          ) match {
+            case Success(value) =>
+              DataPayload[DataUser](Some(value), List())
+            case Failure(_) => DataPayload[DataUser](None, List(
+              DataError("login", List("username or password invalid")))
+            )
+          }
+          UpdateCtx(res) { userPayload ⇒
+            new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
+          }
+        }
+        }.get
+      ),
+
       Field("UserAddFriend", UserAddFriendPayload,
         arguments = Argument("userId", IntType)
           :: Argument("friendId", IntType)

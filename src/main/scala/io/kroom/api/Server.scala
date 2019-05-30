@@ -65,7 +65,6 @@ object Server extends App with CorsSupport {
             ),
             exceptionHandler = ExceptionCustom.exceptionHandler
           )(global, CirceResultMarshaller, CirceInputUnmarshaller, Stream)
-          //(implicit executionContext: ExecutionContext, marshaller: ResultMarshaller, um: InputUnmarshaller[Input], scheme: ExecutionScheme)
         }
         complete(
 
