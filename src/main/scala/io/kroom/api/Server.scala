@@ -41,6 +41,9 @@ object Server extends App with CorsSupport {
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
+      case Some(OperationType.Subscription) ⇒
+        complete(ToResponseMarshallable(BadRequest → Json.fromString("Subscriptions not supported via HTTP. Use WebSockets")))
+      /*
       case Some(OperationType.Subscription) =>
 
         val stream = {
@@ -69,6 +72,7 @@ object Server extends App with CorsSupport {
         complete(
 
         )
+      */
       case _ =>
         complete(
           Executor.execute(
@@ -158,7 +162,8 @@ object Server extends App with CorsSupport {
                     }
                   }
               }
-            }
+            } ~
+            get(handleWebSocketMessages())
         }
       }
     } ~
