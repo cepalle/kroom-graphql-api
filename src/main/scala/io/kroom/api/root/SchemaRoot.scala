@@ -977,8 +977,7 @@ object SchemaRoot {
 
   val SubscriptionType = {
     import monix.execution.Scheduler.Implicits.global
-    import sangria.execution.ExecutionScheme.Stream
-    import sangria.streaming.monix._
+    import sangria.streaming.monix.observableSubscriptionStream
 
     ObjectType(
       "Subscription", fields[SecureContext, Unit](

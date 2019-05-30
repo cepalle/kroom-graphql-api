@@ -30,8 +30,6 @@ import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
 
-import scala.concurrent.Future
-
 object Server extends App with CorsSupport {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -49,6 +47,8 @@ object Server extends App with CorsSupport {
           import monix.execution.Scheduler.Implicits.global
           import sangria.streaming.monix._
           import sangria.execution.ExecutionScheme.Stream
+          import sangria.marshalling.circe.CirceResultMarshaller
+          import sangria.marshalling.circe.CirceInputUnmarshaller
 
           Executor.execute(
             schema = SchemaRoot.KroomSchema,
@@ -64,9 +64,9 @@ object Server extends App with CorsSupport {
               SchemaDeezer.GenreFetcherId
             ),
             exceptionHandler = ExceptionCustom.exceptionHandler
-          )
+          )(global, CirceResultMarshaller, CirceInputUnmarshaller, Stream)
+          //(implicit executionContext: ExecutionContext, marshaller: ResultMarshaller, um: InputUnmarshaller[Input], scheme: ExecutionScheme)
         }
-
         complete(
 
         )
