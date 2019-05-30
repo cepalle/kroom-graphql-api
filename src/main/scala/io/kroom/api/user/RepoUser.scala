@@ -51,45 +51,45 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   // Mutation
 
   def signUp(name: String, email: String, pass: String): Try[DataUser] = {
-    dbh.addUserWithPass(name, email, pass.bcrypt) recover { case e => return Failure(e) }
-
-    val user = dbh.getByName(name) match {
-      case Failure(e) => return Failure(e)
-      case Success(s) => s
-    }
-
+    // TODO time token
     // TODO token cookie ?
-    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
-
-    getById(user.id)
+    dbh.addUserWithPass(name, email, Some(pass.bcrypt))
+      .flatMap(user => dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")))
   }
 
   def signIn(userName: String, pass: String): Try[DataUser] = {
     // TODO time token
     // TODO token cookie ?
-    val user = dbh.getByName(userName) match {
-      case Failure(e) => return Failure(e)
-      case Success(s) => s
-    }
+    dbh.getByName(userName)
+      .flatMap(user => {
+        val passUser = user.passHash.getOrElse(
+          return Failure(new IllegalStateException("user has empty password"))
+        )
+        if (!pass.isBcryptedSafe(passUser).getOrElse(false)) {
+          return Failure(new IllegalStateException("password invalid"))
+        }
 
-    val passUser = user.passHash.getOrElse(
-      return Failure(new IllegalStateException("user has empty password"))
-    )
-    if (!pass.isBcryptedSafe(passUser).getOrElse(false)) {
-      return Failure(new IllegalStateException("password invalid"))
-    }
-
-    dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")) recover { case e => return Failure(e) }
-
-    getById(user.id)
+        dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some(""))
+      })
   }
 
   def signWithGoogle(token: String): Try[DataUser] = {
     // TODO time token
     // TODO token cookie ?
+    import io.circe.generic.auto._
+    import io.circe.parser
+    import scalaj.http.{Http, HttpRequest, HttpResponse}
 
+    case class TokenInfo(email: String, name: String)
 
-    Failure(new IllegalAccessException("not implemented"))
+    val urlEntry = s"https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=$token"
+    val request: HttpRequest = Http(urlEntry)
+    val res: HttpResponse[String] = request.asString
+    val decodingResult = parser.decode[TokenInfo](res.body).toTry
+
+    decodingResult
+      .flatMap(tkInfo => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None))
+      .flatMap(user => dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")))
   }
 
   def getTokenPermGroup(token: String): Try[(DataUser, Set[PermissionGroup.Value])] = {
