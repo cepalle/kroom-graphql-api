@@ -120,22 +120,23 @@ object Server extends App with CorsSupport {
     optionalHeaderValueByName("X-Apollo-Tracing") { tracing ⇒
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
-          get {
-            explicitlyAccepts(`text/html`) {
-              getFromResource("assets/playground.html")
-            } ~
-              parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
-                QueryParser.parse(query) match {
-                  case Success(ast) ⇒
-                    variables.map(parse) match {
-                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
-                      case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
-                      case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
-                    }
-                  case Failure(error) ⇒ complete(BadRequest, formatError(error))
+          //handleWebSocketMessages() ~
+            get {
+              explicitlyAccepts(`text/html`) {
+                getFromResource("assets/playground.html")
+              } ~
+                parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
+                  QueryParser.parse(query) match {
+                    case Success(ast) ⇒
+                      variables.map(parse) match {
+                        case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                        case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
+                        case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
+                      }
+                    case Failure(error) ⇒ complete(BadRequest, formatError(error))
+                  }
                 }
-              }
-          } ~
+            } ~
             post {
               parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
                 entity(as[Json]) { body ⇒
@@ -162,8 +163,7 @@ object Server extends App with CorsSupport {
                     }
                   }
               }
-            } ~
-            get(handleWebSocketMessages())
+            }
         }
       }
     } ~
