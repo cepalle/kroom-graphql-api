@@ -96,7 +96,7 @@ case class DataDeezerTrack(
                             readable: Boolean,
                             title: String,
                             title_short: String,
-                            title_version: String,
+                            // title_version: String,
                             isrc: String,
                             // url,
                             link: String,

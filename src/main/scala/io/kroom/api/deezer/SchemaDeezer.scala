@@ -158,7 +158,7 @@ object SchemaDeezer {
       Field("readable", BooleanType, resolve = _.value.readable),
       Field("title", StringType, resolve = _.value.title),
       Field("titleShort", StringType, resolve = _.value.title_short),
-      Field("titleVersion", StringType, resolve = _.value.title_version),
+      //Field("titleVersion", StringType, resolve = _.value.title_version),
       Field("isrc", StringType, resolve = _.value.isrc),
       Field("link", StringType, resolve = _.value.link),
       Field("share", StringType, resolve = _.value.share),

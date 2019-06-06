@@ -54,6 +54,8 @@ object SchemaRoot {
       Field("DeezerTrack", DeezerTrackPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: DeezerTrack")
+
           ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
             ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
@@ -67,6 +69,8 @@ object SchemaRoot {
       Field("DeezerArtist", DeezerArtistPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: DeezerArtist")
+
           ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
             ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
@@ -80,6 +84,8 @@ object SchemaRoot {
       Field("DeezerAlbum", DeezerAlbumPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: DeezerAlbum")
+
           ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
             ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
@@ -93,6 +99,8 @@ object SchemaRoot {
       Field("DeezerGenre", DeezerGenrePayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: DeezerGenre")
+
           ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
             ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
@@ -110,6 +118,8 @@ object SchemaRoot {
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: DeezerSearch")
+
           ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
             ctx.ctx.repo.deezer.getSearch(
               ctx.arg[String]("search"),
@@ -128,6 +138,8 @@ object SchemaRoot {
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
         arguments = Nil,
         resolve = ctx ⇒ Future {
+          println("Query: TrackVoteEventsPublic")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
             ctx.ctx.repo.trackVoteEvent.getPublic.get
           }.get
@@ -136,6 +148,8 @@ object SchemaRoot {
       Field("TrackVoteEventById", TrackVoteEventByIdPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: TrackVoteEventById")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventById) { () => {
             ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())
@@ -150,6 +164,8 @@ object SchemaRoot {
       Field("TrackVoteEventByUserId", TrackVoteEventByUserIdPayload,
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
+          println("Query: TrackVoteEventByUserId")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
             ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId")) match {
               case Success(value) => DataPayload[List[DataTrackVoteEvent]](Some(value), List())
@@ -166,6 +182,8 @@ object SchemaRoot {
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { () =>
           Future {
+            println("Query: UserGetById")
+
             ctx.ctx.repo.user.getById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataUser](Some(value), List())
               case Failure(_) => DataPayload[DataUser](None, List(
@@ -188,6 +206,8 @@ object SchemaRoot {
           :: Argument("public", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventNew")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
             val userIdMaster = ctx.arg[Int]("userIdMaster")
             val name = ctx.arg[String]("name")
@@ -255,6 +275,8 @@ object SchemaRoot {
           :: Argument("location", OptionInputType(StringType))
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventUpdate")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { () =>
 
             val eventId = ctx.arg[Int]("eventId")
@@ -334,6 +356,8 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventAddUser")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { () => {
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -388,6 +412,8 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventDelUser")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -452,6 +478,8 @@ object SchemaRoot {
           :: Argument("up", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventAddOrUpdateVote")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { () => {
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -522,6 +550,8 @@ object SchemaRoot {
           :: Argument("musicId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: TrackVoteEventDelVote")
+
           ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { () =>
 
             val eventId = ctx.arg[Int]("eventId")
@@ -587,141 +617,153 @@ object SchemaRoot {
           :: Argument("email", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignUp) { () => {
-          // TODO send email
-          val userName = ctx.arg[String]("userName")
-          val email = ctx.arg[String]("email")
-          val pass = ctx.arg[String]("pass")
+        resolve = ctx ⇒ {
+          println("Mutation: UserSignUp")
 
-          val errors = {
-            val emailErrors = {
-              val emailIsValid = try {
-                new InternetAddress(email).validate()
-                true
-              } catch {
-                case _: AddressException => false
+          ctx.ctx.authorised(Permissions.UserSignUp) { () => {
+            // TODO send email
+            val userName = ctx.arg[String]("userName")
+            val email = ctx.arg[String]("email")
+            val pass = ctx.arg[String]("pass")
+
+            val errors = {
+              val emailErrors = {
+                val emailIsValid = try {
+                  new InternetAddress(email).validate()
+                  true
+                } catch {
+                  case _: AddressException => false
+                }
+
+                DataError("email", List[Option[String]](
+                  emailIsValid match {
+                    case true => None
+                    case false => Some("email bad format")
+                  },
+                  ctx.ctx.repo.user.getByEmail(email) match {
+                    case Success(_) => Some("email already exist")
+                    case Failure(_) => None
+                  }
+                ) collect { case Some(s) => s })
               }
 
-              DataError("email", List[Option[String]](
-                emailIsValid match {
-                  case true => None
-                  case false => Some("email bad format")
-                },
-                ctx.ctx.repo.user.getByEmail(email) match {
-                  case Success(_) => Some("email already exist")
-                  case Failure(_) => None
-                }
-              ) collect { case Some(s) => s })
+              val passErrors = {
+                val lower1 = """(?=.*[a-z])""".r
+                val upper1 = """(?=.*[A-Z])""".r
+                val numeric1 = """(?=.*[0-9])""".r
+                val length8 = """(?=.{8,})""".r
+
+                DataError("pass", List[Option[String]](
+                  lower1.findFirstMatchIn(pass) match {
+                    case Some(_) => None
+                    case None => Some("Password need a lowercase")
+                  },
+                  upper1.findFirstMatchIn(pass) match {
+                    case Some(_) => None
+                    case None => Some("Password need a uppercase")
+                  },
+                  numeric1.findFirstMatchIn(pass) match {
+                    case Some(_) => None
+                    case None => Some("Password need a number")
+                  },
+                  length8.findFirstMatchIn(pass) match {
+                    case Some(_) => None
+                    case None => Some("Password need 8 character")
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              val userNameErrors = {
+                val lower1 = """(?=.*[a-z])""".r
+                val charValid = """^([a-zA-Z0-9_-]*)$""".r
+                val length4 = """(?=.{4,})""".r
+
+                DataError("userName", List[Option[String]](
+                  length4.findFirstMatchIn(userName) match {
+                    case Some(_) => None
+                    case None => Some("username need 4 character")
+                  },
+                  lower1.findFirstMatchIn(userName) match {
+                    case Some(_) => None
+                    case None => Some("username need 1 lowercase")
+                  },
+                  charValid.findFirstMatchIn(userName) match {
+                    case Some(_) => None
+                    case None => Some("username can only contain lowercase, uppercase, underscore and hyphen")
+                  },
+                  ctx.ctx.repo.user.getByName(userName) match {
+                    case Success(_) => Some("userName already exist")
+                    case Failure(_) => None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(emailErrors, passErrors, userNameErrors).filter(e => e.errors.nonEmpty)
             }
 
-            val passErrors = {
-              val lower1 = """(?=.*[a-z])""".r
-              val upper1 = """(?=.*[A-Z])""".r
-              val numeric1 = """(?=.*[0-9])""".r
-              val length8 = """(?=.{8,})""".r
-
-              DataError("pass", List[Option[String]](
-                lower1.findFirstMatchIn(pass) match {
-                  case Some(_) => None
-                  case None => Some("Password need a lowercase")
-                },
-                upper1.findFirstMatchIn(pass) match {
-                  case Some(_) => None
-                  case None => Some("Password need a uppercase")
-                },
-                numeric1.findFirstMatchIn(pass) match {
-                  case Some(_) => None
-                  case None => Some("Password need a number")
-                },
-                length8.findFirstMatchIn(pass) match {
-                  case Some(_) => None
-                  case None => Some("Password need 8 character")
-                },
-              ) collect { case Some(s) => s })
+            val payload = if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.signUp(userName, email, pass).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
             }
 
-            val userNameErrors = {
-              val lower1 = """(?=.*[a-z])""".r
-              val charValid = """^([a-zA-Z0-9_-]*)$""".r
-              val length4 = """(?=.{4,})""".r
-
-              DataError("userName", List[Option[String]](
-                length4.findFirstMatchIn(userName) match {
-                  case Some(_) => None
-                  case None => Some("username need 4 character")
-                },
-                lower1.findFirstMatchIn(userName) match {
-                  case Some(_) => None
-                  case None => Some("username need 1 lowercase")
-                },
-                charValid.findFirstMatchIn(userName) match {
-                  case Some(_) => None
-                  case None => Some("username can only contain lowercase, uppercase, underscore and hyphen")
-                },
-                ctx.ctx.repo.user.getByName(userName) match {
-                  case Success(_) => Some("userName already exist")
-                  case Failure(_) => None
-                }
-              ) collect { case Some(s) => s })
+            UpdateCtx(payload) { p ⇒
+              new SecureContext(p.data.flatMap(_.token), ctx.ctx.repo)
             }
-
-            List(emailErrors, passErrors, userNameErrors).filter(e => e.errors.nonEmpty)
           }
-
-          val payload = if (errors.isEmpty) {
-            val user = ctx.ctx.repo.user.signUp(userName, email, pass).get
-            DataPayload[DataUser](Some(user), List())
-          } else {
-            DataPayload[DataUser](None, errors)
-          }
-
-          UpdateCtx(payload) { p ⇒
-            new SecureContext(p.data.flatMap(_.token), ctx.ctx.repo)
-          }
+          }.get
         }
-        }.get
       ),
 
       Field("UserSignIn", UserSignInPayload,
         arguments = Argument("userName", StringType)
           :: Argument("pass", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () => {
-          val res = ctx.ctx.repo.user.signIn(
-            ctx.arg[String]("userName"),
-            ctx.arg[String]("pass"),
-          ) match {
-            case Success(value) =>
-              DataPayload[DataUser](Some(value), List())
-            case Failure(_) => DataPayload[DataUser](None, List(
-              DataError("pass", List("username or password invalid")))
-            )
+        resolve = ctx ⇒ {
+          println("Mutation: UserSignIn")
+
+          ctx.ctx.authorised(Permissions.UserSignIn) { () => {
+            val res = ctx.ctx.repo.user.signIn(
+              ctx.arg[String]("userName"),
+              ctx.arg[String]("pass"),
+            ) match {
+              case Success(value) =>
+                DataPayload[DataUser](Some(value), List())
+              case Failure(_) => DataPayload[DataUser](None, List(
+                DataError("pass", List("username or password invalid")))
+              )
+            }
+            UpdateCtx(res) { userPayload ⇒
+              new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
+            }
           }
-          UpdateCtx(res) { userPayload ⇒
-            new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
-          }
+          }.get
         }
-        }.get
       ),
 
       Field("UserSignWithGoogle", UserSignInPayload,
         arguments = Argument("token", StringType)
           :: Nil,
-        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserSignIn) { () => {
-          val res = ctx.ctx.repo.user.signWithGoogle(
-            ctx.arg[String]("token"),
-          ) match {
-            case Success(value) =>
-              DataPayload[DataUser](Some(value), List())
-            case Failure(_) => DataPayload[DataUser](None, List(
-              DataError("token", List("token invalid")))
-            )
+        resolve = ctx ⇒ {
+          println("Mutation: UserSignWithGoogle")
+
+          ctx.ctx.authorised(Permissions.UserSignIn) { () => {
+            val res = ctx.ctx.repo.user.signWithGoogle(
+              ctx.arg[String]("token"),
+            ) match {
+              case Success(value) =>
+                DataPayload[DataUser](Some(value), List())
+              case Failure(_) => DataPayload[DataUser](None, List(
+                DataError("token", List("token invalid")))
+              )
+            }
+            UpdateCtx(res) { userPayload ⇒
+              new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
+            }
           }
-          UpdateCtx(res) { userPayload ⇒
-            new SecureContext(userPayload.data.flatMap(_.token), ctx.ctx.repo)
-          }
+          }.get
         }
-        }.get
       ),
 
       Field("UserAddFriend", UserAddFriendPayload,
@@ -730,6 +772,8 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒
           Future {
+            println("Mutation: UserAddFriend")
+
             ctx.ctx.authorised(Permissions.UserAddFriend) { () =>
               val userId = ctx.arg[Int]("userId")
               val friendId = ctx.arg[Int]("friendId")
@@ -789,6 +833,8 @@ object SchemaRoot {
           :: Argument("friendId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: UserDelFriend")
+
           ctx.ctx.authorised(Permissions.UserDelFriend) { () =>
             val userId = ctx.arg[Int]("userId")
             val friendId = ctx.arg[Int]("friendId")
@@ -844,6 +890,8 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: UserAddMusicalPreference")
+
           ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { () =>
             val userId = ctx.arg[Int]("userId")
             val genreId = ctx.arg[Int]("genreId")
@@ -899,6 +947,8 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: UserDelMusicalPreference")
+
           ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { () =>
             val userId = ctx.arg[Int]("userId")
             val genreId = ctx.arg[Int]("genreId")
@@ -957,6 +1007,8 @@ object SchemaRoot {
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
         resolve = ctx ⇒ Future {
+          println("Mutation: UserUpdatePrivacy")
+
           ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
             val userId = ctx.arg[Int]("userId")
             val email = ctx.arg[Privacy.Value]("email")
@@ -995,8 +1047,7 @@ object SchemaRoot {
     )
   )
 
-
-  val SubscriptionType = {
+  val Subscription = {
     import monix.execution.Scheduler.Implicits.global
     import sangria.streaming.monix.observableSubscriptionStream
 
@@ -1004,6 +1055,8 @@ object SchemaRoot {
       "Subscription", fields[SecureContext, Unit](
         Field.subs("TrackVoteEvent", TrackVoteEventField,
           resolve = (ctx: Context[SecureContext, Unit]) => {
+            println("Subscription: TrackVoteEvent")
+
             val obs = ctx.ctx.repo.trackVoteEvent.source
               .map(Action(_))
             obs
@@ -1013,5 +1066,5 @@ object SchemaRoot {
     )
   }
 
-  val KroomSchema = Schema(Query, Some(Mutation), Some(SubscriptionType))
+  val KroomSchema = Schema(Query, Some(Mutation), Some(Subscription))
 }
