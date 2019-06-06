@@ -2,6 +2,7 @@ package io.kroom.api.user
 
 import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.permissionGroupToString
+import io.kroom.api.Server.system
 import io.kroom.api.{Authorization, SecureContext}
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
@@ -13,7 +14,7 @@ import scala.concurrent.Future
 
 object SchemaUser {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import system.dispatcher
 
   /* FETCHER */
 

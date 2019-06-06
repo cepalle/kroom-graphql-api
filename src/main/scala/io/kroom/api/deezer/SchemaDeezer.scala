@@ -1,6 +1,7 @@
 package io.kroom.api.deezer
 
 import io.kroom.api.SecureContext
+import io.kroom.api.Server.system
 import io.kroom.api.root.SchemaRoot
 import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
@@ -10,7 +11,7 @@ import scala.concurrent.Future
 
 object SchemaDeezer {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import system.dispatcher
 
   /* FETCHER */
 

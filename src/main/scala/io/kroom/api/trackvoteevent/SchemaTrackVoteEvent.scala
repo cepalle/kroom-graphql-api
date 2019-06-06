@@ -1,6 +1,7 @@
 package io.kroom.api.trackvoteevent
 
 import io.kroom.api.SecureContext
+import io.kroom.api.Server.system
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
 import io.kroom.api.user.SchemaUser
@@ -13,7 +14,7 @@ import scala.concurrent.Future
 
 object SchemaTrackVoteEvent {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import system.dispatcher
 
   /* FETCHER */
 

@@ -3,6 +3,7 @@ package io.kroom.api.root
 import io.kroom.api.Authorization.Privacy
 import io.kroom.api.Authorization.Permissions
 import io.kroom.api.SecureContext
+import io.kroom.api.Server.system
 import io.kroom.api.user.{DataUser, SchemaUser}
 import io.kroom.api.deezer._
 import io.kroom.api.trackvoteevent.DataTrackVoteEvent
@@ -22,7 +23,7 @@ object SchemaRoot {
   import SchemaUser._
   import io.kroom.api.deezer.SchemaDeezer._
   import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent._
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import system.dispatcher
 
   lazy val PrivacyEnum = EnumType(
     "PrivacyEnum",
