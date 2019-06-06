@@ -43,7 +43,7 @@ object SchemaRoot {
     "Error description.",
     () ⇒ fields[SecureContext, DataError](
       Field("field", StringType, resolve = _.value.field),
-      Field("errors", ListType(StringType), resolve = _.value.errors),
+      Field("messages", ListType(StringType), resolve = _.value.errors),
     ))
 
   lazy val Query = ObjectType(
@@ -694,7 +694,7 @@ object SchemaRoot {
             case Success(value) =>
               DataPayload[DataUser](Some(value), List())
             case Failure(_) => DataPayload[DataUser](None, List(
-              DataError("login", List("username or password invalid")))
+              DataError("pass", List("username or password invalid")))
             )
           }
           UpdateCtx(res) { userPayload ⇒
