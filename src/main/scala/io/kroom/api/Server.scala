@@ -43,36 +43,6 @@ object Server extends App with CorsSupport {
     query.operationType(operationName) match {
       case Some(OperationType.Subscription) ⇒
         complete(ToResponseMarshallable(BadRequest → Json.fromString("Subscriptions not supported via HTTP. Use WebSockets")))
-      /*
-      case Some(OperationType.Subscription) =>
-
-        val stream = {
-          import monix.execution.Scheduler.Implicits.global
-          import sangria.streaming.monix._
-          import sangria.execution.ExecutionScheme.Stream
-          import sangria.marshalling.circe.CirceResultMarshaller
-          import sangria.marshalling.circe.CirceInputUnmarshaller
-
-          Executor.execute(
-            schema = SchemaRoot.KroomSchema,
-            queryAst = query,
-            userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
-            variables = if (variables.isNull) Json.obj() else variables,
-            operationName = operationName,
-            middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
-            deferredResolver = DeferredResolver.fetchers(
-              SchemaDeezer.TrackFetcherId,
-              SchemaDeezer.ArtistFetcherId,
-              SchemaDeezer.AlbumFetcherId,
-              SchemaDeezer.GenreFetcherId
-            ),
-            exceptionHandler = ExceptionCustom.exceptionHandler
-          )(global, CirceResultMarshaller, CirceInputUnmarshaller, Stream)
-        }
-        complete(
-
-        )
-      */
       case _ =>
         complete(
           Executor.execute(
@@ -121,22 +91,22 @@ object Server extends App with CorsSupport {
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
           //handleWebSocketMessages() ~
-            get {
-              explicitlyAccepts(`text/html`) {
-                getFromResource("assets/playground.html")
-              } ~
-                parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
-                  QueryParser.parse(query) match {
-                    case Success(ast) ⇒
-                      variables.map(parse) match {
-                        case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
-                        case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
-                        case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
-                      }
-                    case Failure(error) ⇒ complete(BadRequest, formatError(error))
-                  }
-                }
+          get {
+            explicitlyAccepts(`text/html`) {
+              getFromResource("assets/playground.html")
             } ~
+              parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
+                QueryParser.parse(query) match {
+                  case Success(ast) ⇒
+                    variables.map(parse) match {
+                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                      case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
+                      case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
+                    }
+                  case Failure(error) ⇒ complete(BadRequest, formatError(error))
+                }
+              }
+          } ~
             post {
               parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
                 entity(as[Json]) { body ⇒

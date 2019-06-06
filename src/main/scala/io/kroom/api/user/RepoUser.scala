@@ -86,7 +86,12 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     val decodingResult = parser.decode[TokenInfo](Http(urlEntry).asString.body).toTry
 
     decodingResult
-      .flatMap(tkInfo => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None))
+      .flatMap(tkInfo => {
+        dbh.getByEmail(tkInfo.email) match {
+          case Success(s) => Success(s)
+          case Failure(_) => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None)
+        }
+      })
       .flatMap(user => dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")))
   }
 
