@@ -1053,10 +1053,7 @@ object SchemaRoot {
         Field.subs("TrackVoteEvent", TrackVoteEventField,
           resolve = (ctx: Context[SecureContext, Unit]) => {
             println("Subscription: TrackVoteEvent")
-
-            val obs = ctx.ctx.repo.trackVoteEvent.source
-              .map(Action(_))
-            obs
+            /* TODO */
           }
         )
       )

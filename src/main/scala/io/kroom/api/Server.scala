@@ -6,7 +6,7 @@ import sangria.execution.{ErrorWithResolver, Executor, PreparedQuery, QueryAnaly
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
@@ -16,6 +16,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
+import akka.stream.actor.ActorPublisher
+import akka.stream.scaladsl.{Sink, Source}
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
 import io.circe.parser._
@@ -24,6 +26,7 @@ import io.circe.optics.JsonPath.{root => r}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
+import generic.{Event, MemoryEventStore}
 import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
@@ -37,6 +40,15 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
+
+  // ---
+
+  val eventStore = system.actorOf(Props[MemoryEventStore])
+  val eventStorePublisher =
+    Source.fromPublisher(ActorPublisher[Event](eventStore))
+      .runWith(Sink.asPublisher(fanout = true))
+
+  // ---
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
