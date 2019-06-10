@@ -4,6 +4,7 @@ import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 
 class MemoryEventStore extends ActorPublisher[Event] {
+
   import MemoryEventStore._
 
   // in-memory event storage
@@ -11,7 +12,7 @@ class MemoryEventStore extends ActorPublisher[Event] {
 
   var eventBuffer = Vector.empty[Event]
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case AddEvent(event) if eventBuffer.size >= MaxBufferCapacity ⇒
       sender() ! OverCapacity(event)
 
@@ -44,9 +45,9 @@ class MemoryEventStore extends ActorPublisher[Event] {
     case Cancel ⇒ context.stop(self)
   }
 
-  def addEvent(event: Event) = {
-    events  = events :+ event
-    eventBuffer  = eventBuffer :+ event
+  def addEvent(event: Event): Unit = {
+    events = events :+ event
+    eventBuffer = eventBuffer :+ event
 
     deliverEvents()
   }
@@ -63,11 +64,15 @@ class MemoryEventStore extends ActorPublisher[Event] {
 }
 
 object MemoryEventStore {
+
   case class AddEvent(event: Event)
+
   case class LatestEventVersion(id: String)
 
   case class EventAdded(event: Event)
+
   case class OverCapacity(event: Event)
+
   case class ConcurrentModification(event: Event, latestVersion: Long)
 
   val MaxBufferCapacity = 1000
