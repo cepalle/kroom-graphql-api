@@ -1047,10 +1047,7 @@ object SchemaRoot {
     )
   )
 
-  val Subscription = {
-    import monix.execution.Scheduler.Implicits.global
-    import sangria.streaming.monix.observableSubscriptionStream
-
+  val Subscription: ObjectType[SecureContext, Unit] = {
     ObjectType(
       "Subscription", fields[SecureContext, Unit](
         Field.subs("TrackVoteEvent", TrackVoteEventField,

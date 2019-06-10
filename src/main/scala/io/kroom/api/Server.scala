@@ -25,7 +25,6 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
 import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent
-import monix.reactive.Observable
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
