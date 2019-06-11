@@ -2,22 +2,18 @@ package io.kroom.api
 
 import sangria.ast.{Document, OperationType}
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, PreparedQuery, QueryAnalysisError}
+import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
-import akka.stream.actor.ActorPublisher
-import akka.stream.scaladsl.{Sink, Source}
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
 import io.circe.parser._
@@ -26,8 +22,6 @@ import io.circe.optics.JsonPath.{root => r}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
-import generic.{Event, MemoryEventStore}
-import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
@@ -40,15 +34,7 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
-
-  // ---
-
-  val eventStore = system.actorOf(Props[MemoryEventStore])
-  val eventStorePublisher =
-    Source.fromPublisher(ActorPublisher[Event](eventStore))
-      .runWith(Sink.asPublisher(fanout = true))
-
-  // ---
+  private val wsSub = new WebSocketSubscription()
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
@@ -101,23 +87,23 @@ object Server extends App with CorsSupport {
     optionalHeaderValueByName("X-Apollo-Tracing") { tracing ⇒
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
-          //handleWebSocketMessages() ~
-          get {
-            explicitlyAccepts(`text/html`) {
-              getFromResource("assets/playground.html")
-            } ~
-              parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
-                QueryParser.parse(query) match {
-                  case Success(ast) ⇒
-                    variables.map(parse) match {
-                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
-                      case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
-                      case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
-                    }
-                  case Failure(error) ⇒ complete(BadRequest, formatError(error))
+          handleWebSocketMessages(wsSub.socketFlow(kroomTokenId)) ~
+            get {
+              explicitlyAccepts(`text/html`) {
+                getFromResource("assets/playground.html")
+              } ~
+                parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
+                  QueryParser.parse(query) match {
+                    case Success(ast) ⇒
+                      variables.map(parse) match {
+                        case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                        case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
+                        case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
+                      }
+                    case Failure(error) ⇒ complete(BadRequest, formatError(error))
+                  }
                 }
-              }
-          } ~
+            } ~
             post {
               parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
                 entity(as[Json]) { body ⇒
