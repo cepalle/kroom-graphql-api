@@ -10,7 +10,7 @@ import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 
 // ---
 
-object ApolloProtocole {
+object ApolloProtocol {
 
   /*
   export interface OperationMessage {
