@@ -34,7 +34,8 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
-  private val subActor = system.actorOf(Props(new SubscriptionActor()))
+  private val subActor = system.actorOf(Props(new SubscriptionActor(db)))
+  private val wbSubHandler = new WebSocketSubscription(subActor)
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
@@ -88,7 +89,7 @@ object Server extends App with CorsSupport {
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
           handleWebSocketMessages(
-            new WebSocketSubscription(subActor, db).socketFlow(kroomTokenId)
+            wbSubHandler.socketFlow(kroomTokenId)
           ) ~ get {
             explicitlyAccepts(`text/html`) {
               getFromResource("assets/playground.html")
