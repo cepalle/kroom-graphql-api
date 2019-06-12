@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
+import slick.jdbc.H2Profile
 
 
 // ---
@@ -20,7 +21,7 @@ object ApolloProtocol {
   }
   */
 
-  val GQL_CONNECTION_INIT = "GQL_CONNECTION_INIT"
+  val GQL_CONNECTION_INIT = "GQL_CONNECTION_INIT" // payload: Object
   val GQL_START = "GQL_START" // id + payload: {query, variables, operationName}
   val GQL_STOP = "GQL_STOP" // id
   val GQL_CONNECTION_TERMINATE = "GQL_CONNECTION_TERMINATE"
@@ -46,6 +47,9 @@ case class WSERandom() extends WSEvent
 
 // ---
 
+// Connection init connect with token or error
+// TODO client state
+
 class SubscriptionActor extends Actor {
 
   private val clients = collection.mutable.LinkedHashMap[String, Any]()
@@ -64,7 +68,7 @@ class SubscriptionActor extends Actor {
 
 // ---
 
-class WebSocketSubscription(val subActor: ActorRef,val secureContext: SecureContext)(implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
+class WebSocketSubscription(val subActor: ActorRef, val db: H2Profile.backend.Database)(implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
   extends Directives {
 
   private val subActorSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)

@@ -1,6 +1,6 @@
-## Sangria akka-http Example 0.1
+## Kroom Api
 
-An example [GraphQL](https://graphql.org) server written with [akka-http](https://github.com/akka/akka-http), [circe](https://github.com/circe/circe) and [sangria](https://github.com/sangria-graphql/sangria).
+[GraphQL](https://graphql.org) server written with [akka-http](https://github.com/akka/akka-http), [circe](https://github.com/circe/circe) and [sangria](https://github.com/sangria-graphql/sangria).
 
 After starting the server with
 
@@ -12,14 +12,11 @@ you can run queries interactively using [graphql-playground](https://github.com/
 
 # Dependencies
 
-
 - Java 8+
 - Sbt
-
 
 ```cmd
 brew install sbt
 ```
-
 
 # Note
