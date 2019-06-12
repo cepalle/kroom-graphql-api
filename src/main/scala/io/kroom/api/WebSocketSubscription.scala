@@ -84,6 +84,7 @@ case class QueryResult(json: Json) extends WSEvent
 class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
   private val clients = collection.mutable.LinkedHashMap[String, Any]()
+  private var tests: List[ActorRef] = List[ActorRef]()
 
   /*
     client sub
@@ -91,10 +92,13 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
   */
   override def receive: Receive = {
     // sub
+    case WSEventUserJoined(token, actor) =>
+      println("ici555")
+      tests = tests :+ actor
+      actor ! WSERandom()
     case a =>
       println("ici5", a)
-      WSERandom()
-
+      tests.foreach(a => a ! WSERandom())
   }
 
 }
@@ -133,10 +137,10 @@ class WebSocketSubscription(val db: H2Profile.backend.Database)
 
         val WSEventsToMessages = builder.add(Flow[WSEvent].map {
           // serialization
-          case a => {
+          case a =>
             println("ici66", a)
-            TextMessage("")
-          }
+            TextMessage("{\"type\":\"start\"}")
+
         })
 
         materialization ~> merge ~> subActorSink
