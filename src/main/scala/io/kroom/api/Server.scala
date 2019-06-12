@@ -6,7 +6,7 @@ import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
@@ -34,7 +34,7 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
-  private val wsSub = new WebSocketSubscription()
+  private val subActor = system.actorOf(Props(new SubscriptionActor()))
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
@@ -87,7 +87,12 @@ object Server extends App with CorsSupport {
     optionalHeaderValueByName("X-Apollo-Tracing") { tracing ⇒
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
-          handleWebSocketMessages(wsSub.socketFlow(kroomTokenId)) ~
+          handleWebSocketMessages(
+            new WebSocketSubscription(
+              subActor,
+              new SecureContext(kroomTokenId, new RepoRoot(new DBRoot(db)))
+            ).socketFlow(kroomTokenId)
+          ) ~
             get {
               explicitlyAccepts(`text/html`) {
                 getFromResource("assets/playground.html")
