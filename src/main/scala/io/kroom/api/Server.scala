@@ -34,8 +34,7 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
-  private val subActor = system.actorOf(Props(new SubscriptionActor(db)))
-  private val wbSubHandler = new WebSocketSubscription(subActor)
+  private val wbSubHandler = new WebSocketSubscription(db)
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {

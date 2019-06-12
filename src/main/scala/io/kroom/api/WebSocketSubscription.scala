@@ -43,14 +43,6 @@ object ApolloProtocol {
 
 // ---
 
-sealed trait WSEvent2
-
-case class Subscribe(query: String, operation: Option[String]) extends WSEvent2
-
-case class QueryResult(json: Json) extends WSEvent2
-
-// ---
-
 sealed trait WSEvent
 
 case class WSEventUserJoined(token: Option[String], actorRef: ActorRef) extends WSEvent
@@ -62,6 +54,10 @@ case class WSERandom() extends WSEvent
 case class Connected(outgoing: ActorRef) extends WSEvent
 
 case class SubscriptionAccepted() extends WSEvent
+
+case class Subscribe(query: String, operation: Option[String]) extends WSEvent
+
+case class QueryResult(json: Json) extends WSEvent
 
 // ---
 
@@ -80,7 +76,7 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
     // sub
     case a =>
       println("ici5", a)
-      None
+      WSERandom()
 
   }
 
@@ -88,10 +84,14 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
 // ---
 
-class WebSocketSubscription(val subActor: ActorRef)
+/*
+  Apollo close connexion because bad request ?
+*/
+class WebSocketSubscription(val db: H2Profile.backend.Database)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
   extends Directives {
 
+  private val subActorHandler = actorSystem.actorOf(Props(new SubscriptionActor(db)))
   private val subActorSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)
 
   def socketFlow(token: Option[String]): Flow[Message, Message, ActorRef] =
@@ -102,7 +102,7 @@ class WebSocketSubscription(val subActor: ActorRef)
         println("ici2")
         val materialization = builder.materializedValue.map(subActorRef => WSEventUserJoined(token, subActorRef))
         val merge = builder.add(Merge[WSEvent](2))
-        val subActorSink = Sink.actorRef[WSEvent](subActor, WSEventUserQuit())
+        val subActorSink = Sink.actorRef[WSEvent](subActorHandler, WSEventUserQuit())
 
         val messagesToWSEvent = builder.add(Flow[Message].collect {
           // serialization
@@ -116,8 +116,8 @@ class WebSocketSubscription(val subActor: ActorRef)
 
         val WSEventsToMessages = builder.add(Flow[WSEvent].map {
           // serialization
-          case WSERandom() => {
-            println("iiiiccciiii")
+          case a => {
+            println("ici66", a)
             TextMessage("")
           }
         })
