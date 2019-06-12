@@ -7,6 +7,35 @@ import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 
+
+// ---
+
+object ApolloProtocole {
+
+  /*
+  export interface OperationMessage {
+    payload?: any;
+    id?: string;
+    type: string;
+  }
+  */
+
+  val GQL_CONNECTION_INIT = "GQL_CONNECTION_INIT"
+  val GQL_START = "GQL_START" // id + payload: {query, variables, operationName}
+  val GQL_STOP = "GQL_STOP" // id
+  val GQL_CONNECTION_TERMINATE = "GQL_CONNECTION_TERMINATE"
+  // -->
+  val GQL_CONNECTION_ACK = "GQL_CONNECTION_ACK"
+  val GQL_CONNECTION_ERROR = "GQL_CONNECTION_ERROR"
+  val GQL_DATA = "GQL_DATA" // id + payload: {data, errors}
+  val GQL_ERROR = "GQL_ERROR" // id + payload: Error
+  val GQL_COMPLETE = "GQL_COMPLETE" // id
+  val GQL_CONNECTION_KEEP_ALIVE = "GQL_CONNECTION_KEEP_ALIVE"
+
+}
+
+// ---
+
 sealed trait WSEvent
 
 case class WSEventUserJoined(token: Option[String], actorRef: ActorRef) extends WSEvent
