@@ -1050,10 +1050,20 @@ object SchemaRoot {
   val Subscription: ObjectType[SecureContext, Unit] = {
     ObjectType(
       "Subscription", fields[SecureContext, Unit](
-        Field.subs("TrackVoteEvent", TrackVoteEventField,
-          resolve = (ctx: Context[SecureContext, Unit]) => {
+        Field("TrackVoteEventById", TrackVoteEventByIdPayload,
+          arguments = Argument("id", IntType) :: Nil,
+          resolve = ctx ⇒ Future {
             println("Subscription: TrackVoteEvent")
-            /* TODO */
+
+            ctx.ctx.authorised(Permissions.TrackVoteEventById) { () => {
+              ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
+                case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())
+                case Failure(_) => DataPayload[DataTrackVoteEvent](None, List(
+                  DataError("id", List("TrackVoteEvent Id not found"))
+                ))
+              }
+            }
+            }.get
           }
         )
       )
