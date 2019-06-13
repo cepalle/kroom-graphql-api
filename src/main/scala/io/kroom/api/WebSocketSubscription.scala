@@ -11,16 +11,7 @@ import slick.jdbc.H2Profile
 
 import scala.util.{Success, Try}
 
-// ---
-
 object ApolloProtocol {
-
-  case class OperationMessage(
-                               payload: Option[String], // payload?: any;
-                               id: Option[String], // id?: string;
-                               `type`: String, // type: string;
-                             )
-
   val GQL_CONNECTION_INIT = "connection_init" // Client -> Server
   val GQL_CONNECTION_ACK = "connection_ack" // Server -> Client
   val GQL_CONNECTION_ERROR = "connection_error" // Server -> Client
@@ -36,53 +27,41 @@ object ApolloProtocol {
   val GQL_STOP = "stop" // Client -> Server
 }
 
-// ---
-
 sealed trait WSEvent
 
 case class WSEventUserJoined(actorId: String, actorRef: ActorRef) extends WSEvent
 
 case class WSEventUserQuit(actorId: String) extends WSEvent
 
-
-case class WSERandom() extends WSEvent
-
-case class Connected(outgoing: ActorRef) extends WSEvent
-
-case class SubscriptionAccepted() extends WSEvent
-
-case class Subscribe(query: String, operation: Option[String]) extends WSEvent
-
-case class QueryResult(json: String) extends WSEvent
-
-// ---
-
-// Connection init connect with token or error
-// TODO client state
+case class OperationMessage(
+                             payload: Option[String], // payload?: any;
+                             id: Option[String], // id?: string;
+                             `type`: String, // type: string;
+                           ) extends WSEvent
 
 class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
-  private val clients = collection.mutable.LinkedHashMap[String, Any]()
-  private var tests: List[ActorRef] = List[ActorRef]()
+  private var clientsState: List[clientState] = List[clientState]()
 
-  /*
-    client sub
-    send to client if sub update
-  */
+  case class clientState(
+                          actorId: String,
+                          actorRef: ActorRef,
+
+                        )
+
   override def receive: Receive = {
-    // sub
     case WSEventUserJoined(actorId, actor) =>
-      println("ici555")
-      tests = tests :+ actor
-      actor ! WSERandom()
+      println("SubscriptionActor WSEventUserJoined")
+      clientsState = clientsState :+ clientState(actorId, actor)
+    case WSEventUserQuit(actorId) =>
+      println("SubscriptionActor WSEventUserQuit")
+      clientsState = clientsState.filter(_.actorId != actorId)
     case a =>
-      println("ici5", a)
-      tests.foreach(a => a ! WSERandom())
+      println("SubscriptionActor op")
+      clientsState.foreach(c => c.actorRef ! OperationMessage(None, None, "TODO"))
   }
 
 }
-
-// ---
 
 class WebSocketSubscription(val db: H2Profile.backend.Database)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
@@ -95,7 +74,6 @@ class WebSocketSubscription(val db: H2Profile.backend.Database)
     Flow.fromGraph(GraphDSL.create(actorClientSource) { implicit builder =>
       actorClientSource =>
         import GraphDSL.Implicits._
-        import ApolloProtocol._
 
         val actorClientId = TokenGenerator.generateToken()
 
@@ -103,33 +81,27 @@ class WebSocketSubscription(val db: H2Profile.backend.Database)
         val merge = builder.add(Merge[WSEvent](2))
         val subActorSink = Sink.actorRef[WSEvent](subActorHandler, WSEventUserQuit(actorClientId))
 
-        val messagesToWSEvent = builder.add(Flow[Message].collect {
-          // serialization
-          case TextMessage.Strict(direction) =>
-            println("ici3", direction)
-            WSERandom()
-          case _ =>
-            println("ici4")
-            WSERandom()
+        val msgToWs = builder.add(Flow[Message].collect {
+          case TextMessage.Strict(str) =>
+            println("Received: ", str)
+            OperationMessage(None, None, "TODO")
         })
 
-        val WSEventsToMessages = builder.add(Flow[WSEvent].map {
-
-          // serialization
-          case a =>
+        val wsToMsg = builder.add(Flow[WSEvent].map {
+          case op: OperationMessage =>
             import io.circe.syntax._
             import io.circe.generic.auto._
-            val res = OperationMessage(None, None, GQL_CONNECTION_ACK).asJson.toString()
-            println("ici66", a, res)
-            TextMessage(res)
+            val opString = op.asJson.toString()
+            println("Send: ", op)
+            TextMessage(opString)
         })
 
         materialization ~> merge ~> subActorSink
-        messagesToWSEvent ~> merge
+        msgToWs ~> merge
 
-        actorClientSource ~> WSEventsToMessages
+        actorClientSource ~> wsToMsg
 
-        FlowShape(messagesToWSEvent.in, WSEventsToMessages.out)
+        FlowShape(msgToWs.in, wsToMsg.out)
     })
 
 }
