@@ -62,14 +62,14 @@ case class OpMsgType(
                     )
 
 case class KroomTokenId(
-                         `Kroom-token-id`: String
+                         `Kroom-token-id`: Option[String]
                        )
 
-case class Id(id: Int)
+case class Var(id: Option[Int])
 
 case class Query(
                   query: String,
-                  variables: Option[Id],
+                  variables: Var,
                   operationName: Option[String]
                 )
 
@@ -134,21 +134,24 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
       })
     case WSEventCSMessage(actorId, content) =>
       println("SubscriptionActor WSEventCSMessage")
-      parser.decode[OpMsgType](content).toTry.map(tpe =>
+      parser.decode[OpMsgType](content).toTry.map(tpe => {
+        println(s" - ${tpe.`type`}")
         tpe.`type` match {
           case ApolloProtocol.GQL_CONNECTION_INIT =>
             parser.decode[OpMsgCSInit](content).toTry.map(init => {
-              clientsState(actorId) = clientsState(actorId).copy(token = Some(init.payload.`Kroom-token-id`))
+              println(" -- ", init)
+              clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
             })
           case ApolloProtocol.GQL_START =>
             parser.decode[OpMsgCSStart](content).toTry.map(start => {
+              println(" -- ", start)
               QueryParser.parse(start.payload.query) match {
                 case Success(ast) =>
                   ast.operationType(start.payload.operationName) match {
                     case Some(OperationType.Subscription) =>
                       val state = clientsState(actorId)
-                      // TODO
-                      /*
+                    // TODO
+                    /*
                       val tmp = subQueryData(
                         start.id,
                         Executor.prepare(
@@ -179,12 +182,14 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
             })
           case ApolloProtocol.GQL_STOP =>
             parser.decode[OpMsgCSStop](content).toTry.map(stop => {
+              println(" -- ", stop)
               val state = clientsState(actorId)
               clientsState(actorId) = state.copy(subs = state.subs.filter(e => e.apolloQueryId != stop.id))
             })
           case ApolloProtocol.GQL_CONNECTION_TERMINATE =>
             clientsState -= actorId
         }
+      }
       )
   }
 
