@@ -22,6 +22,7 @@ import io.circe.optics.JsonPath.{root => r}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
+import io.kroom.api.util.FormatError
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile
@@ -69,23 +70,6 @@ object Server extends App with CorsSupport {
     }
   }
 
-  def formatError(error: Throwable): Json = error match {
-    case syntaxError: SyntaxError ⇒
-      Json.obj("errors" → Json.arr(
-        Json.obj(
-          "message" → Json.fromString(syntaxError.getMessage),
-          "locations" → Json.arr(Json.obj(
-            "line" → Json.fromBigInt(syntaxError.originalError.position.line),
-            "column" → Json.fromBigInt(syntaxError.originalError.position.column))))))
-    case NonFatal(e) ⇒
-      formatError(e.getMessage)
-    case e ⇒
-      throw e
-  }
-
-  def formatError(message: String): Json =
-    Json.obj("errors" → Json.arr(Json.obj("message" → Json.fromString(message))))
-
   val route: Route =
     optionalHeaderValueByName("X-Apollo-Tracing") { tracing ⇒
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
@@ -100,11 +84,11 @@ object Server extends App with CorsSupport {
                 QueryParser.parse(query) match {
                   case Success(ast) ⇒
                     variables.map(parse) match {
-                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                      case Some(Left(error)) ⇒ complete(BadRequest, FormatError.formatError(error))
                       case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
                       case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined, kroomTokenId)
                     }
-                  case Failure(error) ⇒ complete(BadRequest, formatError(error))
+                  case Failure(error) ⇒ complete(BadRequest, FormatError.formatError(error))
                 }
               }
           } ~
@@ -118,17 +102,17 @@ object Server extends App with CorsSupport {
                   query.map(QueryParser.parse(_)) match {
                     case Some(Success(ast)) ⇒
                       variablesStr.map(parse) match {
-                        case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                        case Some(Left(error)) ⇒ complete(BadRequest, FormatError.formatError(error))
                         case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined, kroomTokenId)
                         case None ⇒ executeGraphQL(ast, operationName, r.variables.json.getOption(body) getOrElse Json.obj(), tracing.isDefined, kroomTokenId)
                       }
-                    case Some(Failure(error)) ⇒ complete(BadRequest, formatError(error))
-                    case None ⇒ complete(BadRequest, formatError("No query to execute"))
+                    case Some(Failure(error)) ⇒ complete(BadRequest, FormatError.formatError(error))
+                    case None ⇒ complete(BadRequest, FormatError.formatError("No query to execute"))
                   }
                 } ~
                   entity(as[Document]) { document ⇒
                     variablesParam.map(parse) match {
-                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                      case Some(Left(error)) ⇒ complete(BadRequest, FormatError.formatError(error))
                       case Some(Right(json)) ⇒ executeGraphQL(document, operationNameParam, json, tracing.isDefined, kroomTokenId)
                       case None ⇒ executeGraphQL(document, operationNameParam, Json.obj(), tracing.isDefined, kroomTokenId)
                     }

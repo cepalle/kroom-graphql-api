@@ -6,14 +6,19 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
+import akka.http.scaladsl.model.StatusCodes._
 import io.circe.Json
+import io.circe.syntax._
+import io.circe.generic.auto._
+import io.circe.parser
 import io.kroom.api.Server.system
 import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.{DBRoot, RepoRoot, SchemaRoot}
-import io.kroom.api.util.TokenGenerator
+import io.kroom.api.util.{FormatError, TokenGenerator}
 import sangria.ast.OperationType
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{Executor, PreparedQuery}
+import sangria.execution.{ErrorWithResolver, Executor, PreparedQuery, QueryAnalysisError}
+import sangria.marshalling.InputUnmarshaller
 import sangria.parser.QueryParser
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile
@@ -51,9 +56,13 @@ case class WSEventCSMessage(actorId: String, content: String) extends WSEventCS
 
 sealed trait WSEventSC
 
-case class OpMsgTODO(
-                      `type`: String,
-                    )
+case class WSEventSCOpMsgType(
+                               `type`: String,
+                             ) extends WSEventSC
+
+case class WSEventSCOpMsgString(
+                                 str: String
+                               ) extends WSEventSC
 
 // ---
 
@@ -98,14 +107,12 @@ case class OpMsgCSTerminate(
 class SubscriptionActor(ctxInit: SecureContext) extends Actor {
 
   import system.dispatcher
-  import io.circe.generic.auto._
-  import io.circe.parser
 
   private var clientsState: mutable.Map[String, clientState] = collection.mutable.Map[String, clientState]()
 
   case class subQueryData(
                            apolloQueryId: String,
-                           preparedQuery: Future[PreparedQuery[SecureContext, Any, Json]], // TODO
+                           preparedQuery: PreparedQuery[SecureContext, Unit, Json],
                            subQuery: String,
                            subQueryParamsId: Int,
                          )
@@ -128,7 +135,11 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
       clientsState.foreach(c => {
         c._2.subs.foreach(sbQu => {
           if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
-            sbQu.preparedQuery.map(p => c._2.actorRef ! p.execute())
+            sbQu.preparedQuery.execute().map(res => {
+
+
+              //c._2.actorRef ! res
+            })
           }
         })
       })
@@ -141,43 +152,76 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
             parser.decode[OpMsgCSInit](content).toTry.map(init => {
               println(" -- ", init)
               clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
+              clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_ACK)
             })
           case ApolloProtocol.GQL_START =>
+            val clState = clientsState(actorId)
             parser.decode[OpMsgCSStart](content).toTry.map(start => {
               println(" -- ", start)
               QueryParser.parse(start.payload.query) match {
                 case Success(ast) =>
                   ast.operationType(start.payload.operationName) match {
                     case Some(OperationType.Subscription) =>
-                      val state = clientsState(actorId)
-                    // TODO
-                    /*
-                      val tmp = subQueryData(
-                        start.id,
-                        Executor.prepare(
-                          schema = SchemaRoot.KroomSchema,
-                          queryAst = ast,
-                          userContext = new SecureContext(state.token, ctxInit.repo),
-                          variables = if (start.payload.variables) Json.obj() else variables,
-                          operationName = start.payload.operationName,
-                          deferredResolver = DeferredResolver.fetchers(
-                            SchemaDeezer.TrackFetcherId,
-                            SchemaDeezer.ArtistFetcherId,
-                            SchemaDeezer.AlbumFetcherId,
-                            SchemaDeezer.GenreFetcherId
-                          ),
-                          exceptionHandler = ExceptionCustom.exceptionHandler
+
+                      import sangria.marshalling.circe._
+
+                      Executor.prepare(
+                        schema = SchemaRoot.KroomSchema,
+                        queryAst = ast,
+                        userContext = new SecureContext(clState.token, ctxInit.repo),
+                        variables = start.payload.variables.asJson,
+                        operationName = start.payload.operationName,
+                        deferredResolver = DeferredResolver.fetchers(
+                          SchemaDeezer.TrackFetcherId,
+                          SchemaDeezer.ArtistFetcherId,
+                          SchemaDeezer.AlbumFetcherId,
+                          SchemaDeezer.GenreFetcherId
                         ),
-                        "TODO",
-                        42
-                      )
-                      */
+                        exceptionHandler = ExceptionCustom.exceptionHandler
+                      ).map(query => {
+                        println("query", query)
+                        val sQuData = subQueryData(
+                          start.id,
+                          query,
+                          "TODO", // TODO
+                          start.payload.variables.id.getOrElse(-1)
+                        )
+                        clientsState(actorId) = clState.copy(subs = clState.subs :+ sQuData)
+
+                        query.execute().map(res => {
+                          val vrap = Json.obj(
+                            ("id", Json.fromString(start.id)),
+                            ("type", Json.fromString(ApolloProtocol.GQL_DATA)),
+                            ("payload", res)
+                          )
+                          println("res", vrap)
+                          clState.actorRef ! WSEventSCOpMsgString(vrap.toString())
+                        })
+                      }).recover {
+                        case e =>
+                          val vrap = Json.obj(
+                            ("id", Json.fromString(start.id)),
+                            ("type", Json.fromString(ApolloProtocol.GQL_ERROR)),
+                            ("payload", FormatError.formatError(e))
+                          )
+                          clState.actorRef ! WSEventSCOpMsgString(vrap.toString())
+                      }
                     case x =>
-                      println(s"OperationType: $x not supported with WebSockets. Use HTTP POST")
+                      val vrap = Json.obj(
+                        ("id", Json.fromString(start.id)),
+                        ("type", Json.fromString(ApolloProtocol.GQL_ERROR)),
+                        ("payload", FormatError.formatError(s"OperationType: $x not supported with WebSockets. Use HTTP POST"))
+                      )
+                      clState.actorRef ! WSEventSCOpMsgString(vrap.toString())
                   }
 
                 case Failure(e) =>
-                  println(e.getMessage)
+                  val vrap = Json.obj(
+                    ("id", Json.fromString(start.id)),
+                    ("type", Json.fromString(ApolloProtocol.GQL_ERROR)),
+                    ("payload", FormatError.formatError(e))
+                  )
+                  clState.actorRef ! WSEventSCOpMsgString(vrap.toString())
               }
             })
           case ApolloProtocol.GQL_STOP =>
@@ -219,14 +263,12 @@ class WebSocketSubscription(val subActorHandler: ActorRef)
         })
 
         val wsToMsg = builder.add(Flow[WSEventSC].map {
-          case op: OpMsgTODO =>
-            /*
-            import io.circe.syntax._
-            import io.circe.generic.auto._
-            val opString = op.asJson.toString()
-            */
-            println("Send: ", op)
-            TextMessage("TODO")
+          case op: WSEventSCOpMsgType =>
+            println("Send: ", op.asJson.toString())
+            TextMessage(op.asJson.toString())
+          case op: WSEventSCOpMsgString =>
+            println("Send: ", op.str)
+            TextMessage(op.str)
         })
 
         materialization ~> merge ~> subActorSink
