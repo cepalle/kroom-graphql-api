@@ -1,31 +1,25 @@
 package io.kroom.api
 
-import akka.NotUsed
-import akka.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
-import akka.http.scaladsl.model.StatusCodes._
 import io.circe.Json
 import io.circe.syntax._
 import io.circe.generic.auto._
 import io.circe.parser
 import io.kroom.api.Server.system
 import io.kroom.api.deezer.SchemaDeezer
-import io.kroom.api.root.{DBRoot, RepoRoot, SchemaRoot}
+import io.kroom.api.root.SchemaRoot
 import io.kroom.api.util.{FormatError, TokenGenerator}
 import sangria.ast.OperationType
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, PreparedQuery, QueryAnalysisError}
-import sangria.marshalling.InputUnmarshaller
+import sangria.execution.{Executor, PreparedQuery}
 import sangria.parser.QueryParser
-import sangria.slowlog.SlowLog
-import slick.jdbc.H2Profile
 
 import scala.collection.mutable
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 object ApolloProtocol {
   val GQL_CONNECTION_INIT = "connection_init" // Client -> Server
@@ -43,13 +37,24 @@ object ApolloProtocol {
   val GQL_STOP = "stop" // Client -> Server
 }
 
+object SubQueryEnum extends Enumeration {
+  val TrackVoteEvent = Value
+
+  def queryFindType(q: String): SubQueryEnum.Value = {
+    if (q.indexOf("TrackVoteEvent") > -1) {
+      return SubQueryEnum.TrackVoteEvent
+    }
+    return SubQueryEnum.TrackVoteEvent
+  }
+}
+
 sealed trait WSEventCS
 
 case class WSEventCSUserJoined(actorId: String, actorRef: ActorRef) extends WSEventCS
 
 case class WSEventCSUserQuit(actorId: String) extends WSEventCS
 
-case class WSEventCSUpdateQuery(subQuery: String, subQueryParamsId: Int) extends WSEventCS
+case class WSEventCSUpdateQuery(subQuery: SubQueryEnum.Value, subQueryParamsId: Int) extends WSEventCS
 
 case class WSEventCSMessage(actorId: String, content: String) extends WSEventCS
 
@@ -113,7 +118,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
   case class subQueryData(
                            apolloQueryId: String,
                            preparedQuery: PreparedQuery[SecureContext, Unit, Json],
-                           subQuery: String,
+                           subQuery: SubQueryEnum.Value,
                            subQueryParamsId: Int,
                          )
 
@@ -135,10 +140,15 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
       clientsState.foreach(c => {
         c._2.subs.foreach(sbQu => {
           if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
+            import sangria.marshalling.circe._
+
             sbQu.preparedQuery.execute().map(res => {
-
-
-              //c._2.actorRef ! res
+              val vrap = Json.obj(
+                ("id", Json.fromString(sbQu.apolloQueryId)),
+                ("type", Json.fromString(ApolloProtocol.GQL_DATA)),
+                ("payload", res)
+              )
+              c._2.actorRef ! WSEventSCOpMsgString(vrap.toString())
             })
           }
         })
@@ -153,6 +163,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
               println(" -- ", init)
               clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_ACK)
+              // TODO KEEP
             })
           case ApolloProtocol.GQL_START =>
             val clState = clientsState(actorId)
@@ -179,11 +190,10 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                         ),
                         exceptionHandler = ExceptionCustom.exceptionHandler
                       ).map(query => {
-                        println("query", query)
                         val sQuData = subQueryData(
                           start.id,
                           query,
-                          "TODO", // TODO
+                          SubQueryEnum.queryFindType(start.payload.query),
                           start.payload.variables.id.getOrElse(-1)
                         )
                         clientsState(actorId) = clState.copy(subs = clState.subs :+ sQuData)
@@ -194,7 +204,6 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                             ("type", Json.fromString(ApolloProtocol.GQL_DATA)),
                             ("payload", res)
                           )
-                          println("res", vrap)
                           clState.actorRef ! WSEventSCOpMsgString(vrap.toString())
                         })
                       }).recover {
