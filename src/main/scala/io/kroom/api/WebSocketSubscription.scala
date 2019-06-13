@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
+import io.kroom.api.root.{DBRoot, RepoRoot}
 import io.kroom.api.util.TokenGenerator
 import sangria.execution.{Executor, PreparedQuery}
 import slick.jdbc.H2Profile
@@ -43,7 +44,7 @@ case class OperationMessage(
                              `type`: String, // type: string;
                            ) extends WSEvent
 
-class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
+class SubscriptionActor(ctxInit: SecureContext) extends Actor {
 
   private var clientsState: List[clientState] = List[clientState]()
 
@@ -69,7 +70,7 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
       println("SubscriptionActor WSEventUserQuit")
       clientsState = clientsState.filter(_.actorId != actorId)
     case WSEventUpdateQuery(subQuery, subQueryParamsId) =>
-      // Send update
+    // Send update
     case a =>
       println("SubscriptionActor op")
       clientsState.foreach(c => c.actorRef ! OperationMessage(None, None, "TODO"))
@@ -77,11 +78,10 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
 }
 
-class WebSocketSubscription(val db: H2Profile.backend.Database)
+class WebSocketSubscription(val subActorHandler: ActorRef)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
   extends Directives {
 
-  private val subActorHandler = actorSystem.actorOf(Props(new SubscriptionActor(db)))
   private val actorClientSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)
 
   def newSocketFlow(): Flow[Message, Message, ActorRef] =

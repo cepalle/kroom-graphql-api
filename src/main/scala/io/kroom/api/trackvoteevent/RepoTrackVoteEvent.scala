@@ -1,5 +1,7 @@
 package io.kroom.api.trackvoteevent
 
+import akka.actor.ActorRef
+import io.kroom.api.WSEventUpdateQuery
 import io.kroom.api.deezer.RepoDeezer
 import io.kroom.api.user.{DataUser, RepoUser}
 
@@ -22,7 +24,12 @@ case class DataTrackVoteEvent(
                                location: Option[String]
                              )
 
-class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeezer: RepoDeezer, private val repoUser: RepoUser) {
+class RepoTrackVoteEvent(
+                          private val dbh: DBTrackVoteEvent,
+                          private val repoDeezer: RepoDeezer,
+                          private val repoUser: RepoUser,
+                          private val subActor: ActorRef
+                        ) {
 
   def getById(id: Int): Try[DataTrackVoteEvent] = {
     dbh.getById(id)
@@ -69,7 +76,7 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
       if (track.userMasterId != userIdMaster) {
         dbh.addUser(eventId, userIdMaster)
       }
-      dbh.update(
+      val res = dbh.update(
         eventId,
         userIdMaster,
         name,
@@ -77,31 +84,41 @@ class RepoTrackVoteEvent(private val dbh: DBTrackVoteEvent, private val repoDeez
         schedule,
         location
       )
+      subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+      res
     })
   }
 
   def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
-    dbh.addUser(eventId, userId)
+    val res = dbh.addUser(eventId, userId)
+    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    res
   }
 
   def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
-    dbh.delUser(eventId, userId)
+    val res = dbh.delUser(eventId, userId)
+    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    res
   }
 
   def addOrUpdateVote(eventId: Int, userId: Int, musicId: Int, up: Boolean): Try[DataTrackVoteEvent] = {
-    dbh.hasVote(eventId, userId, musicId).flatMap(b => if (b) {
+    val res = dbh.hasVote(eventId, userId, musicId).flatMap(b => if (b) {
       dbh.updateVote(eventId, userId, musicId, up)
     } else {
       dbh.addVote(eventId, userId, musicId, up)
     })
+    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    res
+  }
+
+  def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
+    val res = dbh.delVote(eventId, userId, musicId)
+    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    res
   }
 
   def hasVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
     dbh.hasVote(eventId, userId, musicId)
-  }
-
-  def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
-    dbh.delVote(eventId, userId, musicId)
   }
 
 }

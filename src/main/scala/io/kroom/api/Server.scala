@@ -6,7 +6,7 @@ import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes._
@@ -24,6 +24,7 @@ import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
+import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
 object Server extends App with CorsSupport {
@@ -34,7 +35,9 @@ object Server extends App with CorsSupport {
   import GraphQLRequestUnmarshaller._
 
   private val db = Database.forConfig("h2mem1")
-  private val wbSubHandler = new WebSocketSubscription(db)
+  private lazy val subActorHandler: ActorRef = system.actorOf(Props(new SubscriptionActor(ctxInit)))
+  private lazy val ctxInit: SecureContext = new SecureContext(None, new RepoRoot(new DBRoot(db), subActorHandler))
+  private val wbSubHandler = new WebSocketSubscription(subActorHandler)
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
     query.operationType(operationName) match {
@@ -45,7 +48,7 @@ object Server extends App with CorsSupport {
           Executor.execute(
             schema = SchemaRoot.KroomSchema,
             queryAst = query,
-            userContext = new SecureContext(token, new RepoRoot(new DBRoot(db))),
+            userContext = new SecureContext(token, ctxInit.repo),
             variables = if (variables.isNull) Json.obj() else variables,
             operationName = operationName,
             middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil,
