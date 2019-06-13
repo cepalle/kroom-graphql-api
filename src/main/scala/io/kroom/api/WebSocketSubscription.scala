@@ -7,8 +7,10 @@ import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 import io.kroom.api.util.TokenGenerator
+import sangria.execution.{Executor, PreparedQuery}
 import slick.jdbc.H2Profile
 
+import scala.concurrent.Future
 import scala.util.{Success, Try}
 
 object ApolloProtocol {
@@ -43,16 +45,24 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
   private var clientsState: List[clientState] = List[clientState]()
 
+  case class subQueryData(
+                       apolloQueryId: String,
+                       preparedQuery: PreparedQuery[SecureContext, Nothing, Nothing], // TODO
+                       subQuery: String,
+                       subQueryParamsId: Int,
+                     )
+
   case class clientState(
                           actorId: String,
                           actorRef: ActorRef,
-
+                          token: Option[String],
+                          subs: List[subQueryData]
                         )
 
   override def receive: Receive = {
     case WSEventUserJoined(actorId, actor) =>
       println("SubscriptionActor WSEventUserJoined")
-      clientsState = clientsState :+ clientState(actorId, actor)
+      clientsState = clientsState :+ clientState(actorId, actor, None, List())
     case WSEventUserQuit(actorId) =>
       println("SubscriptionActor WSEventUserQuit")
       clientsState = clientsState.filter(_.actorId != actorId)
