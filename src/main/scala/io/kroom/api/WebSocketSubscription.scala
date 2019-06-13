@@ -12,7 +12,7 @@ import sangria.execution.{Executor, PreparedQuery}
 import slick.jdbc.H2Profile
 
 import scala.concurrent.Future
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object ApolloProtocol {
   val GQL_CONNECTION_INIT = "connection_init" // Client -> Server
@@ -30,21 +30,67 @@ object ApolloProtocol {
   val GQL_STOP = "stop" // Client -> Server
 }
 
-sealed trait WSEvent
+sealed trait WSEventCS
 
-case class WSEventUserJoined(actorId: String, actorRef: ActorRef) extends WSEvent
+case class WSEventCSUserJoined(actorId: String, actorRef: ActorRef) extends WSEventCS
 
-case class WSEventUserQuit(actorId: String) extends WSEvent
+case class WSEventCSUserQuit(actorId: String) extends WSEventCS
 
-case class WSEventUpdateQuery(subQuery: String, subQueryParamsId: Int) extends WSEvent
+case class WSEventCSUpdateQuery(subQuery: String, subQueryParamsId: Int) extends WSEventCS
 
-case class OperationMessage(
-                             payload: Option[String], // payload?: any;
-                             id: Option[String], // id?: string;
-                             `type`: String, // type: string;
-                           ) extends WSEvent
+case class WSEventCSMessage(actorId: String, content: String) extends WSEventCS
+
+
+sealed trait WSEventSC
+
+case class OpMsgTODO(
+                      `type`: String,
+                    )
+
+// ---
+
+case class OpMsgType(
+                      `type`: String,
+                    )
+
+case class KroomTokenId(
+                         `Kroom-token-id`: Int
+                       )
+
+case class Id(id: Int)
+
+case class Query(
+                  query: String,
+                  variables: Option[Id],
+                  operationName: Option[String]
+                )
+
+case class OpMsgCSInit(
+                        payload: KroomTokenId,
+                        `type`: String,
+                      )
+
+case class OpMsgCSStart(
+                         id: String,
+                         payload: Query,
+                         `type`: String,
+                       )
+
+case class OpMsgCSStop(
+                        id: String,
+                        `type`: String,
+                      )
+
+case class OpMsgCSTerminate(
+                             `type`: String,
+                           )
+
+// ---
 
 class SubscriptionActor(ctxInit: SecureContext) extends Actor {
+
+  import io.circe.generic.auto._
+  import io.circe.parser
 
   private var clientsState: List[clientState] = List[clientState]()
 
@@ -63,17 +109,23 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                         )
 
   override def receive: Receive = {
-    case WSEventUserJoined(actorId, actor) =>
+    case WSEventCSUserJoined(actorId, actor) =>
       println("SubscriptionActor WSEventUserJoined")
       clientsState = clientsState :+ clientState(actorId, actor, None, List())
-    case WSEventUserQuit(actorId) =>
+    case WSEventCSUserQuit(actorId) =>
       println("SubscriptionActor WSEventUserQuit")
       clientsState = clientsState.filter(_.actorId != actorId)
-    case WSEventUpdateQuery(subQuery, subQueryParamsId) =>
-    // Send update
-    case a =>
-      println("SubscriptionActor op")
-      clientsState.foreach(c => c.actorRef ! OperationMessage(None, None, "TODO"))
+    case WSEventCSUpdateQuery(subQuery, subQueryParamsId) =>
+      println("SubscriptionActor WSEventUpdateQuery", subQuery, subQueryParamsId)
+      clientsState.foreach(c => {
+        c.subs.foreach(sbQu => {
+          if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
+            c.actorRef ! sbQu.preparedQuery.execute()
+          }
+        })
+      })
+    case WSEventCSMessage(actorId, content) =>
+      println("SubscriptionActor WSEventCSMessage")
   }
 
 }
@@ -82,7 +134,7 @@ class WebSocketSubscription(val subActorHandler: ActorRef)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
   extends Directives {
 
-  private val actorClientSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)
+  private val actorClientSource = Source.actorRef[WSEventSC](100, OverflowStrategy.fail)
 
   def newSocketFlow(): Flow[Message, Message, ActorRef] =
     Flow.fromGraph(GraphDSL.create(actorClientSource) { implicit builder =>
@@ -91,23 +143,25 @@ class WebSocketSubscription(val subActorHandler: ActorRef)
 
         val actorClientId = TokenGenerator.generateToken()
 
-        val materialization = builder.materializedValue.map(actorClientRef => WSEventUserJoined(actorClientId, actorClientRef))
-        val merge = builder.add(Merge[WSEvent](2))
-        val subActorSink = Sink.actorRef[WSEvent](subActorHandler, WSEventUserQuit(actorClientId))
+        val materialization = builder.materializedValue.map(actorClientRef => WSEventCSUserJoined(actorClientId, actorClientRef))
+        val merge = builder.add(Merge[WSEventCS](2))
+        val subActorSink = Sink.actorRef[WSEventCS](subActorHandler, WSEventCSUserQuit(actorClientId))
 
         val msgToWs = builder.add(Flow[Message].collect {
           case TextMessage.Strict(str) =>
             println("Received: ", str)
-            OperationMessage(None, None, "TODO")
+            WSEventCSMessage(actorClientId, str)
         })
 
-        val wsToMsg = builder.add(Flow[WSEvent].map {
-          case op: OperationMessage =>
+        val wsToMsg = builder.add(Flow[WSEventSC].map {
+          case op: OpMsgTODO =>
+            /*
             import io.circe.syntax._
             import io.circe.generic.auto._
             val opString = op.asJson.toString()
+            */
             println("Send: ", op)
-            TextMessage(opString)
+            TextMessage("TODO")
         })
 
         materialization ~> merge ~> subActorSink

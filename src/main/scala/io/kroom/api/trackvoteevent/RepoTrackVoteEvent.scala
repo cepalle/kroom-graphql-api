@@ -1,7 +1,7 @@
 package io.kroom.api.trackvoteevent
 
 import akka.actor.ActorRef
-import io.kroom.api.WSEventUpdateQuery
+import io.kroom.api.WSEventCSUpdateQuery
 import io.kroom.api.deezer.RepoDeezer
 import io.kroom.api.user.{DataUser, RepoUser}
 
@@ -84,20 +84,20 @@ class RepoTrackVoteEvent(
         schedule,
         location
       )
-      subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+      subActor ! WSEventCSUpdateQuery("TrackVoteEvent", eventId)
       res
     })
   }
 
   def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.addUser(eventId, userId)
-    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    subActor ! WSEventCSUpdateQuery("TrackVoteEvent", eventId)
     res
   }
 
   def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.delUser(eventId, userId)
-    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    subActor ! WSEventCSUpdateQuery("TrackVoteEvent", eventId)
     res
   }
 
@@ -107,13 +107,13 @@ class RepoTrackVoteEvent(
     } else {
       dbh.addVote(eventId, userId, musicId, up)
     })
-    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    subActor ! WSEventCSUpdateQuery("TrackVoteEvent", eventId)
     res
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.delVote(eventId, userId, musicId)
-    subActor ! WSEventUpdateQuery("TrackVoteEvent", eventId)
+    subActor ! WSEventCSUpdateQuery("TrackVoteEvent", eventId)
     res
   }
 
