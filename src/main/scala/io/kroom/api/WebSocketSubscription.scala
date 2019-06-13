@@ -54,7 +54,7 @@ case class OpMsgType(
                     )
 
 case class KroomTokenId(
-                         `Kroom-token-id`: Int
+                         `Kroom-token-id`: String
                        )
 
 case class Id(id: Int)
@@ -126,6 +126,23 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
       })
     case WSEventCSMessage(actorId, content) =>
       println("SubscriptionActor WSEventCSMessage")
+      parser.decode[OpMsgType](content).toTry.map(tpe =>
+        tpe.`type` match {
+          case ApolloProtocol.GQL_CONNECTION_INIT =>
+            parser.decode[OpMsgCSInit](content).toTry.map(init => {
+              clientsState = clientsState.map(c => {
+                if (c.actorId == actorId) {
+                  c.copy(token = Some(init.payload.`Kroom-token-id`))
+                } else {
+                  c
+                }
+              })
+            })
+          case ApolloProtocol.GQL_START =>
+          case ApolloProtocol.GQL_STOP =>
+          case ApolloProtocol.GQL_CONNECTION_TERMINATE =>
+        }
+      )
   }
 
 }
