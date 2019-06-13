@@ -11,6 +11,7 @@ import io.kroom.api.util.TokenGenerator
 import sangria.execution.{Executor, PreparedQuery}
 import slick.jdbc.H2Profile
 
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
@@ -92,7 +93,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
   import io.circe.generic.auto._
   import io.circe.parser
 
-  private var clientsState: List[clientState] = List[clientState]()
+  private var clientsState: mutable.Map[String, clientState] = collection.mutable.Map[String, clientState]()
 
   case class subQueryData(
                            apolloQueryId: String,
@@ -102,7 +103,6 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                          )
 
   case class clientState(
-                          actorId: String,
                           actorRef: ActorRef,
                           token: Option[String],
                           subs: List[subQueryData]
@@ -111,16 +111,16 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
   override def receive: Receive = {
     case WSEventCSUserJoined(actorId, actor) =>
       println("SubscriptionActor WSEventUserJoined")
-      clientsState = clientsState :+ clientState(actorId, actor, None, List())
+      clientsState += (actorId -> clientState(actor, None, List()))
     case WSEventCSUserQuit(actorId) =>
       println("SubscriptionActor WSEventUserQuit")
-      clientsState = clientsState.filter(_.actorId != actorId)
+      clientsState -= actorId
     case WSEventCSUpdateQuery(subQuery, subQueryParamsId) =>
       println("SubscriptionActor WSEventUpdateQuery", subQuery, subQueryParamsId)
       clientsState.foreach(c => {
-        c.subs.foreach(sbQu => {
+        c._2.subs.foreach(sbQu => {
           if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
-            c.actorRef ! sbQu.preparedQuery.execute()
+            c._2.actorRef ! sbQu.preparedQuery.execute()
           }
         })
       })
@@ -130,17 +130,18 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
         tpe.`type` match {
           case ApolloProtocol.GQL_CONNECTION_INIT =>
             parser.decode[OpMsgCSInit](content).toTry.map(init => {
-              clientsState = clientsState.map(c => {
-                if (c.actorId == actorId) {
-                  c.copy(token = Some(init.payload.`Kroom-token-id`))
-                } else {
-                  c
-                }
-              })
+              clientsState(actorId) = clientsState(actorId).copy(token = Some(init.payload.`Kroom-token-id`))
             })
           case ApolloProtocol.GQL_START =>
+            parser.decode[OpMsgCSStart](content).toTry.map(start => {
+            })
           case ApolloProtocol.GQL_STOP =>
+            parser.decode[OpMsgCSStop](content).toTry.map(stop => {
+              val state = clientsState(actorId)
+              clientsState(actorId) = state.copy(subs = state.subs.filter(e => e.apolloQueryId != stop.id))
+            })
           case ApolloProtocol.GQL_CONNECTION_TERMINATE =>
+            clientsState -= actorId
         }
       )
   }
