@@ -148,6 +148,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                     case Some(OperationType.Subscription) =>
                       val state = clientsState(actorId)
                       // TODO
+                      /*
                       val tmp = subQueryData(
                         start.id,
                         Executor.prepare(
@@ -167,6 +168,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                         "TODO",
                         42
                       )
+                      */
                     case x =>
                       println(s"OperationType: $x not supported with WebSockets. Use HTTP POST")
                   }
