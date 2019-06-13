@@ -35,6 +35,8 @@ case class WSEventUserJoined(actorId: String, actorRef: ActorRef) extends WSEven
 
 case class WSEventUserQuit(actorId: String) extends WSEvent
 
+case class WSEventUpdateQuery(subQuery: String, subQueryParamsId: Int) extends WSEvent
+
 case class OperationMessage(
                              payload: Option[String], // payload?: any;
                              id: Option[String], // id?: string;
@@ -46,11 +48,11 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
   private var clientsState: List[clientState] = List[clientState]()
 
   case class subQueryData(
-                       apolloQueryId: String,
-                       preparedQuery: PreparedQuery[SecureContext, Nothing, Nothing], // TODO
-                       subQuery: String,
-                       subQueryParamsId: Int,
-                     )
+                           apolloQueryId: String,
+                           preparedQuery: PreparedQuery[SecureContext, Nothing, Nothing], // TODO
+                           subQuery: String,
+                           subQueryParamsId: Int,
+                         )
 
   case class clientState(
                           actorId: String,
@@ -66,6 +68,8 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
     case WSEventUserQuit(actorId) =>
       println("SubscriptionActor WSEventUserQuit")
       clientsState = clientsState.filter(_.actorId != actorId)
+    case WSEventUpdateQuery(subQuery, subQueryParamsId) =>
+      // Send update
     case a =>
       println("SubscriptionActor op")
       clientsState.foreach(c => c.actorRef ! OperationMessage(None, None, "TODO"))
