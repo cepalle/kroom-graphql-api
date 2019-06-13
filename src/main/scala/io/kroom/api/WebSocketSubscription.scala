@@ -6,9 +6,16 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
-import io.kroom.api.root.{DBRoot, RepoRoot}
+import io.circe.Json
+import io.kroom.api.Server.system
+import io.kroom.api.deezer.SchemaDeezer
+import io.kroom.api.root.{DBRoot, RepoRoot, SchemaRoot}
 import io.kroom.api.util.TokenGenerator
+import sangria.ast.OperationType
+import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{Executor, PreparedQuery}
+import sangria.parser.QueryParser
+import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile
 
 import scala.collection.mutable
@@ -90,6 +97,7 @@ case class OpMsgCSTerminate(
 
 class SubscriptionActor(ctxInit: SecureContext) extends Actor {
 
+  import system.dispatcher
   import io.circe.generic.auto._
   import io.circe.parser
 
@@ -97,7 +105,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
 
   case class subQueryData(
                            apolloQueryId: String,
-                           preparedQuery: PreparedQuery[SecureContext, Nothing, Nothing], // TODO
+                           preparedQuery: Future[PreparedQuery[SecureContext, Any, Json]], // TODO
                            subQuery: String,
                            subQueryParamsId: Int,
                          )
@@ -120,7 +128,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
       clientsState.foreach(c => {
         c._2.subs.foreach(sbQu => {
           if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
-            c._2.actorRef ! sbQu.preparedQuery.execute()
+            sbQu.preparedQuery.map(p => c._2.actorRef ! p.execute())
           }
         })
       })
@@ -134,6 +142,38 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
             })
           case ApolloProtocol.GQL_START =>
             parser.decode[OpMsgCSStart](content).toTry.map(start => {
+              QueryParser.parse(start.payload.query) match {
+                case Success(ast) =>
+                  ast.operationType(start.payload.operationName) match {
+                    case Some(OperationType.Subscription) =>
+                      val state = clientsState(actorId)
+                      // TODO
+                      val tmp = subQueryData(
+                        start.id,
+                        Executor.prepare(
+                          schema = SchemaRoot.KroomSchema,
+                          queryAst = ast,
+                          userContext = new SecureContext(state.token, ctxInit.repo),
+                          variables = if (start.payload.variables) Json.obj() else variables,
+                          operationName = start.payload.operationName,
+                          deferredResolver = DeferredResolver.fetchers(
+                            SchemaDeezer.TrackFetcherId,
+                            SchemaDeezer.ArtistFetcherId,
+                            SchemaDeezer.AlbumFetcherId,
+                            SchemaDeezer.GenreFetcherId
+                          ),
+                          exceptionHandler = ExceptionCustom.exceptionHandler
+                        ),
+                        "TODO",
+                        42
+                      )
+                    case x =>
+                      println(s"OperationType: $x not supported with WebSockets. Use HTTP POST")
+                  }
+
+                case Failure(e) =>
+                  println(e.getMessage)
+              }
             })
           case ApolloProtocol.GQL_STOP =>
             parser.decode[OpMsgCSStop](content).toTry.map(stop => {
