@@ -1,6 +1,6 @@
 package io.kroom.api.util
 
-import java.security.{SecureRandom}
+import java.security.SecureRandom
 
 object TokenGenerator {
 

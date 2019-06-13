@@ -88,7 +88,7 @@ object Server extends App with CorsSupport {
       optionalHeaderValueByName("Kroom-token-id") { kroomTokenId ⇒
         path("graphql") {
           handleWebSocketMessages(
-            wbSubHandler.socketFlow(kroomTokenId)
+            wbSubHandler.newSocketFlow()
           ) ~ get {
             explicitlyAccepts(`text/html`) {
               getFromResource("assets/playground.html")

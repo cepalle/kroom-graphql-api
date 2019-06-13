@@ -6,7 +6,9 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
+import io.kroom.api.util.TokenGenerator
 import slick.jdbc.H2Profile
+
 import scala.util.{Success, Try}
 
 // ---
@@ -38,9 +40,10 @@ object ApolloProtocol {
 
 sealed trait WSEvent
 
-case class WSEventUserJoined(token: Option[String], actorRef: ActorRef) extends WSEvent
+case class WSEventUserJoined(actorId: String, actorRef: ActorRef) extends WSEvent
 
-case class WSEventUserQuit() extends WSEvent
+case class WSEventUserQuit(actorId: String) extends WSEvent
+
 
 case class WSERandom() extends WSEvent
 
@@ -68,7 +71,7 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
   */
   override def receive: Receive = {
     // sub
-    case WSEventUserJoined(token, actor) =>
+    case WSEventUserJoined(actorId, actor) =>
       println("ici555")
       tests = tests :+ actor
       actor ! WSERandom()
@@ -81,25 +84,24 @@ class SubscriptionActor(val db: H2Profile.backend.Database) extends Actor {
 
 // ---
 
-/*
-  Apollo close connexion because bad request ?
-*/
 class WebSocketSubscription(val db: H2Profile.backend.Database)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
   extends Directives {
 
   private val subActorHandler = actorSystem.actorOf(Props(new SubscriptionActor(db)))
-  private val subActorSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)
+  private val actorClientSource = Source.actorRef[WSEvent](100, OverflowStrategy.fail)
 
-  def socketFlow(token: Option[String]): Flow[Message, Message, ActorRef] =
-    Flow.fromGraph(GraphDSL.create(subActorSource) { implicit builder =>
-      subActorSourceCp =>
+  def newSocketFlow(): Flow[Message, Message, ActorRef] =
+    Flow.fromGraph(GraphDSL.create(actorClientSource) { implicit builder =>
+      actorClientSource =>
         import GraphDSL.Implicits._
         import ApolloProtocol._
 
-        val materialization = builder.materializedValue.map(subActorRef => WSEventUserJoined(token, subActorRef))
+        val actorClientId = TokenGenerator.generateToken()
+
+        val materialization = builder.materializedValue.map(actorClientRef => WSEventUserJoined(actorClientId, actorClientRef))
         val merge = builder.add(Merge[WSEvent](2))
-        val subActorSink = Sink.actorRef[WSEvent](subActorHandler, WSEventUserQuit())
+        val subActorSink = Sink.actorRef[WSEvent](subActorHandler, WSEventUserQuit(actorClientId))
 
         val messagesToWSEvent = builder.add(Flow[Message].collect {
           // serialization
@@ -125,7 +127,7 @@ class WebSocketSubscription(val db: H2Profile.backend.Database)
         materialization ~> merge ~> subActorSink
         messagesToWSEvent ~> merge
 
-        subActorSourceCp ~> WSEventsToMessages
+        actorClientSource ~> WSEventsToMessages
 
         FlowShape(messagesToWSEvent.in, WSEventsToMessages.out)
     })
