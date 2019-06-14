@@ -20,8 +20,10 @@ case class DataTrackVoteEvent(
                                name: String,
                                public: Boolean,
                                currentTrackId: Option[Int],
-                               schedule: Option[String],
-                               location: Option[String]
+                               scheduleBegin: Option[Long],
+                               scheduleEnd: Option[Long],
+                               latitude: Option[Double],
+                               longitude: Option[Double]
                              )
 
 class RepoTrackVoteEvent(
@@ -69,8 +71,10 @@ class RepoTrackVoteEvent(
              userIdMaster: Int,
              name: String,
              public: Boolean,
-             schedule: Option[String],
-             location: Option[String]
+             scheduleBegin: Option[Long],
+             scheduleEnd: Option[Long],
+             latitude: Option[Double],
+             longitude: Option[Double]
             ): Try[DataTrackVoteEvent] = {
     dbh.getById(eventId).flatMap(track => {
       if (track.userMasterId != userIdMaster) {
@@ -81,8 +85,10 @@ class RepoTrackVoteEvent(
         userIdMaster,
         name,
         public,
-        schedule,
-        location
+        scheduleBegin,
+        scheduleEnd,
+        latitude,
+        longitude
       )
       subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
       res

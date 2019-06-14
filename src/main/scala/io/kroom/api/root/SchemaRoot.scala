@@ -283,8 +283,10 @@ object SchemaRoot {
           :: Argument("userIdMaster", IntType)
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
-          :: Argument("schedule", OptionInputType(StringType))
-          :: Argument("location", OptionInputType(StringType))
+          :: Argument("scheduleBegin", OptionInputType(LongType))
+          :: Argument("scheduleEnd", OptionInputType(LongType))
+          :: Argument("latitude", OptionInputType(FloatType))
+          :: Argument("longitude", OptionInputType(FloatType))
           :: Nil,
         resolve = ctx ⇒ Future {
           println("Mutation: TrackVoteEventUpdate")
@@ -295,8 +297,10 @@ object SchemaRoot {
             val userIdMaster = ctx.arg[Int]("userIdMaster")
             val name = ctx.arg[String]("name")
             val public = ctx.arg[Boolean]("public")
-            val schedule = ctx.argOpt[String]("schedule")
-            val location = ctx.argOpt[String]("location")
+            val scheduleBegin = ctx.argOpt[Long]("scheduleBegin")
+            val scheduleEnd = ctx.argOpt[Long]("scheduleEnd")
+            val latitude = ctx.argOpt[Double]("latitude")
+            val longitude = ctx.argOpt[Double]("longitude")
 
             val errors = {
               val eventIdErrors = {
@@ -354,7 +358,7 @@ object SchemaRoot {
             }
 
             if (errors.isEmpty) {
-              val trackEvent = ctx.ctx.repo.trackVoteEvent.update(eventId, userIdMaster, name, public, schedule, location).get
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.update(eventId, userIdMaster, name, public, scheduleBegin, scheduleEnd, latitude, longitude).get
               DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
             } else {
               DataPayload[DataTrackVoteEvent](None, errors)

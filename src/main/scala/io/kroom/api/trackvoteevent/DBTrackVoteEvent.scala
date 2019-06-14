@@ -115,15 +115,17 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
              userIdMaster: Int,
              name: String,
              public: Boolean,
-             schedule: Option[String],
-             location: Option[String]
+             scheduleBegin: Option[Long],
+             scheduleEnd: Option[Long],
+             latitude: Option[Double],
+             longitude: Option[Double]
             ): Try[DataTrackVoteEvent] = {
     Await.ready(
       db.run(
         tabTrackVoteEvent
           .filter(_.id === eventId)
-          .map(e => (e.userMasterId, e.name, e.public, e.schedule, e.location))
-          .update((userIdMaster, name, public, schedule, location))
+          .map(e => (e.userMasterId, e.name, e.public, e.scheduleBegin, e.scheduleEnd, e.latitude, e.longitude))
+          .update((userIdMaster, name, public, scheduleBegin, scheduleEnd, latitude, longitude))
       ),
       Duration.Inf
     ).value.get
@@ -210,10 +212,10 @@ object DBTrackVoteEvent {
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]
 
-  val tabToObjTrackVoteEvent: ((Int, Int, String, Boolean, Option[Int], Option[String], Option[String])) => DataTrackVoteEvent = {
-    case (id, userMasterId, name, public, currentTrackId, schedule, location) =>
+  val tabToObjTrackVoteEvent: ((Int, Int, String, Boolean, Option[Int], Option[Long], Option[Long], Option[Double], Option[Double])) => DataTrackVoteEvent = {
+    case (id, userMasterId, name, public, currentTrackId, scheduleBegin, scheduleEnd, latitude, longitude) =>
       DataTrackVoteEvent(
-        id, userMasterId, name, public, currentTrackId, schedule, location
+        id, userMasterId, name, public, currentTrackId, scheduleBegin, scheduleEnd, latitude, longitude
       )
   }
 

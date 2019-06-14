@@ -7,7 +7,7 @@ import io.kroom.api.root.SchemaRoot
 import io.kroom.api.user.SchemaUser
 import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{BooleanType, Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
+import sangria.schema.{BooleanType, Field, IntType, ListType, ObjectType, OptionType, StringType, fields, LongType, FloatType}
 
 import scala.concurrent.Future
 
@@ -113,15 +113,27 @@ object SchemaTrackVoteEvent {
         }
       }),
 
-      Field("schedule", OptionType(StringType), resolve = ctx => Future {
+      Field("scheduleBegin", OptionType(LongType), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.schedule
+          ctx.value.scheduleBegin
         }.flatten
       }),
 
-      Field("location", OptionType(StringType), resolve = ctx => Future {
+      Field("scheduleEnd", OptionType(LongType), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.location
+          ctx.value.scheduleEnd
+        }.flatten
+      }),
+
+      Field("latitude", OptionType(FloatType), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.value.latitude
+        }.flatten
+      }),
+
+      Field("longitude", OptionType(FloatType), resolve = ctx => Future {
+        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+          ctx.value.longitude
         }.flatten
       }),
 

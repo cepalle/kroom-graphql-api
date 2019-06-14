@@ -8,7 +8,7 @@ import io.kroom.api.deezer.SchemaDeezer
 import io.kroom.api.root.SchemaRoot
 import io.kroom.api.util.DataPayload
 import sangria.execution.deferred.{Fetcher, HasId}
-import sangria.schema.{Field, IntType, ListType, ObjectType, OptionType, StringType, fields}
+import sangria.schema.{Field, IntType, ListType, ObjectType, OptionType, StringType, fields, FloatType}
 
 import scala.concurrent.Future
 
@@ -117,12 +117,16 @@ object SchemaUser {
         ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.email)) { () =>
           ctx.value.email
         }),
-      Field("location", OptionType(StringType), resolve = ctx =>
-        ctx.ctx.checkPrivacyUser[Option[String]](ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.location)) { () =>
-          ctx.value.location
+      Field("latitude", OptionType(FloatType), resolve = ctx =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.location)) { () =>
+          ctx.value.latitude
+        }.flatMap(e => e)),
+      Field("longitude", OptionType(FloatType), resolve = ctx =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.stringToPrivacy(ctx.value.privacy.location)) { () =>
+          ctx.value.longitude
         }.flatMap(e => e)),
       Field("token", OptionType(StringType), resolve = ctx =>
-        ctx.ctx.checkPrivacyUser[Option[String]](ctx.value.id, Privacy.`private`) { () =>
+        ctx.ctx.checkPrivacyUser(ctx.value.id, Privacy.`private`) { () =>
           ctx.value.token
         }.flatMap(e => e)),
       Field("privacy", OptionType(PrivacyField), resolve = ctx =>
