@@ -20,3 +20,5 @@ brew install sbt
 ```
 
 # Note
+
+Subscription: Need parameter Query

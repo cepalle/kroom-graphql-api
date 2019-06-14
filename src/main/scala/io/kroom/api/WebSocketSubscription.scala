@@ -19,6 +19,7 @@ import sangria.execution.{Executor, PreparedQuery}
 import sangria.parser.QueryParser
 
 import scala.collection.mutable
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object ApolloProtocol {
@@ -58,6 +59,12 @@ case class WSEventCSUpdateQuery(subQuery: SubQueryEnum.Value, subQueryParamsId: 
 
 case class WSEventCSMessage(actorId: String, content: String) extends WSEventCS
 
+
+sealed trait subActorEvent
+
+case class subActorEventPreparedQuery(actorId: String, subQ: SubscriptionActor.subQueryData) extends subActorEvent
+
+case class subActorEventKeepAlive(actorId: String) extends subActorEvent
 
 sealed trait WSEventSC
 
@@ -109,11 +116,7 @@ case class OpMsgCSTerminate(
 
 // ---
 
-class SubscriptionActor(ctxInit: SecureContext) extends Actor {
-
-  import system.dispatcher
-
-  private var clientsState: mutable.Map[String, clientState] = collection.mutable.Map[String, clientState]()
+object SubscriptionActor {
 
   case class subQueryData(
                            apolloQueryId: String,
@@ -128,7 +131,28 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                           subs: List[subQueryData]
                         )
 
+}
+
+class SubscriptionActor(ctxInit: SecureContext) extends Actor {
+
+  import system.dispatcher
+  import SubscriptionActor._
+
+  private var clientsState: mutable.Map[String, clientState] = collection.mutable.Map[String, clientState]()
+
   override def receive: Receive = {
+    case subActorEventKeepAlive(actorId) =>
+      if (clientsState.contains(actorId)) {
+        clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_KEEP_ALIVE)
+        Future {
+          Thread.sleep(1000)
+          self ! subActorEventKeepAlive(actorId)
+        }
+      }
+    case subActorEventPreparedQuery(actorId, sQuData) =>
+      println("ewdiewdjkbhewdkjhbewkjbdh")
+      val clState = clientsState(actorId)
+      clientsState(actorId) = clState.copy(subs = clState.subs :+ sQuData)
     case WSEventCSUserJoined(actorId, actor) =>
       println("SubscriptionActor WSEventUserJoined")
       clientsState += (actorId -> clientState(actor, None, List()))
@@ -163,7 +187,8 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
               println(" -- ", init)
               clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_ACK)
-              // TODO KEEP
+              clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_KEEP_ALIVE)
+              self ! subActorEventKeepAlive(actorId)
             })
           case ApolloProtocol.GQL_START =>
             val clState = clientsState(actorId)
@@ -190,13 +215,12 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
                         ),
                         exceptionHandler = ExceptionCustom.exceptionHandler
                       ).map(query => {
-                        val sQuData = subQueryData(
+                        self ! subActorEventPreparedQuery(actorId, subQueryData(
                           start.id,
                           query,
                           SubQueryEnum.queryFindType(start.payload.query),
                           start.payload.variables.id.getOrElse(-1)
-                        )
-                        clientsState(actorId) = clState.copy(subs = clState.subs :+ sQuData)
+                        ))
 
                         query.execute().map(res => {
                           val vrap = Json.obj(
