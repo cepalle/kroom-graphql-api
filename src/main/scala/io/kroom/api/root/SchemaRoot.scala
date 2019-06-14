@@ -358,7 +358,7 @@ object SchemaRoot {
 
               val latitudeError = {
                 DataError("latitude", List[Option[String]](
-                  if (latitude.exists(_ > 90.0) {
+                  if (latitude.exists(_ > 90.0)) {
                     Some("latitude is =< 90")
                   } else {
                     None
