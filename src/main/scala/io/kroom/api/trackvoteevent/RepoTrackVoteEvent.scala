@@ -27,6 +27,10 @@ case class DataTrackVoteEvent(
                                longitude: Option[Double]
                              )
 
+object RepoTrackVoteEvent {
+  val distanceMax: Double = 1.0
+}
+
 class RepoTrackVoteEvent(
                           private val dbh: DBTrackVoteEvent,
                           private val repoDeezer: RepoDeezer,

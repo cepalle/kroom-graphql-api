@@ -6,8 +6,8 @@ import io.kroom.api.SecureContext
 import io.kroom.api.Server.system
 import io.kroom.api.user.{DataUser, SchemaUser}
 import io.kroom.api.deezer._
-import io.kroom.api.trackvoteevent.DataTrackVoteEvent
-import io.kroom.api.util.{DataError, DataPayload}
+import io.kroom.api.trackvoteevent.{DataTrackVoteEvent, RepoTrackVoteEvent}
+import io.kroom.api.util.{DataError, DataPayload, DistanceGeo}
 import sangria.schema._
 import javax.mail.internet.{AddressException, InternetAddress}
 
@@ -134,7 +134,7 @@ object SchemaRoot {
 
       /* TRACK_VOTE_EVENT */
 
-      Field("TrackVoteEventsPublic", ListType(TrackVoteEventField),
+      Field("TrackVoteEventsPublic", ListType(TrackVoteEventField), Some("Return all TrackVoteEvent public."),
         arguments = Nil,
         resolve = ctx ⇒ Future {
           println("Query: TrackVoteEventsPublic")
@@ -160,7 +160,7 @@ object SchemaRoot {
           }.get
         }),
 
-      Field("TrackVoteEventByUserId", TrackVoteEventByUserIdPayload,
+      Field("TrackVoteEventByUserId", TrackVoteEventByUserIdPayload, Some("Return all TrackVoteEvent where User are invited."),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
           println("Query: TrackVoteEventByUserId")
@@ -522,7 +522,26 @@ object SchemaRoot {
                         })
                     }
                     case Failure(_) => Some("eventId not found")
-                  }
+                  },
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId).toOption.flatMap(s => {
+                    val aujd = System.currentTimeMillis
+                    if (s.locAndSchRestriction && (
+                      s.scheduleEnd.exists(p => p < aujd) || s.scheduleBegin.exists(p => p > aujd) &&
+                        !ctx.ctx.user.longitude.exists(longU =>
+                          ctx.ctx.user.latitude.exists(latU =>
+                            s.latitude.exists(latE =>
+                              s.longitude.exists(longE =>
+                                DistanceGeo.distanceGeo(latU, longU, latE, longE) < RepoTrackVoteEvent.distanceMax
+                              )
+                            )
+                          )
+                        )
+                      )) {
+                      Some("the event is restricted for a location and a schedule")
+                    } else {
+                      None
+                    }
+                  })
                 ) collect { case Some(s) => s })
               }
 
