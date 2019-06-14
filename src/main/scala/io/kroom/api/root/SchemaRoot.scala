@@ -356,7 +356,54 @@ object SchemaRoot {
                 ) collect { case Some(s) => s })
               }
 
-              List(eventIdErrors, userIdMasterErrors, nameErrors).filter(e => e.errors.nonEmpty)
+              val latitudeError = {
+                DataError("latitude", List[Option[String]](
+                  if (latitude.exists(_ > 90.0) {
+                    Some("latitude is =< 90")
+                  } else {
+                    None
+                  },
+                  if (latitude.exists(_ < -90.0)) {
+                    Some("latitude is => -90")
+                  } else {
+                    None
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              val longitudeError = {
+                DataError("longitude", List[Option[String]](
+                  if (longitude.exists(_ > 180.0)) {
+                    Some("longitude is =< 180")
+                  } else {
+                    None
+                  },
+                  if (longitude.exists(_ < -180.0)) {
+                    Some("longitude is => -180")
+                  } else {
+                    None
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              val scheduleBeginError = {
+                DataError("scheduleBegin", List[Option[String]](
+                  if (scheduleBegin.exists(b => scheduleEnd.exists(_ < b))) {
+                    Some("scheduleBegin is before scheduleEnd")
+                  } else {
+                    None
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              List(
+                eventIdErrors,
+                userIdMasterErrors,
+                nameErrors,
+                latitudeError,
+                longitudeError,
+                scheduleBeginError
+              ).filter(e => e.errors.nonEmpty)
             }
 
             if (errors.isEmpty) {
