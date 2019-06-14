@@ -100,6 +100,7 @@ object SchemaTrackVoteEvent {
 
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),
+      Field("locAndSchRestriction", BooleanType, resolve = _.value.locAndSchRestriction),
 
       Field("currentTrack", OptionType(SchemaDeezer.TrackField), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
