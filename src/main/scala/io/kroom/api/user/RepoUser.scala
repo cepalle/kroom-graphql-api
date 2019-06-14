@@ -20,9 +20,9 @@ case class DataUser(
                      email: String,
                      emailIsconfirmed: Boolean,
                      passHash: Option[String],
-                     location: Option[String],
+                     latitude: Option[Double],
+                     longitude: Option[Double],
                      token: Option[String],
-                     tokenOutOfDate: Option[String],
                      privacy: DataUserPrivacy
                    )
 
@@ -55,15 +55,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
   // Mutation
 
   def signUp(name: String, email: String, pass: String): Try[DataUser] = {
-    // TODO time token
-    // TODO token cookie ?
     dbh.addUserWithPass(name, email, Some(pass.bcrypt))
-      .flatMap(user => dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")))
+      .flatMap(user => dbh.updateToken(
+        user.id,
+        Some(TokenGenerator.generateToken()),
+      ))
   }
 
   def signIn(userName: String, pass: String): Try[DataUser] = {
-    // TODO time token
-    // TODO token cookie ?
     dbh.getByName(userName)
       .flatMap(user => {
         val passUser = user.passHash.getOrElse(
@@ -73,13 +72,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
           return Failure(new IllegalStateException("password invalid"))
         }
 
-        dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some(""))
+        dbh.updateToken(
+          user.id,
+          Some(TokenGenerator.generateToken()),
+        )
       })
   }
 
   def signWithGoogle(token: String): Try[DataUser] = {
-    // TODO time token
-    // TODO token cookie ?
     import io.circe.generic.auto._
     import io.circe.parser
     import scalaj.http.Http
@@ -96,7 +96,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
           case Failure(_) => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None)
         }
       })
-      .flatMap(user => dbh.updateToken(user.id, Some(TokenGenerator.generateToken()), Some("")))
+      .flatMap(user => dbh.updateToken(
+        user.id,
+        Some(TokenGenerator.generateToken()),
+      ))
   }
 
   def getTokenPermGroup(token: String): Try[(DataUser, Set[PermissionGroup.Value])] = {

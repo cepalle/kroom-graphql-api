@@ -185,7 +185,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 object DBTrackVoteEvent {
 
   class TabTrackVoteEvent(tag: Tag)
-    extends Table[(Int, Int, String, Boolean, Option[Int], Option[String], Option[String])](tag, "TRACK_VOTE_EVENT") {
+    extends Table[(Int, Int, String, Boolean, Option[Int], Option[Long], Option[Long], Option[Double], Option[Double])](tag, "TRACK_VOTE_EVENT") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -197,11 +197,15 @@ object DBTrackVoteEvent {
 
     def currentTrackId = column[Option[Int]]("CURRENT_TRACK_ID")
 
-    def schedule = column[Option[String]]("SCHEDULE")
+    def scheduleBegin = column[Option[Long]]("SCHEDULE_BEGIN")
 
-    def location = column[Option[String]]("LOCATION")
+    def scheduleEnd = column[Option[Long]]("SCHEDULE_END")
 
-    def * = (id, userMasterId, name, public, currentTrackId, schedule, location)
+    def latitude = column[Option[Double]]("LATITUDE")
+
+    def longitude = column[Option[Double]]("LONGITUDE")
+
+    def * = (id, userMasterId, name, public, currentTrackId, scheduleBegin, scheduleEnd, latitude, longitude)
   }
 
   val tabTrackVoteEvent = TableQuery[TabTrackVoteEvent]

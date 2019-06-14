@@ -25,7 +25,6 @@ class DBUser(private val db: H2Profile.backend.Database) {
   }
 
   def getByToken(token: String): Try[DataUser] = {
-    // TODO check time out of date
     val query = tabUser.filter(_.tokenOAuth === token).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
@@ -144,19 +143,19 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(userId))
   }
 
-  def updateLocation(userId: Int, location: String): Try[DataUser] = {
+  def updateLocation(userId: Int, latitude: Double, longitude: Double): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
-      .map(e => e.location)
-      .update(Some(location))
+      .map(e => (e.latitude, e.longitude))
+      .update((Some(latitude), Some(longitude)))
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(userId))
   }
 
-  def updateToken(userId: Int, token: Option[String], tokenOutOfDate: Option[String]): Try[DataUser] = {
+  def updateToken(userId: Int, token: Option[String]): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
-      .map(e => (e.tokenOAuth, e.tokenOAuthOutOfDate))
-      .update((token, tokenOutOfDate))
+      .map(e => e.tokenOAuth)
+      .update(token)
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(userId))
@@ -189,7 +188,7 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
 object DBUser {
 
-  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)](tag, "USER") {
+  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[Double], Option[Double], Option[String], String)](tag, "USER") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -201,24 +200,24 @@ object DBUser {
 
     def passHash = column[Option[String]]("PASS_HASH")
 
-    def location = column[Option[String]]("LOCATION")
+    def latitude = column[Option[Double]]("LATITUDE")
+
+    def longitude = column[Option[Double]]("LONGITUDE")
 
     def tokenOAuth = column[Option[String]]("TOKEN_OAUTH")
 
-    def tokenOAuthOutOfDate = column[Option[String]]("TOKEN_OUT_OF_DATE")
-
     def privacyJson = column[String]("PRIVACY_JSON", O.Default(DataUserPrivacy("private", "private", "private", "private").asJson.toString()))
 
-    def * = (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson)
+    def * = (id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, privacyJson)
   }
 
   val tabUser = TableQuery[TabUser]
 
-  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], String)) => Try[DataUser] = {
-    case (id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, privacyJson) =>
+  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[Double], Option[Double], Option[String], String)) => Try[DataUser] = {
+    case (id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, privacyJson) =>
       parser.decode[DataUserPrivacy](privacyJson).toTry.map(p => {
         DataUser(
-          id, name, email, emailIsconfirmed, passHash, location, tokenOAuth, tokenOAuthOutOfDate, p
+          id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, p
         )
       }
       )
