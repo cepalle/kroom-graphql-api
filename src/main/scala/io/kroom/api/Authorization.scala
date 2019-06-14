@@ -12,6 +12,7 @@ object Authorization {
     TrackVoteEventById,
     TrackVoteEventByUserId,
     UserGetById,
+    UserNameAutocompletion,
 
     TrackVoteEventNew,
     TrackVoteEventUpdate,
@@ -48,6 +49,7 @@ object Authorization {
     Permissions.TrackVoteEventById,
     Permissions.TrackVoteEventByUserId,
     Permissions.UserGetById,
+    Permissions.UserNameAutocompletion,
 
     Permissions.TrackVoteEventNew,
     Permissions.TrackVoteEventUpdate,

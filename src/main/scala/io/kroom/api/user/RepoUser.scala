@@ -48,6 +48,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     dbh.getMusicalPreferences(userId)
   }
 
+  def getCompletion(prefix: String): Try[List[DataUser]] = {
+    dbh.getCompletion(prefix)
+  }
+
   // Mutation
 
   def signUp(name: String, email: String, pass: String): Try[DataUser] = {

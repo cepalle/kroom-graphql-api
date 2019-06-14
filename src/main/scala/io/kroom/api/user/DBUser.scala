@@ -78,6 +78,16 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .map(_.toSet)
   }
 
+  def getCompletion(prefix: String): Try[List[DataUser]] = {
+    val query = for {
+      u <- tabUser if u.name like s"$prefix%"
+    } yield u
+
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_.map(tabToObjUser).collect({ case Success(x) => x })) // /!\ Silent parsing error
+      .map(_.toList)
+  }
+
   // Mutation
 
   def addUserWithPass(name: String, email: String, passHash: Option[String]): Try[DataUser] = {

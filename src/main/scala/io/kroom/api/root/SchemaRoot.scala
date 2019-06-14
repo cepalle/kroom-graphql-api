@@ -10,7 +10,6 @@ import io.kroom.api.trackvoteevent.DataTrackVoteEvent
 import io.kroom.api.util.{DataError, DataPayload}
 import sangria.schema._
 import javax.mail.internet.{AddressException, InternetAddress}
-import sangria.macros.derive.Interfaces
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -189,6 +188,19 @@ object SchemaRoot {
               case Failure(_) => DataPayload[DataUser](None, List(
                 DataError("id", List("User Id not found")))
               )
+            }
+          }
+        }.get),
+
+      Field("UserNameAutocompletion", ListType(UserField),
+        arguments = Argument("prefix", StringType) :: Nil,
+        resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserNameAutocompletion) { () =>
+          Future {
+            println("Query: UserSearchByName")
+
+            ctx.ctx.repo.user.getCompletion(ctx.arg[String]("prefix")) match {
+              case Success(value) => value
+              case Failure(_) => List()
             }
           }
         }.get),
