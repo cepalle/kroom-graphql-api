@@ -196,7 +196,7 @@ object SchemaRoot {
         arguments = Argument("prefix", StringType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserNameAutocompletion) { () =>
           Future {
-            println("Query: UserSearchByName")
+            println("Query: UserNameAutocompletion")
 
             ctx.ctx.repo.user.getCompletion(ctx.arg[String]("prefix")) match {
               case Success(value) => value
@@ -1081,6 +1081,77 @@ object SchemaRoot {
         }
       ),
 
+      Field("UserUpdateLocation", UserUpdateLocationPayload,
+        arguments = Argument("userId", IntType)
+          :: Argument("latitude", FloatType)
+          :: Argument("longitude", FloatType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          println("Mutation: UserUpdateLocation")
+
+          ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val latitude = ctx.arg[Double]("latitude")
+            val longitude = ctx.arg[Double]("longitude")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val latitudeError = {
+                DataError("latitude", List[Option[String]](
+                  if (latitude > 90.0) {
+                    Some("latitude is =< 90")
+                  } else {
+                    None
+                  },
+                  if (latitude < -90.0) {
+                    Some("latitude is => -90")
+                  } else {
+                    None
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              val longitudeError = {
+                DataError("longitude", List[Option[String]](
+                  if (longitude > 180.0) {
+                    Some("longitude is =< 180")
+                  } else {
+                    None
+                  },
+                  if (longitude < -180.0) {
+                    Some("longitude is => -180")
+                  } else {
+                    None
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors, latitudeError, longitudeError).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.updateLocation(userId, latitude, longitude).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
+      ),
+
     )
   )
 
@@ -1090,7 +1161,7 @@ object SchemaRoot {
         Field("TrackVoteEventById", TrackVoteEventByIdPayload,
           arguments = Argument("id", IntType) :: Nil,
           resolve = ctx ⇒ Future {
-            println("Subscription: TrackVoteEvent")
+            println("Subscription: TrackVoteEventById")
 
             ctx.ctx.authorised(Permissions.TrackVoteEventById) { () => {
               ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {

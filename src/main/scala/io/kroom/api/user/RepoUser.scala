@@ -151,4 +151,8 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
     ))
   }
 
+  def updateLocation(userId: Int, latitude: Double, longitude: Double): Try[DataUser] = {
+    dbh.updateLocation(userId, latitude, longitude)
+  }
+
 }
