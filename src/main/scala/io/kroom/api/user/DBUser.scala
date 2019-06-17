@@ -136,8 +136,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
   def confirmEmail(userId: Int): Try[DataUser] = {
     val query = tabUser.filter(e => e.id === userId)
-      .map(e => e.emailIsconfirmed)
-      .update(true)
+      .map(e => (e.emailIsconfirmed, e.tokenEmailIsconfirmed))
+      .update((true, None))
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(_ => getById(userId))
@@ -184,11 +184,37 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(userId))
   }
 
+  def updateNewPassword(userId: Int, newPassHash: String, token: String): Try[DataUser] = {
+    val query = tabUser.filter(e => e.id === userId)
+      .map(e => (e.newPassHash, e.tokenConfirmationNewPass))
+      .update((Some(newPassHash), Some(token)))
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getById(userId))
+  }
+
+  def updatePass(userId: Int): Try[DataUser] = {
+    getById(userId).flatMap(user => {
+
+      if (user.newPassHash.isDefined) {
+        val query = tabUser.filter(e => e.id === userId)
+          .map(e => (e.passHash, e.newPassHash, e.tokenConfirmationNewPass))
+          .update((Some(user.newPassHash.get), None, None))
+
+        Await.ready(db.run(query), Duration.Inf).value.get
+          .flatMap(_ => getById(userId))
+      } else {
+        Failure(new IllegalArgumentException) // TODO
+      }
+
+    })
+  }
+
 }
 
 object DBUser {
 
-  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[Double], Option[Double], Option[String], String)](tag, "USER") {
+  class TabUser(tag: Tag) extends Table[(Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], Option[Double], Option[Double], Option[String], String)](tag, "USER") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -198,7 +224,13 @@ object DBUser {
 
     def emailIsconfirmed = column[Boolean]("EMAIL_IS_CONFIRMED", O.Default(false))
 
+    def tokenEmailIsconfirmed = column[Option[String]]("TOKEN_EMAIL_IS_CONFIRMED", O.Unique)
+
     def passHash = column[Option[String]]("PASS_HASH")
+
+    def newPassHash = column[Option[String]]("NEW_PASS_HASH")
+
+    def tokenConfirmationNewPass = column[Option[String]]("TOKEN_NEW_PASS")
 
     def latitude = column[Option[Double]]("LATITUDE")
 
@@ -208,16 +240,16 @@ object DBUser {
 
     def privacyJson = column[String]("PRIVACY_JSON", O.Default(DataUserPrivacy("private", "private", "private", "private").asJson.toString()))
 
-    def * = (id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, privacyJson)
+    def * = (id, name, email, emailIsconfirmed, tokenEmailIsconfirmed, passHash, newPassHash, tokenConfirmationNewPass, latitude, longitude, tokenOAuth, privacyJson)
   }
 
   val tabUser = TableQuery[TabUser]
 
-  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[Double], Option[Double], Option[String], String)) => Try[DataUser] = {
-    case (id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, privacyJson) =>
+  val tabToObjUser: ((Int, String, String, Boolean, Option[String], Option[String], Option[String], Option[String], Option[Double], Option[Double], Option[String], String)) => Try[DataUser] = {
+    case (id, name, email, emailIsconfirmed, tokenEmailIsconfirmed, passHash, newPassHash, tokenConfirmationNewPass, latitude, longitude, tokenOAuth, privacyJson) =>
       parser.decode[DataUserPrivacy](privacyJson).toTry.map(p => {
         DataUser(
-          id, name, email, emailIsconfirmed, passHash, latitude, longitude, tokenOAuth, p
+          id, name, email, emailIsconfirmed, tokenEmailIsconfirmed, passHash, newPassHash, tokenConfirmationNewPass, latitude, longitude, tokenOAuth, p
         )
       }
       )

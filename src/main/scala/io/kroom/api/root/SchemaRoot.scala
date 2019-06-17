@@ -1199,6 +1199,71 @@ object SchemaRoot {
         }
       ),
 
+      Field("UserUpdatePassword", UserUpdatePasswordPayload,
+        arguments = Argument("userId", IntType)
+          :: Argument("newPassword", StringType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          println("Mutation: UserUpdatePassword")
+
+          ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
+            val userId = ctx.arg[Int]("userId")
+            val newPassword = ctx.arg[String]("newPassword")
+
+            val errors = {
+
+              val userIdErrors = {
+                DataError("userId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userId not found")
+                  },
+                  userId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userId isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val passErrors = {
+                val lower1 = """(?=.*[a-z])""".r
+                val upper1 = """(?=.*[A-Z])""".r
+                val numeric1 = """(?=.*[0-9])""".r
+                val length8 = """(?=.{8,})""".r
+
+                DataError("pass", List[Option[String]](
+                  lower1.findFirstMatchIn(newPassword) match {
+                    case Some(_) => None
+                    case None => Some("Password need a lowercase")
+                  },
+                  upper1.findFirstMatchIn(newPassword) match {
+                    case Some(_) => None
+                    case None => Some("Password need a uppercase")
+                  },
+                  numeric1.findFirstMatchIn(newPassword) match {
+                    case Some(_) => None
+                    case None => Some("Password need a number")
+                  },
+                  length8.findFirstMatchIn(newPassword) match {
+                    case Some(_) => None
+                    case None => Some("Password need 8 character")
+                  },
+                ) collect { case Some(s) => s })
+              }
+
+              List(userIdErrors, passErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.user.updateNewPassword(userId, newPassword).get
+              DataPayload[DataUser](Some(user), List())
+            } else {
+              DataPayload[DataUser](None, errors)
+            }
+          }.get
+        }
+      ),
+
     )
   )
 

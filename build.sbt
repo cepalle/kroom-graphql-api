@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
   "com.github.t3hnar" %% "scala-bcrypt" % "4.0",
   "javax.mail" % "mail" % "1.4.1",
   "com.google.api-client" % "google-api-client" % "1.29.0",
+  "com.github.daddykotex" %% "courier" % "1.0.0",
 )
 
 Revolver.settings

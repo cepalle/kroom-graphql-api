@@ -19,7 +19,10 @@ case class DataUser(
                      userName: String,
                      email: String,
                      emailIsconfirmed: Boolean,
+                     tokenEmailIsconfirmed: Option[String],
                      passHash: Option[String],
+                     newPassHash: Option[String],
+                     tokenConfirmationNewPass: Option[String],
                      latitude: Option[Double],
                      longitude: Option[Double],
                      token: Option[String],
@@ -153,6 +156,33 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
   def updateLocation(userId: Int, latitude: Double, longitude: Double): Try[DataUser] = {
     dbh.updateLocation(userId, latitude, longitude)
+  }
+
+  def updateNewPassword(userId: Int, newPassword: String): Try[DataUser] = {
+    dbh.updateNewPassword(userId, newPassword.bcrypt, TokenGenerator.generateToken())
+    // TODO send email
+  }
+
+  def newPasswordEmailConfirmation(userId: Int, token: String): Try[DataUser] = {
+    dbh.getById(userId)
+      .flatMap(user => {
+        if (user.tokenConfirmationNewPass.contains(token)) {
+          dbh.updatePass(userId)
+        } else {
+          Failure(new IllegalArgumentException("")) // TODO
+        }
+      })
+  }
+
+  def emailConfirmation(userId: Int, token: String): Try[DataUser] = {
+    dbh.getById(userId)
+      .flatMap(user => {
+        if (user.tokenEmailIsconfirmed.contains(token)) {
+          dbh.confirmEmail(userId)
+        } else {
+          Failure(new IllegalArgumentException("")) // TODO
+        }
+      })
   }
 
 }
