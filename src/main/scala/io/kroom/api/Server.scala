@@ -9,6 +9,7 @@ import sangria.marshalling.circe._
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
@@ -123,6 +124,20 @@ object Server extends App with CorsSupport {
         }
       }
     } ~
+      path("email-confirmation") {
+        get {
+          parameters('token) { token ⇒
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"email-confirmation $token"))
+          }
+        }
+      } ~
+      path("update-pass-confirmation") {
+        get {
+          parameters('token) { token ⇒
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"update-pass-confirmation $token"))
+          }
+        }
+      } ~
       (get & pathEndOrSingleSlash) {
         redirect("/graphql", PermanentRedirect)
       }

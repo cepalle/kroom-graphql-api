@@ -12,7 +12,7 @@ class EmailSenderActor extends Actor {
 
   import system.dispatcher
 
-  private val mailer = Mailer("localhost", 8025)()
+  private val mailer = Mailer("localhost", 1025)()
 
   override def receive: Receive = {
     case Email(to, subject, content) =>
@@ -22,7 +22,7 @@ class EmailSenderActor extends Actor {
           .subject(subject)
           .content(Text(content))
       ).onComplete {
-        case _ => println("EmailSender: message delivered")
+        case _ => println("EmailSenderActor: email delivered")
       }
   }
 }
