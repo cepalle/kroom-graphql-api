@@ -89,8 +89,8 @@ class DBUser(private val db: H2Profile.backend.Database) {
 
   // Mutation
 
-  def addUserWithPass(name: String, email: String, passHash: Option[String]): Try[DataUser] = {
-    val queryInsertUser = tabUser.map(c => (c.name, c.email, c.passHash)) += (name, email, passHash)
+  def addUserWithPass(name: String, email: String, passHash: Option[String], tokenEmail: Option[String]): Try[DataUser] = {
+    val queryInsertUser = tabUser.map(c => (c.name, c.email, c.passHash, c.emailIsconfirmed, c.tokenEmailIsconfirmed)) += (name, email, passHash, tokenEmail.isEmpty, tokenEmail)
     Await.ready(db.run(queryInsertUser), Duration.Inf).value.get
       .flatMap(_ => getByEmail(email))
       .flatMap(user => {
@@ -134,13 +134,17 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(userId))
   }
 
-  def confirmEmail(userId: Int): Try[DataUser] = {
-    val query = tabUser.filter(e => e.id === userId)
-      .map(e => (e.emailIsconfirmed, e.tokenEmailIsconfirmed))
-      .update((true, None))
-
+  def confirmEmail(token: String): Try[Unit] = {
+    val query = tabUser.filter(e => e.tokenEmailIsconfirmed === token).result.head
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getById(userId))
+      .flatMap(_ => {
+        val query = tabUser.filter(e => e.tokenEmailIsconfirmed === token)
+          .map(e => (e.emailIsconfirmed, e.tokenEmailIsconfirmed))
+          .update((true, None))
+
+        Await.ready(db.run(query), Duration.Inf).value.get
+          .map(_ => Unit)
+      })
   }
 
   def updateLocation(userId: Int, latitude: Double, longitude: Double): Try[DataUser] = {
@@ -193,21 +197,22 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(userId))
   }
 
-  def updatePass(userId: Int): Try[DataUser] = {
-    getById(userId).flatMap(user => {
+  def updatePass(token: String): Try[Unit] = {
 
-      if (user.newPassHash.isDefined) {
-        val query = tabUser.filter(e => e.id === userId)
+    val query = tabUser.filter(e => e.tokenConfirmationNewPass === token).result.head
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(tabToObjUser)
+      .flatMap(user => {
+
+        val query = tabUser.filter(e => e.tokenConfirmationNewPass === token)
           .map(e => (e.passHash, e.newPassHash, e.tokenConfirmationNewPass))
           .update((Some(user.newPassHash.get), None, None))
 
         Await.ready(db.run(query), Duration.Inf).value.get
-          .flatMap(_ => getById(userId))
-      } else {
-        Failure(new IllegalArgumentException) // TODO
-      }
+          .map(_ => Unit)
 
-    })
+      })
   }
 
 }

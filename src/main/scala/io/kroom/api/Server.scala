@@ -126,15 +126,23 @@ object Server extends App with CorsSupport {
     } ~
       path("email-confirmation") {
         get {
-          parameters('token) { token ⇒
-            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"email-confirmation $token"))
+          parameters('token) { token ⇒ {
+            ctxInit.repo.user.emailConfirmation(token) match {
+              case Failure(_) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Email confirmation Failed"))
+              case Success(_) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Email confirmation Success"))
+            }
+          }
           }
         }
       } ~
       path("update-pass-confirmation") {
         get {
-          parameters('token) { token ⇒
-            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"update-pass-confirmation $token"))
+          parameters('token) { token ⇒ {
+            ctxInit.repo.user.newPasswordEmailConfirmation(token) match {
+              case Failure(_) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Update password Failed"))
+              case Success(_) => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Update password Success"))
+            }
+          }
           }
         }
       } ~

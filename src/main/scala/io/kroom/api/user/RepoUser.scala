@@ -60,13 +60,14 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val 
   // Mutation
 
   def signUp(name: String, email: String, pass: String): Try[DataUser] = {
-    dbh.addUserWithPass(name, email, Some(pass.bcrypt))
+    val tokenEmail = TokenGenerator.generateToken()
+    dbh.addUserWithPass(name, email, Some(pass.bcrypt), Some(tokenEmail))
       .flatMap(user => dbh.updateToken(
         user.id,
         Some(TokenGenerator.generateToken()),
       ))
       .map(user => {
-        emailActor ! Email(user.email, "Email confirmation", "TODO") // TODO
+        emailActor ! Email(user.email, "Email confirmation", s"http://localhost:8080/email-confirmation?token=$tokenEmail")
         user
       })
   }
@@ -102,7 +103,7 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val 
       .flatMap(tkInfo => {
         dbh.getByEmail(tkInfo.email) match {
           case Success(s) => Success(s)
-          case Failure(_) => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None)
+          case Failure(_) => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None, None)
         }
       })
       .flatMap(user => dbh.updateToken(
@@ -165,33 +166,20 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val 
   }
 
   def updateNewPassword(userId: Int, newPassword: String): Try[DataUser] = {
-    dbh.updateNewPassword(userId, newPassword.bcrypt, TokenGenerator.generateToken())
+    val token = TokenGenerator.generateToken()
+    dbh.updateNewPassword(userId, newPassword.bcrypt, token)
       .map(user => {
-        emailActor ! Email(user.email, "Update password confirmation", "TODO") // TODO
+        emailActor ! Email(user.email, "Update password confirmation", s"http://localhost:8080/update-pass-confirmation?token=$token")
         user
       })
   }
 
-  def newPasswordEmailConfirmation(userId: Int, token: String): Try[DataUser] = {
-    dbh.getById(userId)
-      .flatMap(user => {
-        if (user.tokenConfirmationNewPass.contains(token)) {
-          dbh.updatePass(userId)
-        } else {
-          Failure(new IllegalArgumentException("")) // TODO
-        }
-      })
+  def newPasswordEmailConfirmation(token: String): Try[Unit] = {
+    dbh.updatePass(token)
   }
 
-  def emailConfirmation(userId: Int, token: String): Try[DataUser] = {
-    dbh.getById(userId)
-      .flatMap(user => {
-        if (user.tokenEmailIsconfirmed.contains(token)) {
-          dbh.confirmEmail(userId)
-        } else {
-          Failure(new IllegalArgumentException("")) // TODO
-        }
-      })
+  def emailConfirmation(token: String): Try[Unit] = {
+    dbh.confirmEmail(token)
   }
 
 }
