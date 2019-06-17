@@ -19,6 +19,14 @@ you can run queries interactively using [graphql-playground](https://github.com/
 brew install sbt
 ```
 
+# mailhog
+
+- Docker
+
+````cmd
+docker run -p 8025:8025 -p 1025:1025 mailhog/mailhog
+````
+
 # Note
 
 Subscription: Need parameter Query

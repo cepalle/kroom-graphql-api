@@ -1,8 +1,10 @@
 package io.kroom.api.user
 
+import akka.actor.ActorRef
 import io.kroom.api.deezer.{DataDeezerGenre, RepoDeezer}
 import com.github.t3hnar.bcrypt._
 import io.kroom.api.Authorization.{PermissionGroup, Privacy}
+import io.kroom.api.Email
 import io.kroom.api.util.TokenGenerator
 
 import scala.util.{Failure, Success, Try}
@@ -29,7 +31,7 @@ case class DataUser(
                      privacy: DataUserPrivacy
                    )
 
-class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
+class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val emailActor: ActorRef) {
 
   def getById(id: Int): Try[DataUser] = {
     dbh.getById(id)
@@ -63,6 +65,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
         user.id,
         Some(TokenGenerator.generateToken()),
       ))
+      .map(user => {
+        emailActor ! Email(user.email, "Email confirmation", "TODO") // TODO
+        user
+      })
   }
 
   def signIn(userName: String, pass: String): Try[DataUser] = {
@@ -160,7 +166,10 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer) {
 
   def updateNewPassword(userId: Int, newPassword: String): Try[DataUser] = {
     dbh.updateNewPassword(userId, newPassword.bcrypt, TokenGenerator.generateToken())
-    // TODO send email
+      .map(user => {
+        emailActor ! Email(user.email, "Update password confirmation", "TODO") // TODO
+        user
+      })
   }
 
   def newPasswordEmailConfirmation(userId: Int, token: String): Try[DataUser] = {

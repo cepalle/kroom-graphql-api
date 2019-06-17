@@ -1270,7 +1270,7 @@ object SchemaRoot {
   val Subscription: ObjectType[SecureContext, Unit] = {
     ObjectType(
       "Subscription", fields[SecureContext, Unit](
-        Field("TrackVoteEventById", TrackVoteEventByIdPayload,
+        Field("TrackVoteEventByIdLive", TrackVoteEventByIdPayload,
           arguments = Argument("id", IntType) :: Nil,
           resolve = ctx ⇒ Future {
             println("Subscription: TrackVoteEventById")
