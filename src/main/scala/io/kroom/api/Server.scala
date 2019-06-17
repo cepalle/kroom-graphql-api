@@ -3,7 +3,7 @@ package io.kroom.api
 import sangria.ast.{Document, OperationType}
 import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
-import sangria.parser.{QueryParser, SyntaxError}
+import sangria.parser.QueryParser
 import sangria.parser.DeliveryScheme.Try
 import sangria.marshalling.circe._
 import akka.actor.{ActorRef, ActorSystem, Props}
@@ -20,13 +20,11 @@ import io.circe._
 import io.circe.parser._
 import io.circe.optics.JsonPath.{root => r}
 
-import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 import deezer.SchemaDeezer
 import io.kroom.api.util.FormatError
 import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
-import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
 object Server extends App with CorsSupport {
