@@ -147,9 +147,11 @@ object Connections extends Enumeration {
 
 class RepoDeezer(val dbh: DBDeezer) {
 
+  import io.kroom.api.Server.logger
+
   def getTrackById(id: Int): Try[DataDeezerTrack] = {
     dbh.getDeezerTrack(id).map(d => {
-      println(s"RepoDeezer: Track $id get from DB")
+      logger.info(s"RepoDeezer: Track $id get from DB")
       return Success(d)
     })
 

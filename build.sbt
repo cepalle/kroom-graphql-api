@@ -36,6 +36,8 @@ libraryDependencies ++= Seq(
   "javax.mail" % "mail" % "1.4.1",
   "com.google.api-client" % "google-api-client" % "1.29.0",
   "com.github.daddykotex" %% "courier" % "1.0.0",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
 )
 
 Revolver.settings

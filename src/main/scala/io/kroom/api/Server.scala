@@ -15,6 +15,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
+import com.typesafe.scalalogging.Logger
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
 import io.circe.parser._
@@ -30,6 +31,13 @@ import slick.jdbc.H2Profile.api._
 object Server extends App with CorsSupport {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val logger: Logger = Logger("Kroom")
+
+  logger.info("init wrfwe ")
+  logger.debug("init wrfwe ")
+  logger.warn("init wrfwe ")
+  logger.error("init wrfwe ")
+  logger.trace("init wrfwe ")
 
   import system.dispatcher
   import GraphQLRequestUnmarshaller._
