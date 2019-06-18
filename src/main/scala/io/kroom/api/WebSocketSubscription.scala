@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
 import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.Json
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -133,7 +134,7 @@ object SubscriptionActor {
 
 }
 
-class SubscriptionActor(ctxInit: SecureContext) extends Actor {
+class SubscriptionActor(ctxInit: SecureContext) extends Actor with StrictLogging {
 
   import system.dispatcher
   import SubscriptionActor._
@@ -150,17 +151,21 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
         }
       }
     case subActorEventPreparedQuery(actorId, sQuData) =>
-      println("ewdiewdjkbhewdkjhbewkjbdh")
+      logger.debug("subActorEventPreparedQuery")
+
       val clState = clientsState(actorId)
       clientsState(actorId) = clState.copy(subs = clState.subs :+ sQuData)
     case WSEventCSUserJoined(actorId, actor) =>
-      println("SubscriptionActor WSEventUserJoined")
+      logger.debug("WSEventUserJoined")
+
       clientsState += (actorId -> clientState(actor, None, List()))
     case WSEventCSUserQuit(actorId) =>
-      println("SubscriptionActor WSEventUserQuit")
+      logger.debug("WSEventUserQuit")
+
       clientsState -= actorId
     case WSEventCSUpdateQuery(subQuery, subQueryParamsId) =>
-      println("SubscriptionActor WSEventUpdateQuery", subQuery, subQueryParamsId)
+      logger.debug("WSEventUpdateQuery", subQuery, subQueryParamsId)
+
       clientsState.foreach(c => {
         c._2.subs.foreach(sbQu => {
           if (sbQu.subQuery == subQuery && sbQu.subQueryParamsId == subQueryParamsId) {
@@ -178,13 +183,12 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
         })
       })
     case WSEventCSMessage(actorId, content) =>
-      println("SubscriptionActor WSEventCSMessage")
+      logger.debug("WSEventCSMessage", content)
+
       parser.decode[OpMsgType](content).toTry.map(tpe => {
-        println(s" - ${tpe.`type`}")
         tpe.`type` match {
           case ApolloProtocol.GQL_CONNECTION_INIT =>
             parser.decode[OpMsgCSInit](content).toTry.map(init => {
-              println(" -- ", init)
               clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_ACK)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_KEEP_ALIVE)
@@ -193,7 +197,6 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
           case ApolloProtocol.GQL_START =>
             val clState = clientsState(actorId)
             parser.decode[OpMsgCSStart](content).toTry.map(start => {
-              println(" -- ", start)
               QueryParser.parse(start.payload.query) match {
                 case Success(ast) =>
                   ast.operationType(start.payload.operationName) match {
@@ -259,7 +262,6 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
             })
           case ApolloProtocol.GQL_STOP =>
             parser.decode[OpMsgCSStop](content).toTry.map(stop => {
-              println(" -- ", stop)
               val state = clientsState(actorId)
               clientsState(actorId) = state.copy(subs = state.subs.filter(e => e.apolloQueryId != stop.id))
             })
@@ -274,7 +276,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor {
 
 class WebSocketSubscription(val subActorHandler: ActorRef)
                            (implicit val actorSystem: ActorSystem, implicit val actorMaterializer: ActorMaterializer)
-  extends Directives {
+  extends Directives with StrictLogging {
 
   private val actorClientSource = Source.actorRef[WSEventSC](100, OverflowStrategy.fail)
 
@@ -291,16 +293,16 @@ class WebSocketSubscription(val subActorHandler: ActorRef)
 
         val msgToWs = builder.add(Flow[Message].collect {
           case TextMessage.Strict(str) =>
-            println("Received: ", str)
+            logger.debug("Received: ", str)
             WSEventCSMessage(actorClientId, str)
         })
 
         val wsToMsg = builder.add(Flow[WSEventSC].map {
           case op: WSEventSCOpMsgType =>
-            println("Send: ", op.asJson.toString())
+            logger.debug("Send: ", op.asJson.toString())
             TextMessage(op.asJson.toString())
           case op: WSEventSCOpMsgString =>
-            println("Send: ", op.str)
+            logger.debug("Send: ", op.str)
             TextMessage(op.str)
         })
 

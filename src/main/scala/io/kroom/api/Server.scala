@@ -15,7 +15,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{LazyLogging, Logger, StrictLogging}
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
 import io.circe.parser._
@@ -28,16 +28,9 @@ import root.{DBRoot, RepoRoot, SchemaRoot}
 import sangria.slowlog.SlowLog
 import slick.jdbc.H2Profile.api._
 
-object Server extends App with CorsSupport {
+object Server extends App with CorsSupport with StrictLogging {
   implicit val system: ActorSystem = ActorSystem("sangria-server")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val logger: Logger = Logger("Kroom")
-
-  logger.info("init wrfwe ")
-  logger.debug("init wrfwe ")
-  logger.warn("init wrfwe ")
-  logger.error("init wrfwe ")
-  logger.trace("init wrfwe ")
 
   import system.dispatcher
   import GraphQLRequestUnmarshaller._
@@ -49,6 +42,9 @@ object Server extends App with CorsSupport {
   private val wbSubHandler = new WebSocketSubscription(subActorHandler)
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean, token: Option[String]): StandardRoute = {
+    logger.info(s"query: ${query.source}")
+    logger.info(s"variables: ${variables.toString}")
+
     query.operationType(operationName) match {
       case Some(OperationType.Subscription) ⇒
         complete(ToResponseMarshallable(BadRequest → Json.fromString("Subscriptions not supported via HTTP. Use WebSockets")))
@@ -158,4 +154,5 @@ object Server extends App with CorsSupport {
 
   DBRoot.init(db)
   Http().bindAndHandle(corsHandler(route), "0.0.0.0", sys.props.get("http.port").fold(8080)(_.toInt))
+  logger.info("listening port 8080")
 }

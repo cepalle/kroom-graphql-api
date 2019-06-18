@@ -53,8 +53,6 @@ object SchemaRoot {
       Field("DeezerTrack", DeezerTrackPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: DeezerTrack")
-
           ctx.ctx.authorised(Permissions.DeezerTrack) { () =>
             ctx.ctx.repo.deezer.getTrackById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerTrack](Some(value), List())
@@ -68,8 +66,6 @@ object SchemaRoot {
       Field("DeezerArtist", DeezerArtistPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: DeezerArtist")
-
           ctx.ctx.authorised(Permissions.DeezerArtist) { () =>
             ctx.ctx.repo.deezer.getArtistById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerArtist](Some(value), List())
@@ -83,8 +79,6 @@ object SchemaRoot {
       Field("DeezerAlbum", DeezerAlbumPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: DeezerAlbum")
-
           ctx.ctx.authorised(Permissions.DeezerAlbum) { () =>
             ctx.ctx.repo.deezer.getAlbumById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerAlbum](Some(value), List())
@@ -98,8 +92,6 @@ object SchemaRoot {
       Field("DeezerGenre", DeezerGenrePayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: DeezerGenre")
-
           ctx.ctx.authorised(Permissions.DeezerGenre) { () =>
             ctx.ctx.repo.deezer.getGenreById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataDeezerGenre](Some(value), List())
@@ -117,8 +109,6 @@ object SchemaRoot {
           :: Argument("order", OptionInputType(OrderEnum))
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: DeezerSearch")
-
           ctx.ctx.authorised(Permissions.DeezerSearch) { () =>
             ctx.ctx.repo.deezer.getSearch(
               ctx.arg[String]("search"),
@@ -137,8 +127,6 @@ object SchemaRoot {
       Field("TrackVoteEventsPublic", ListType(TrackVoteEventField), Some("Return all TrackVoteEvent public."),
         arguments = Nil,
         resolve = ctx ⇒ Future {
-          println("Query: TrackVoteEventsPublic")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventsPublic) { () =>
             ctx.ctx.repo.trackVoteEvent.getPublic.get
           }.get
@@ -147,8 +135,6 @@ object SchemaRoot {
       Field("TrackVoteEventById", TrackVoteEventByIdPayload,
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: TrackVoteEventById")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventById) { () => {
             ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())
@@ -163,8 +149,6 @@ object SchemaRoot {
       Field("TrackVoteEventByUserId", TrackVoteEventByUserIdPayload, Some("Return all TrackVoteEvent where User are invited."),
         arguments = Argument("userId", IntType) :: Nil,
         resolve = ctx ⇒ Future {
-          println("Query: TrackVoteEventByUserId")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventByUserId) { () =>
             ctx.ctx.repo.trackVoteEvent.getByUserId(ctx.arg[Int]("userId")) match {
               case Success(value) => DataPayload[List[DataTrackVoteEvent]](Some(value), List())
@@ -181,8 +165,6 @@ object SchemaRoot {
         arguments = Argument("id", IntType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserGetById) { () =>
           Future {
-            println("Query: UserGetById")
-
             ctx.ctx.repo.user.getById(ctx.arg[Int]("id")) match {
               case Success(value) => DataPayload[DataUser](Some(value), List())
               case Failure(_) => DataPayload[DataUser](None, List(
@@ -196,8 +178,6 @@ object SchemaRoot {
         arguments = Argument("prefix", StringType) :: Nil,
         resolve = ctx ⇒ ctx.ctx.authorised(Permissions.UserNameAutocompletion) { () =>
           Future {
-            println("Query: UserNameAutocompletion")
-
             ctx.ctx.repo.user.getCompletion(ctx.arg[String]("prefix")) match {
               case Success(value) => value
               case Failure(_) => List()
@@ -218,8 +198,6 @@ object SchemaRoot {
           :: Argument("public", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventNew")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
             val userIdMaster = ctx.arg[Int]("userIdMaster")
             val name = ctx.arg[String]("name")
@@ -290,8 +268,6 @@ object SchemaRoot {
           :: Argument("longitude", OptionInputType(FloatType))
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventUpdate")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventUpdate) { () =>
 
             val eventId = ctx.arg[Int]("eventId")
@@ -421,8 +397,6 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventAddUser")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventAddUser) { () => {
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -477,8 +451,6 @@ object SchemaRoot {
           :: Argument("userId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventDelUser")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventDelUser) { () =>
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -543,8 +515,6 @@ object SchemaRoot {
           :: Argument("up", BooleanType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventAddOrUpdateVote")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventAddVote) { () => {
             val eventId = ctx.arg[Int]("eventId")
             val userId = ctx.arg[Int]("userId")
@@ -634,8 +604,6 @@ object SchemaRoot {
           :: Argument("musicId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: TrackVoteEventDelVote")
-
           ctx.ctx.authorised(Permissions.TrackVoteEventDelVote) { () =>
 
             val eventId = ctx.arg[Int]("eventId")
@@ -702,8 +670,6 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ {
-          println("Mutation: UserSignUp")
-
           ctx.ctx.authorised(Permissions.UserSignUp) { () => {
             // TODO send email
             val userName = ctx.arg[String]("userName")
@@ -805,8 +771,6 @@ object SchemaRoot {
           :: Argument("pass", StringType)
           :: Nil,
         resolve = ctx ⇒ {
-          println("Mutation: UserSignIn")
-
           ctx.ctx.authorised(Permissions.UserSignIn) { () => {
             val res = ctx.ctx.repo.user.signIn(
               ctx.arg[String]("userName"),
@@ -830,8 +794,6 @@ object SchemaRoot {
         arguments = Argument("token", StringType)
           :: Nil,
         resolve = ctx ⇒ {
-          println("Mutation: UserSignWithGoogle")
-
           ctx.ctx.authorised(Permissions.UserSignIn) { () => {
             val res = ctx.ctx.repo.user.signWithGoogle(
               ctx.arg[String]("token"),
@@ -856,8 +818,6 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒
           Future {
-            println("Mutation: UserAddFriend")
-
             ctx.ctx.authorised(Permissions.UserAddFriend) { () =>
               val userId = ctx.arg[Int]("userId")
               val friendId = ctx.arg[Int]("friendId")
@@ -917,8 +877,6 @@ object SchemaRoot {
           :: Argument("friendId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserDelFriend")
-
           ctx.ctx.authorised(Permissions.UserDelFriend) { () =>
             val userId = ctx.arg[Int]("userId")
             val friendId = ctx.arg[Int]("friendId")
@@ -974,8 +932,6 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserAddMusicalPreference")
-
           ctx.ctx.authorised(Permissions.UserAddMusicalPreference) { () =>
             val userId = ctx.arg[Int]("userId")
             val genreId = ctx.arg[Int]("genreId")
@@ -1031,8 +987,6 @@ object SchemaRoot {
           :: Argument("genreId", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserDelMusicalPreference")
-
           ctx.ctx.authorised(Permissions.UserDelMusicalPreference) { () =>
             val userId = ctx.arg[Int]("userId")
             val genreId = ctx.arg[Int]("genreId")
@@ -1091,8 +1045,6 @@ object SchemaRoot {
           :: Argument("musicalPreferencesGenre", PrivacyEnum)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserUpdatePrivacy")
-
           ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
             val userId = ctx.arg[Int]("userId")
             val email = ctx.arg[Privacy.Value]("email")
@@ -1134,8 +1086,6 @@ object SchemaRoot {
           :: Argument("longitude", FloatType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserUpdateLocation")
-
           ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
             val userId = ctx.arg[Int]("userId")
             val latitude = ctx.arg[Double]("latitude")
@@ -1204,8 +1154,6 @@ object SchemaRoot {
           :: Argument("newPassword", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          println("Mutation: UserUpdatePassword")
-
           ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
             val userId = ctx.arg[Int]("userId")
             val newPassword = ctx.arg[String]("newPassword")
@@ -1273,8 +1221,6 @@ object SchemaRoot {
         Field("TrackVoteEventById", TrackVoteEventByIdPayload,
           arguments = Argument("id", IntType) :: Nil,
           resolve = ctx ⇒ Future {
-            println("Subscription: TrackVoteEventById")
-
             ctx.ctx.authorised(Permissions.TrackVoteEventById) { () => {
               ctx.ctx.repo.trackVoteEvent.getById(ctx.arg[Int]("id")) match {
                 case Success(value) => DataPayload[DataTrackVoteEvent](Some(value), List())

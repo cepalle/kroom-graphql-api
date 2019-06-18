@@ -1,5 +1,6 @@
 package io.kroom.api.root
 
+import com.typesafe.scalalogging.StrictLogging
 import io.kroom.api.deezer.DBDeezer
 import io.kroom.api.trackvoteevent.DBTrackVoteEvent
 import io.kroom.api.user.DBUser
@@ -16,10 +17,9 @@ class DBRoot(private val db: H2Profile.backend.Database) {
   val user: DBUser = new DBUser(db)
 }
 
-object DBRoot {
+object DBRoot extends StrictLogging {
 
   def init(db: H2Profile.backend.Database): Unit = {
-    println("Database starting ...")
     val setup = DBIO.seq(
       (DBDeezer.tabDeezerGenre.schema ++
         DBDeezer.tabDeezerAlbum.schema ++
@@ -40,8 +40,6 @@ object DBRoot {
     val f = db.run(setup)
 
     val result = Await.ready(f, Duration.Inf).value.get
-
-    println(result)
   }
 
 }

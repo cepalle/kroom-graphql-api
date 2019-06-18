@@ -1,5 +1,6 @@
 package io.kroom.api.deezer
 
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import io.circe.generic.auto._
 import io.circe.parser
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -145,13 +146,12 @@ object Connections extends Enumeration {
   val album, artist, history, playlist, podcast, radio, track, user = Value
 }
 
-class RepoDeezer(val dbh: DBDeezer) {
-
-  import io.kroom.api.Server.logger
+class RepoDeezer(val dbh: DBDeezer) extends StrictLogging {
 
   def getTrackById(id: Int): Try[DataDeezerTrack] = {
     dbh.getDeezerTrack(id).map(d => {
-      logger.info(s"RepoDeezer: Track $id get from DB")
+      logger.debug(s"Track $id get from DB")
+
       return Success(d)
     })
 
@@ -162,18 +162,18 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     decodingResult match {
       case Success(track) =>
-        println(s"RepoDeezer: Deezer API $urlEntry")
+        logger.info(s"Deezer API $urlEntry")
         dbh.addDeezerTrack(track)
         Success(track)
       case Failure(error) =>
-        println(s"RepoDeezer: Deezer API $urlEntry $error")
+        logger.warn(s"Deezer API $urlEntry $error")
         Failure(error)
     }
   }
 
   def getArtistById(id: Int): Try[DataDeezerArtist] = {
     dbh.getDeezerArtist(id).map(d => {
-      println(s"RepoDeezer: Artist $id get from DB")
+      logger.debug(s"Artist $id get from DB")
       return Success(d)
     })
 
@@ -184,18 +184,18 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     decodingResult match {
       case Success(artist) =>
-        println(s"RepoDeezer: Deezer API $urlEntry")
+        logger.info(s"Deezer API $urlEntry")
         dbh.addDeezerArtist(artist)
         Success(artist)
       case Failure(error) =>
-        println(s"RepoDeezer: Deezer API $urlEntry $error")
+        logger.warn(s"Deezer API $urlEntry $error")
         Failure(error)
     }
   }
 
   def getAlbumById(id: Int): Try[DataDeezerAlbum] = {
     dbh.getDeezerAlbum(id).map(d => {
-      println(s"RepoDeezer: Album $id get from DB")
+      logger.debug(s"Album $id get from DB")
       return Success(d)
     })
 
@@ -206,18 +206,18 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     decodingResult match {
       case Success(album) =>
-        println(s"RepoDeezer: Deezer API $urlEntry")
+        logger.info(s"Deezer API $urlEntry")
         dbh.addDeezerAlbum(album)
         Success(album)
       case Failure(error) =>
-        println(s"RepoDeezer: Deezer API $urlEntry $error")
+        logger.warn(s"Deezer API $urlEntry $error")
         Failure(error)
     }
   }
 
   def getGenreById(id: Int): Try[DataDeezerGenre] = {
     dbh.getDeezerGenre(id).map(d => {
-      println(s"RepoDeezer: Genre $id get from DB")
+      logger.debug(s"Genre $id get from DB")
       return Success(d)
     })
 
@@ -228,11 +228,11 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     decodingResult match {
       case Success(genre) =>
-        println(s"RepoDeezer: Deezer API $urlEntry")
+        logger.info(s"Deezer API $urlEntry")
         dbh.addDeezerGenre(genre)
         Success(genre)
       case Failure(error) =>
-        println(s"RepoDeezer: Deezer API $urlEntry $error")
+        logger.warn(s"Deezer API $urlEntry $error")
         Failure(error)
     }
   }
@@ -260,11 +260,10 @@ class RepoDeezer(val dbh: DBDeezer) {
 
     decodingResult match {
       case Success(resJson) =>
-        println(s"RepoDeezer: Deezer API $urlEntry")
+        logger.info(s"Deezer API $urlEntry")
         Success(resJson.data)
       case Failure(error) =>
-        println(s"RepoDeezer: Deezer API $urlEntry $error")
-        println(res.body)
+        logger.warn(s"Deezer API $urlEntry $error")
         Failure(error)
     }
   }

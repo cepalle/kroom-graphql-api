@@ -1,6 +1,7 @@
 package io.kroom.api
 
 import akka.actor.Actor
+import com.typesafe.scalalogging.StrictLogging
 import courier.{Envelope, Mailer, Session, Text}
 import javax.mail.internet.InternetAddress
 import io.kroom.api.Server.system
@@ -8,7 +9,7 @@ import io.kroom.api.Server.system
 case class Email(to: String, subject: String, content: String)
 
 
-class EmailSenderActor extends Actor {
+class EmailSenderActor extends Actor with StrictLogging {
 
   import system.dispatcher
 
@@ -22,7 +23,7 @@ class EmailSenderActor extends Actor {
           .subject(subject)
           .content(Text(content))
       ).onComplete {
-        case _ => println("EmailSenderActor: email delivered")
+        case _ => logger.info("email delivered")
       }
   }
 }
