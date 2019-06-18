@@ -37,6 +37,8 @@ libraryDependencies ++= Seq(
   "com.github.daddykotex" %% "courier" % "1.0.0",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.1.2" % "test",
+  "io.gatling" % "gatling-test-framework" % "3.1.2" % "test",
 )
 
 Revolver.settings
