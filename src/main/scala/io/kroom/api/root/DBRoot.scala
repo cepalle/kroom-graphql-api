@@ -2,6 +2,7 @@ package io.kroom.api.root
 
 import com.typesafe.scalalogging.StrictLogging
 import io.kroom.api.deezer.DBDeezer
+import io.kroom.api.playlisteditor.DBPlaylistEditor
 import io.kroom.api.trackvoteevent.DBTrackVoteEvent
 import io.kroom.api.user.DBUser
 import slick.jdbc.H2Profile
@@ -33,13 +34,18 @@ object DBRoot extends StrictLogging {
 
         DBTrackVoteEvent.tabTrackVoteEvent.schema ++
         DBTrackVoteEvent.joinTrackVoteEventUser.schema ++
-        DBTrackVoteEvent.joinTrackVoteEventUserVoteTrack.schema
+        DBTrackVoteEvent.joinTrackVoteEventUserVoteTrack.schema ++
+
+        DBPlaylistEditor.tabPlayList.schema ++
+        DBPlaylistEditor.joinPlayListTrack.schema ++
+        DBPlaylistEditor.joinPlayListUser.schema
         ).create,
     )
 
     val f = db.run(setup)
 
     val result = Await.ready(f, Duration.Inf).value.get
+    logger.info(s"DataBase: ${result.toString}")
   }
 
 }
