@@ -11,6 +11,9 @@ object Authorization {
     TrackVoteEventsPublic,
     TrackVoteEventById,
     TrackVoteEventByUserId,
+    PlayListEditorsPublic,
+    PlayListEditorById,
+    PlayListEditorByUserId,
     UserGetById,
     UserNameAutocompletion,
 
@@ -48,6 +51,9 @@ object Authorization {
     Permissions.TrackVoteEventsPublic,
     Permissions.TrackVoteEventById,
     Permissions.TrackVoteEventByUserId,
+    Permissions.PlayListEditorsPublic,
+    Permissions.PlayListEditorById,
+    Permissions.PlayListEditorByUserId,
     Permissions.UserGetById,
     Permissions.UserNameAutocompletion,
 

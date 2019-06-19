@@ -6,6 +6,7 @@ import io.kroom.api.SecureContext
 import io.kroom.api.Server.system
 import io.kroom.api.user.{DataUser, SchemaUser}
 import io.kroom.api.deezer._
+import io.kroom.api.playlisteditor.DataPlaylistEditor
 import io.kroom.api.trackvoteevent.{DataTrackVoteEvent, RepoTrackVoteEvent}
 import io.kroom.api.util.{DataError, DataPayload, DistanceGeo}
 import sangria.schema._
@@ -22,6 +23,7 @@ object SchemaRoot {
   import SchemaUser._
   import io.kroom.api.deezer.SchemaDeezer._
   import io.kroom.api.trackvoteevent.SchemaTrackVoteEvent._
+  import io.kroom.api.playlisteditor.SchemaPlaylistEditor._
   import system.dispatcher
 
   lazy val PrivacyEnum = EnumType(
@@ -184,6 +186,43 @@ object SchemaRoot {
             }
           }
         }.get),
+
+      /* PLAY_LIST_EDITOR */
+
+      Field("PlayListEditorsPublic", ListType(PlayListEditorField), Some("Return all PlayListEditor public."),
+        arguments = Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorsPublic) { () =>
+            ctx.ctx.repo.playListEditor.getPublic.get
+          }.get
+        }),
+
+      Field("PlayListEditorById", PlayListEditorByIdPayload,
+        arguments = Argument("id", IntType) :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorById) { () => {
+            ctx.ctx.repo.playListEditor.getById(ctx.arg[Int]("id")) match {
+              case Success(value) => DataPayload[DataPlaylistEditor](Some(value), List())
+              case Failure(_) => DataPayload[DataPlaylistEditor](None, List(
+                DataError("id", List("PlayListEditor Id not found"))
+              ))
+            }
+          }
+          }.get
+        }),
+
+      Field("PlayListEditorByUserId", PlayListEditorByUserIdPayload, Some("Return all PlayListEditor where User are invited."),
+        arguments = Argument("userId", IntType) :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorByUserId) { () =>
+            ctx.ctx.repo.playListEditor.getByUserId(ctx.arg[Int]("userId")) match {
+              case Success(value) => DataPayload[List[DataPlaylistEditor]](Some(value), List())
+              case Failure(_) => DataPayload[List[DataPlaylistEditor]](None, List(
+                DataError("userId", List("User Id not found")))
+              )
+            }
+          }.get
+        }),
 
     ))
 
