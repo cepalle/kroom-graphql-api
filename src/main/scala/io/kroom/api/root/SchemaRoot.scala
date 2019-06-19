@@ -295,6 +295,36 @@ object SchemaRoot {
         }
       ),
 
+      Field("TrackVoteEventDel", TrackVoteEventDelPayload,
+        arguments = Argument("id", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
+            val id = ctx.arg[Int]("id")
+
+            val errors = {
+
+              val idErrors = {
+
+                DataError("id", List[Option[String]](
+                  /**/
+                ) collect { case Some(s) => s })
+              }
+
+              List(idErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.delete(id).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
+          }
+          }.get
+        }
+      ),
+
       Field("TrackVoteEventUpdate", TrackVoteEventUpdatePayload,
         arguments = Argument("eventId", IntType)
           :: Argument("userIdMaster", IntType)
@@ -1389,7 +1419,6 @@ object SchemaRoot {
           }.get
         }
       ),
-
 
     )
   )

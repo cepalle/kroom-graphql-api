@@ -72,6 +72,10 @@ class RepoTrackVoteEvent(
       .flatMap(trackEvent => dbh.addUser(trackEvent.id, userIdMaster))
   }
 
+  def delete(id: Int): Try[Unit] = {
+
+  }
+
   def update(eventId: Int,
              userIdMaster: Int,
              name: String,
