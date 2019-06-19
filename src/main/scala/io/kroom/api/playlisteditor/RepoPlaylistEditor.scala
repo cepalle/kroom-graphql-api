@@ -15,7 +15,7 @@ case class DataPlaylistEditor(
 
 case class DataTrackWithOrder(
                                pos: Int,
-                               trackId: Int,
+                               track: DataDeezerTrack,
                              )
 
 class RepoPlaylistEditor(
@@ -38,11 +38,11 @@ class RepoPlaylistEditor(
   }
 
   def getTracksWithOrder(id: Int): Try[List[DataTrackWithOrder]] = {
-    // TODO
+    dbh.getTracksWithOrder(id)
   }
 
   def getInvitedUsers(id: Int): Try[List[DataUser]] = {
-    // TODO
+    dbh.getInvitedUsers(id)
   }
 
 }

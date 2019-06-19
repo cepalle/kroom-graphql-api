@@ -65,10 +65,7 @@ object SchemaPlaylistEditor {
     "TrackWitOrder",
     "TrackWitOrder description.",
     () ⇒ fields[SecureContext, DataTrackWithOrder](
-      Field("track", SchemaDeezer.TrackField, resolve = ctx =>
-        SchemaDeezer.TrackFetcherId.defer(ctx.value.trackId)
-      ),
-
+      Field("track", SchemaDeezer.TrackField, resolve = _.value.track),
       Field("pos", IntType, resolve = _.value.pos),
     ))
 

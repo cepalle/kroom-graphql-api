@@ -1,14 +1,70 @@
 package io.kroom.api.playlisteditor
 
 import io.kroom.api.deezer.DBDeezer
-import io.kroom.api.user.DBUser
+import io.kroom.api.user.{DBUser, DataUser}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.util.{Success, Try}
 
 class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
 
   import DBPlaylistEditor._
+  import DBUser._
 
+  def getPublic: Try[List[DataPlaylistEditor]] = {
+    val query = tabPlayList.filter(_.public).result
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(_.map(tabToObjPlayList))
+      .map(_.toList)
+  }
+
+  def getById(id: Int): Try[DataPlaylistEditor] = {
+    val query = tabPlayList.filter(_.id === id).result.head
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjPlayList)
+  }
+
+  def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
+    val query = for {
+      ((u, j), e) <- tabUser join joinPlayListUser on
+        (_.id === _.idUser) join tabPlayList on (_._2.idPLaylist === _.id)
+      if u.id === userId
+    } yield e
+
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_.map(tabToObjPlayList))
+      .map(_.toList)
+  }
+
+  def getTracksWithOrder(id: Int): Try[List[DataTrackWithOrder]] = {
+    val query = for {
+      ((e, ju), u) <- tabPlayList join joinPlayListTrack on (_.id === _.idPlayList) join DBDeezer.tabDeezerTrack on (_._2.idDeezerTrack === _.id)
+      if e.id === id
+    } yield (u, ju.pos)
+
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_
+        .map(t => DBDeezer.tabToObjDeezerTrack(t._1).map(tr => DataTrackWithOrder(t._2, tr)))
+        .collect { case Success(s) => s }
+      )
+      .map(_.toList)
+  }
+
+  def getInvitedUsers(id: Int): Try[List[DataUser]] = {
+    val query = for {
+      ((e, ju), u) <- tabPlayList join joinPlayListUser on (_.id === _.idPLaylist) join DBUser.tabUser on (_._2.idUser === _.id)
+      if e.id === id
+    } yield u
+
+    Await.ready(db.run(query.result), Duration.Inf).value.get
+      .map(_.map(DBUser.tabToObjUser) collect { case Success(s) => s })
+      .map(_.toList)
+  }
 
 }
 
