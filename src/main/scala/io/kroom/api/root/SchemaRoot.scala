@@ -1391,7 +1391,6 @@ object SchemaRoot {
       ),
 
 
-
     )
   )
 
@@ -1411,7 +1410,20 @@ object SchemaRoot {
             }
             }.get
           }
-        )
+        ),
+        Field("PlayListEditorById", PlayListEditorByIdPayload,
+          arguments = Argument("id", IntType) :: Nil,
+          resolve = ctx ⇒ Future {
+            ctx.ctx.authorised(Permissions.PlayListEditorById) { () => {
+              ctx.ctx.repo.playListEditor.getById(ctx.arg[Int]("id")) match {
+                case Success(value) => DataPayload[DataPlaylistEditor](Some(value), List())
+                case Failure(_) => DataPayload[DataPlaylistEditor](None, List(
+                  DataError("id", List("PlayListEditor Id not found"))
+                ))
+              }
+            }
+            }.get
+          }),
       )
     )
   }
