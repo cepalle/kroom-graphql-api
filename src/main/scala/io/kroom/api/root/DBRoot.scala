@@ -16,6 +16,7 @@ class DBRoot(private val db: H2Profile.backend.Database) {
   val deezer: DBDeezer = new DBDeezer(db)
   val trackVoteEvent: DBTrackVoteEvent = new DBTrackVoteEvent(db)
   val user: DBUser = new DBUser(db)
+  val playlistEditor: DBPlaylistEditor = new DBPlaylistEditor(db)
 }
 
 object DBRoot extends StrictLogging {

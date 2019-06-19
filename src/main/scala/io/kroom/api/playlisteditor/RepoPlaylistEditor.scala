@@ -1,5 +1,9 @@
 package io.kroom.api.playlisteditor
 
+import akka.actor.ActorRef
+import io.kroom.api.deezer.RepoDeezer
+import io.kroom.api.user.RepoUser
+
 case class DataPlaylistEditor(
                                id: Int,
                                userMasterId: Int,
@@ -7,6 +11,11 @@ case class DataPlaylistEditor(
                                public: Boolean,
                              )
 
-class RepoPlaylistEditor {
+class RepoPlaylistEditor(
+                          private val dbh: DBPlaylistEditor,
+                          private val repoDeezer: RepoDeezer,
+                          private val repoUser: RepoUser,
+                          private val subActor: ActorRef
+                        ) {
 
 }
