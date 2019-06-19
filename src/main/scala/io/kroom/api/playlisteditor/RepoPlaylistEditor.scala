@@ -1,6 +1,7 @@
 package io.kroom.api.playlisteditor
 
 import akka.actor.ActorRef
+import io.kroom.api.{SubQueryEnum, WSEventCSUpdateQuery}
 import io.kroom.api.deezer.{DataDeezerTrack, RepoDeezer}
 import io.kroom.api.user.{DataUser, RepoUser}
 
@@ -40,15 +41,21 @@ class RepoPlaylistEditor(
   /* MUTATION */
 
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
-    dbh.addTrack(playListId, trackId)
+    val res = dbh.addTrack(playListId, trackId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.PlayListEditorById, playListId)
+    res
   }
 
   def delTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
-    dbh.delTrack(playListId, trackId)
+    val res = dbh.delTrack(playListId, trackId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.PlayListEditorById, playListId)
+    res
   }
 
   def moveTrack(playListId: Int, trackId: Int, up: Boolean): Try[DataPlaylistEditor] = {
-    dbh.moveTrack(playListId, trackId, up)
+    val res = dbh.moveTrack(playListId, trackId, up)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.PlayListEditorById, playListId)
+    res
   }
 
 }

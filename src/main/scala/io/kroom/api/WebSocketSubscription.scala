@@ -40,13 +40,16 @@ object ApolloProtocol {
 }
 
 object SubQueryEnum extends Enumeration {
-  val TrackVoteEvent = Value
+  val TrackVoteEventById, PlayListEditorById = Value
 
   def queryFindType(q: String): SubQueryEnum.Value = {
-    if (q.indexOf("TrackVoteEvent") > -1) {
-      return SubQueryEnum.TrackVoteEvent
+    if (q.indexOf("TrackVoteEventById") > -1) {
+      return SubQueryEnum.TrackVoteEventById
     }
-    return SubQueryEnum.TrackVoteEvent
+    if (q.indexOf("PlayListEditorById") > -1) {
+      return SubQueryEnum.PlayListEditorById
+    }
+    SubQueryEnum.TrackVoteEventById
   }
 }
 
@@ -69,23 +72,15 @@ case class subActorEventKeepAlive(actorId: String) extends subActorEvent
 
 sealed trait WSEventSC
 
-case class WSEventSCOpMsgType(
-                               `type`: String,
-                             ) extends WSEventSC
+case class WSEventSCOpMsgType(`type`: String) extends WSEventSC
 
-case class WSEventSCOpMsgString(
-                                 str: String
-                               ) extends WSEventSC
+case class WSEventSCOpMsgString(str: String) extends WSEventSC
 
 // ---
 
-case class OpMsgType(
-                      `type`: String,
-                    )
+case class OpMsgType(`type`: String)
 
-case class KroomTokenId(
-                         `Kroom-token-id`: Option[String]
-                       )
+case class KroomTokenId(`Kroom-token-id`: Option[String])
 
 case class Var(id: Option[Int])
 
@@ -111,9 +106,7 @@ case class OpMsgCSStop(
                         `type`: String,
                       )
 
-case class OpMsgCSTerminate(
-                             `type`: String,
-                           )
+case class OpMsgCSTerminate(`type`: String)
 
 // ---
 

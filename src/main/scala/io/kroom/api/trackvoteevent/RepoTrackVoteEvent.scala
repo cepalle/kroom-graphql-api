@@ -97,20 +97,20 @@ class RepoTrackVoteEvent(
         latitude,
         longitude
       )
-      subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
+      subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
       res
     })
   }
 
   def addUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.addUser(eventId, userId)
-    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
     res
   }
 
   def delUser(eventId: Int, userId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.delUser(eventId, userId)
-    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
     res
   }
 
@@ -120,13 +120,13 @@ class RepoTrackVoteEvent(
     } else {
       dbh.addVote(eventId, userId, musicId, up)
     })
-    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
     res
   }
 
   def delVote(eventId: Int, userId: Int, musicId: Int): Try[DataTrackVoteEvent] = {
     val res = dbh.delVote(eventId, userId, musicId)
-    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEvent, eventId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
     res
   }
 
