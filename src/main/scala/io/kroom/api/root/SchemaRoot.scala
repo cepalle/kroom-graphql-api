@@ -1251,6 +1251,147 @@ object SchemaRoot {
         }
       ),
 
+      /* PLAY_LIST_EDITOR */
+
+      Field("PlayListEditorAddTrack", PlayListEditorAddTrackPayload,
+        arguments = Argument("playListId", IntType)
+          :: Argument("trackId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorAddTrack) { () =>
+            val playListId = ctx.arg[Int]("playListId")
+            val trackId = ctx.arg[Int]("trackId")
+
+            val errors = {
+
+              val playListIdErrors = {
+                DataError("playListId", List[Option[String]](
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("playListId not found")
+                  },
+                  // if not public need be invited TODO
+                ) collect { case Some(s) => s })
+              }
+
+              val trackIdErrors = {
+
+                DataError("trackId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getTrackById(trackId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("trackId not found")
+                  },
+                  // check if is alredy in playlist TODO
+                ) collect { case Some(s) => s })
+              }
+
+              List(playListIdErrors, trackIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.playListEditor.addTrack(playListId, trackId).get
+              DataPayload[DataPlaylistEditor](Some(user), List())
+            } else {
+              DataPayload[DataPlaylistEditor](None, errors)
+            }
+          }.get
+        }
+      ),
+
+      Field("PlayListEditorDelTrack", PlayListEditorDelTrackPayload,
+        arguments = Argument("playListId", IntType)
+          :: Argument("trackId", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorDelTrack) { () =>
+            val playListId = ctx.arg[Int]("playListId")
+            val trackId = ctx.arg[Int]("trackId")
+
+            val errors = {
+
+              val playListIdErrors = {
+                DataError("playListId", List[Option[String]](
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("playListId not found")
+                  },
+                  // if not public need be invited TODO
+                ) collect { case Some(s) => s })
+              }
+
+              val trackIdErrors = {
+
+                DataError("trackId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getTrackById(trackId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("trackId not found")
+                  },
+                  // check if is in playlist TODO
+                ) collect { case Some(s) => s })
+              }
+
+              List(playListIdErrors, trackIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.playListEditor.delTrack(playListId, trackId).get
+              DataPayload[DataPlaylistEditor](Some(user), List())
+            } else {
+              DataPayload[DataPlaylistEditor](None, errors)
+            }
+          }.get
+        }
+      ),
+
+      Field("PlayListEditorMoveTrack", PlayListEditorMoveTrackPayload,
+        arguments = Argument("playListId", IntType)
+          :: Argument("trackId", IntType)
+          :: Argument("up", BooleanType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorMoveTrack) { () =>
+            val playListId = ctx.arg[Int]("playListId")
+            val trackId = ctx.arg[Int]("trackId")
+            val up = ctx.arg[Boolean]("up") // check if is possible ? TODO
+
+            val errors = {
+
+              val playListIdErrors = {
+                DataError("playListId", List[Option[String]](
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("playListId not found")
+                  },
+                  // if not public need be invited TODO
+                ) collect { case Some(s) => s })
+              }
+
+              val trackIdErrors = {
+
+                DataError("trackId", List[Option[String]](
+                  ctx.ctx.repo.deezer.getTrackById(trackId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("trackId not found")
+                  },
+                  // check if is in playlist TODO
+                ) collect { case Some(s) => s })
+              }
+
+              List(playListIdErrors, trackIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.playListEditor.moveTrack(playListId, trackId, up).get
+              DataPayload[DataPlaylistEditor](Some(user), List())
+            } else {
+              DataPayload[DataPlaylistEditor](None, errors)
+            }
+          }.get
+        }
+      ),
+
+
+
     )
   )
 

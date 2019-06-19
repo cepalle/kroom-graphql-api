@@ -29,7 +29,10 @@ object Authorization {
     UserDelFriend,
     UserAddMusicalPreference,
     UserDelMusicalPreference,
-    UserUpdatePrivacy = Value
+    UserUpdatePrivacy,
+    PlayListEditorAddTrack,
+    PlayListEditorDelTrack,
+    PlayListEditorMoveTrack = Value
   }
 
   object PermissionGroup extends Enumeration {
@@ -67,7 +70,10 @@ object Authorization {
     Permissions.UserDelFriend,
     Permissions.UserAddMusicalPreference,
     Permissions.UserDelMusicalPreference,
-    Permissions.UserUpdatePrivacy
+    Permissions.UserUpdatePrivacy,
+    Permissions.PlayListEditorAddTrack,
+    Permissions.PlayListEditorDelTrack,
+    Permissions.PlayListEditorMoveTrack,
   )
 
   val permissionsOfRoot: Set[Permissions.Value] = permissionsOfUser ++ Set[Permissions.Value](

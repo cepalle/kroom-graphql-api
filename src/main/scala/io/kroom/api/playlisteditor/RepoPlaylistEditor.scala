@@ -45,4 +45,18 @@ class RepoPlaylistEditor(
     dbh.getInvitedUsers(id)
   }
 
+  /* MUTATION */
+
+  def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
+
+  }
+
+  def delTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
+
+  }
+
+  def moveTrack(playListId: Int, trackId: Int, up: Boolean): Try[DataPlaylistEditor] = {
+
+  }
+
 }
