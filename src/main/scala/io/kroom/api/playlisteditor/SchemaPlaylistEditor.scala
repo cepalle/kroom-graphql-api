@@ -16,7 +16,6 @@ object SchemaPlaylistEditor {
 
   import system.dispatcher
 
-
   /* PAYLOAD */
 
   lazy val PlayListEditorByIdPayload: ObjectType[SecureContext, DataPayload[DataPlaylistEditor]] = ObjectType(
@@ -51,48 +50,26 @@ object SchemaPlaylistEditor {
 
       Field("name", StringType, resolve = _.value.name),
       Field("public", BooleanType, resolve = _.value.public),
-      Field("locAndSchRestriction", BooleanType, resolve = _.value.locAndSchRestriction),
 
-      Field("currentTrack", OptionType(SchemaDeezer.TrackField), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.currentTrackId.map(id => ctx.ctx.repo.deezer.getTrackById(id).get)
-        }.flatten
+      Field("invitedUsers", OptionType(ListType(SchemaUser.UserField)), resolve = ctx => Future {
+        ctx.ctx.repo.playListEditor.getInvitedUsers(ctx.value.id).get
       }),
 
-      Field("trackWithVote", OptionType(ListType(TrackWithVoteField)), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.ctx.repo.trackVoteEvent.getTrackWithVote(ctx.value.id).get
-        }
-      }),
-
-      Field("scheduleBegin", OptionType(LongType), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.scheduleBegin
-        }.flatten
-      }),
-
-      Field("scheduleEnd", OptionType(LongType), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.scheduleEnd
-        }.flatten
-      }),
-
-      Field("latitude", OptionType(FloatType), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.latitude
-        }.flatten
-      }),
-
-      Field("longitude", OptionType(FloatType), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.longitude
-        }.flatten
-      }),
-
-      Field("userInvited", OptionType(ListType(SchemaUser.UserField)), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.ctx.repo.trackVoteEvent.getUserInvited(ctx.value.id).get
-        }
+      // wrap in order
+      Field("tracks", OptionType(ListType(TrackWithVoteField)), resolve = ctx => Future {
+        ctx.ctx.repo.playListEditor.getTracksWithOrder(ctx.value.id).get
       }),
     ))
+
+  lazy val TrackWithVoteField: ObjectType[SecureContext, DataTrackWithOrder] = ObjectType(
+    "TrackWitOrder",
+    "TrackWitOrder description.",
+    () ⇒ fields[SecureContext, DataTrackWithOrder](
+      Field("track", SchemaDeezer.TrackField, resolve = ctx =>
+        SchemaDeezer.TrackFetcherId.defer(ctx.value.trackId)
+      ),
+
+      Field("pos", IntType, resolve = _.value.pos),
+    ))
+
 }
