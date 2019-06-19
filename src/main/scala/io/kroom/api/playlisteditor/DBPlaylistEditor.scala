@@ -1,9 +1,11 @@
 package io.kroom.api.playlisteditor
 
-import io.kroom.api.deezer.DBDeezer
 import io.kroom.api.user.{DBUser, DataUser}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
+import io.circe.generic.auto._
+import io.circe.parser
+import io.circe.syntax._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -18,7 +20,7 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
     val query = tabPlayList.filter(_.public).result
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(_.map(tabToObjPlayList))
+      .map(_.map(tabToObjPlayList).collect({ case Success(v) => v }))
       .map(_.toList)
   }
 
@@ -26,7 +28,7 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
     val query = tabPlayList.filter(_.id === id).result.head
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .map(tabToObjPlayList)
+      .map(tabToObjPlayList).collect({ case Success(v) => v })
   }
 
   def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
@@ -37,21 +39,7 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
     } yield e
 
     Await.ready(db.run(query.result), Duration.Inf).value.get
-      .map(_.map(tabToObjPlayList))
-      .map(_.toList)
-  }
-
-  def getTracksWithOrder(id: Int): Try[List[DataTrackWithOrder]] = {
-    val query = for {
-      ((e, ju), u) <- tabPlayList join joinPlayListTrack on (_.id === _.idPlayList) join DBDeezer.tabDeezerTrack on (_._2.idDeezerTrack === _.id)
-      if e.id === id
-    } yield (u, ju.pos)
-
-    Await.ready(db.run(query.result), Duration.Inf).value.get
-      .map(_
-        .map(t => DBDeezer.tabToObjDeezerTrack(t._1).map(tr => DataTrackWithOrder(t._2, tr)))
-        .collect { case Success(s) => s }
-      )
+      .map(_.map(tabToObjPlayList).collect({ case Success(v) => v }))
       .map(_.toList)
   }
 
@@ -64,6 +52,68 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
     Await.ready(db.run(query.result), Duration.Inf).value.get
       .map(_.map(DBUser.tabToObjUser) collect { case Success(s) => s })
       .map(_.toList)
+  }
+
+  /* MUTATION */
+
+  def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
+    getById(playListId).flatMap(pl => {
+      val newList = pl.tracks :+ trackId
+
+      val query = tabPlayList.filter(_.id === playListId)
+        .map(_.tracks)
+        .update(newList.asJson.toString())
+
+      Await.ready(db.run(query), Duration.Inf).value.get
+        .flatMap(_ => getById(playListId))
+    })
+  }
+
+  def delTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
+    getById(playListId).flatMap(pl => {
+      val newList = pl.tracks.filter(_ != trackId)
+
+      val query = tabPlayList.filter(_.id === playListId)
+        .map(_.tracks)
+        .update(newList.asJson.toString())
+
+      Await.ready(db.run(query), Duration.Inf).value.get
+        .flatMap(_ => getById(playListId))
+    })
+  }
+
+  def moveTrack(playListId: Int, trackId: Int, up: Boolean): Try[DataPlaylistEditor] = {
+    getById(playListId).flatMap(pl => {
+
+      val index = pl.tracks.indexOf(trackId)
+
+      val newList: List[Int] = if (up) {
+        if (index <= 0) {
+          pl.tracks
+        } else {
+          val tmp = pl.tracks(index)
+          val up1 = pl.tracks.updated(index, pl.tracks(index - 1))
+          val up2 = up1.updated(index - 1, tmp)
+          up2
+        }
+      } else {
+        if (index + 1 >= pl.tracks.length) {
+          pl.tracks
+        } else {
+          val tmp = pl.tracks(index)
+          val up1 = pl.tracks.updated(index, pl.tracks(index + 1))
+          val up2 = up1.updated(index + 1, tmp)
+          up2
+        }
+      }
+
+      val query = tabPlayList.filter(_.id === playListId)
+        .map(_.tracks)
+        .update(newList.asJson.toString())
+
+      Await.ready(db.run(query), Duration.Inf).value.get
+        .flatMap(_ => getById(playListId))
+    })
   }
 
 }
@@ -85,7 +135,7 @@ playlist {
 object DBPlaylistEditor {
 
   class TabPlayList(tag: Tag)
-    extends Table[(Int, Int, String, Boolean)](tag, "PLAY_LIST_EDITOR") {
+    extends Table[(Int, Int, String, Boolean, String)](tag, "PLAY_LIST_EDITOR") {
 
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc, O.Default(0))
 
@@ -95,15 +145,19 @@ object DBPlaylistEditor {
 
     def public = column[Boolean]("PUBLIC")
 
-    def * = (id, userMasterId, name, public)
+    def tracks = column[String]("TRACKS_JSON")
+
+    def * = (id, userMasterId, name, public, tracks)
   }
 
   val tabPlayList = TableQuery[TabPlayList]
 
-  val tabToObjPlayList: ((Int, Int, String, Boolean)) => DataPlaylistEditor = {
-    case (id, userMasterId, name, public) =>
-      DataPlaylistEditor(
-        id, userMasterId, name, public
+  val tabToObjPlayList: ((Int, Int, String, Boolean, String)) => Try[DataPlaylistEditor] = {
+    case (id, userMasterId, name, public, tracksJson) =>
+      parser.decode[List[Int]](tracksJson).toTry.map(tracks =>
+        DataPlaylistEditor(
+          id, userMasterId, name, public, tracks
+        )
       )
   }
 
@@ -126,28 +180,5 @@ object DBPlaylistEditor {
   }
 
   val joinPlayListUser = TableQuery[JoinPlayListUser]
-
-  class JoinPlayListTrack(tag: Tag)
-    extends Table[(Int, Int, Int)](tag, "JOIN_PLAY_LIST_TRACK") {
-
-    def idPlayList = column[Int]("ID_PLAY_LIST")
-
-    def idDeezerTrack = column[Int]("ID_DEEZER_TRACK")
-
-    def pos = column[Int]("POS")
-
-    def * = (idPlayList, idDeezerTrack, pos)
-
-    def pk = primaryKey("PK_JOIN_PLAY_LIST_TRACK", (idPlayList, idDeezerTrack))
-
-    def deezerTrack =
-      foreignKey("FK_JOIN_PLAY_LIST_TRACK_DEEZER_TRACK", idDeezerTrack, DBDeezer.tabDeezerTrack)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
-
-    def playlist =
-      foreignKey("FK_JOIN_PLAY_LIST_TRACK_PLAY_LIST", idPlayList, tabPlayList)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
-
-  }
-
-  val joinPlayListTrack = TableQuery[JoinPlayListTrack]
 
 }

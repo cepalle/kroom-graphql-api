@@ -11,11 +11,7 @@ case class DataPlaylistEditor(
                                userMasterId: Int,
                                name: String,
                                public: Boolean,
-                             )
-
-case class DataTrackWithOrder(
-                               pos: Int,
-                               track: DataDeezerTrack,
+                               tracks: List[Int]
                              )
 
 class RepoPlaylistEditor(
@@ -37,10 +33,6 @@ class RepoPlaylistEditor(
     dbh.getByUserId(userId)
   }
 
-  def getTracksWithOrder(id: Int): Try[List[DataTrackWithOrder]] = {
-    dbh.getTracksWithOrder(id)
-  }
-
   def getInvitedUsers(id: Int): Try[List[DataUser]] = {
     dbh.getInvitedUsers(id)
   }
@@ -48,15 +40,15 @@ class RepoPlaylistEditor(
   /* MUTATION */
 
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
-
+    dbh.addTrack(playListId, trackId)
   }
 
   def delTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
-
+    dbh.delTrack(playListId, trackId)
   }
 
   def moveTrack(playListId: Int, trackId: Int, up: Boolean): Try[DataPlaylistEditor] = {
-
+    dbh.moveTrack(playListId, trackId, up)
   }
 
 }

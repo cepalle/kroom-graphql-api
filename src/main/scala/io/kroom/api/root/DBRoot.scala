@@ -38,7 +38,6 @@ object DBRoot extends StrictLogging {
         DBTrackVoteEvent.joinTrackVoteEventUserVoteTrack.schema ++
 
         DBPlaylistEditor.tabPlayList.schema ++
-        DBPlaylistEditor.joinPlayListTrack.schema ++
         DBPlaylistEditor.joinPlayListUser.schema
         ).create,
     )

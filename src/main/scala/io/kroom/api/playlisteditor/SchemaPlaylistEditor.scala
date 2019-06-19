@@ -79,18 +79,9 @@ object SchemaPlaylistEditor {
         ctx.ctx.repo.playListEditor.getInvitedUsers(ctx.value.id).get
       }),
 
-      // wrap in order
-      Field("tracks", OptionType(ListType(TrackWithVoteField)), resolve = ctx => Future {
-        ctx.ctx.repo.playListEditor.getTracksWithOrder(ctx.value.id).get
-      }),
-    ))
-
-  lazy val TrackWithVoteField: ObjectType[SecureContext, DataTrackWithOrder] = ObjectType(
-    "TrackWitOrder",
-    "TrackWitOrder description.",
-    () ⇒ fields[SecureContext, DataTrackWithOrder](
-      Field("track", SchemaDeezer.TrackField, resolve = _.value.track),
-      Field("pos", IntType, resolve = _.value.pos),
-    ))
+      Field("tracks", OptionType(ListType(SchemaDeezer.TrackField)), resolve = ctx =>
+        SchemaDeezer.TrackFetcherId.deferSeqOpt(ctx.value.tracks)
+      )),
+  )
 
 }
