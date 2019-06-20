@@ -31,7 +31,7 @@ class RepoPlaylistEditor(
   }
 
   def getByName(name: String): Try[DataPlaylistEditor] = {
-
+    dbh.getByName(name)
   }
 
   def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
@@ -44,12 +44,14 @@ class RepoPlaylistEditor(
 
   /* MUTATION */
 
-  def delete(id :Int): Try[Unit] = {
-
+  def delete(id: Int): Try[Unit] = {
+    val res = dbh.delete(id)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.PlayListEditorById, id)
+    res
   }
 
   def `new`(userMasterId: Int, name: String, public: Boolean): Try[DataPlaylistEditor] = {
-
+    dbh.`new`(userMasterId, name, public)
   }
 
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {

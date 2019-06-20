@@ -31,6 +31,13 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
       .map(tabToObjPlayList).collect({ case Success(v) => v })
   }
 
+  def getByName(name: String): Try[DataPlaylistEditor] = {
+    val query = tabPlayList.filter(_.name === name).result.head
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjPlayList).collect({ case Success(v) => v })
+  }
+
   def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
     val query = for {
       ((u, j), e) <- tabUser join joinPlayListUser on
@@ -55,6 +62,23 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
   }
 
   /* MUTATION */
+
+  def delete(id: Int): Try[Unit] = {
+    val query = tabPlayList.filter(_.id === id).delete
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(_ => Unit)
+  }
+
+  def `new`(userMasterId: Int, name: String, public: Boolean): Try[DataPlaylistEditor] = {
+    val query = (tabPlayList
+      .map(e => (e.userMasterId, e.name, e.public, e.tracks))
+      returning tabPlayList.map(_.id)
+      ) += (userMasterId, name, public, List[Int]().asJson.toString())
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(id => getById(id))
+  }
 
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
     getById(playListId).flatMap(pl => {

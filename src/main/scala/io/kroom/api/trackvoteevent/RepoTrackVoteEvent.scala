@@ -68,12 +68,14 @@ class RepoTrackVoteEvent(
             name: String,
             public: Boolean,
            ): Try[DataTrackVoteEvent] = {
-    dbh.add(userIdMaster, name, public)
+    dbh.`new`(userIdMaster, name, public)
       .flatMap(trackEvent => dbh.addUser(trackEvent.id, userIdMaster))
   }
 
   def delete(id: Int): Try[Unit] = {
-
+    val res = dbh.delete(id)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, id)
+    res
   }
 
   def update(eventId: Int,

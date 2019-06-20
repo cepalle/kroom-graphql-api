@@ -98,10 +98,10 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
   // Mutation
 
-  def add(userIdMaster: Int,
-          name: String,
-          public: Boolean,
-         ): Try[DataTrackVoteEvent] = {
+  def `new`(userIdMaster: Int,
+            name: String,
+            public: Boolean,
+           ): Try[DataTrackVoteEvent] = {
     val query = (tabTrackVoteEvent
       .map(e => (e.userMasterId, e.name, e.public))
       returning tabTrackVoteEvent.map(_.id)
@@ -109,6 +109,13 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(id => getById(id))
+  }
+
+  def delete(id: Int): Try[Unit] = {
+    val query = tabTrackVoteEvent.filter(_.id === id).delete
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(_ => Unit)
   }
 
   def update(eventId: Int,

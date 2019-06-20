@@ -19,12 +19,12 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
   lazy val permissions: Set[Authorization.Permissions.Value] = Authorization.permissionGroupsToPermissions(permGrp)
 
   def authorised[T](perms: Permissions.Value*)(fn: () ⇒ T): Try[T] = {
-    if (!perms.forall(Authorization.permissionsOfPublic.contains) && !user.emailIsconfirmed)
-      Failure(AuthorisationException("Your email has not been confirmed"))
-    else if (perms.forall(permissions.contains))
-      Success(fn())
-    else
+    if (!perms.forall(permissions.contains))
       Failure(AuthorisationException("You do not have permission to do this operation"))
+    else if (!perms.forall(Authorization.permissionsOfPublic.contains) && !user.emailIsconfirmed)
+      Failure(AuthorisationException("Your email has not been confirmed"))
+    else
+      Success(fn())
   }
 
   def checkPrivacyUser[T](foreignId: Int, privacy: Privacy.Value)(fn: () ⇒ T): Option[T] = {
