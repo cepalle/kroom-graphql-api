@@ -1,0 +1,6 @@
+{
+  "query": "{ DeezerSearch(search: \"eminen\", strict: false) { search { title album { title } } errors { field messages } } }",
+  "variables": {
+    "id": 3100001
+  }
+}
