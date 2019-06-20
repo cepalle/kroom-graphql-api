@@ -18,6 +18,7 @@ object Authorization {
     UserNameAutocompletion,
 
     TrackVoteEventNew,
+    TrackVoteEventDel,
     TrackVoteEventUpdate,
     TrackVoteEventAddUser,
     TrackVoteEventDelUser,
@@ -30,6 +31,8 @@ object Authorization {
     UserAddMusicalPreference,
     UserDelMusicalPreference,
     UserUpdatePrivacy,
+    PlayListEditorNew,
+    PlayListEditorDel,
     PlayListEditorAddTrack,
     PlayListEditorDelTrack,
     PlayListEditorMoveTrack = Value
@@ -61,6 +64,7 @@ object Authorization {
     Permissions.UserNameAutocompletion,
 
     Permissions.TrackVoteEventNew,
+    Permissions.TrackVoteEventDel,
     Permissions.TrackVoteEventUpdate,
     Permissions.TrackVoteEventAddUser,
     Permissions.TrackVoteEventDelUser,
@@ -71,6 +75,8 @@ object Authorization {
     Permissions.UserAddMusicalPreference,
     Permissions.UserDelMusicalPreference,
     Permissions.UserUpdatePrivacy,
+    Permissions.PlayListEditorNew,
+    Permissions.PlayListEditorDel,
     Permissions.PlayListEditorAddTrack,
     Permissions.PlayListEditorDelTrack,
     Permissions.PlayListEditorMoveTrack,

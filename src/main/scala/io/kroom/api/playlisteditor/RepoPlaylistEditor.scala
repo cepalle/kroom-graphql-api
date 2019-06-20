@@ -30,6 +30,10 @@ class RepoPlaylistEditor(
     dbh.getById(id)
   }
 
+  def getByName(name: String): Try[DataPlaylistEditor] = {
+
+  }
+
   def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
     dbh.getByUserId(userId)
   }
@@ -39,6 +43,14 @@ class RepoPlaylistEditor(
   }
 
   /* MUTATION */
+
+  def delete(id :Int): Try[Unit] = {
+
+  }
+
+  def `new`(userMasterId: Int, name: String, public: Boolean): Try[DataPlaylistEditor] = {
+
+  }
 
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
     val res = dbh.addTrack(playListId, trackId)

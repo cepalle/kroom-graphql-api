@@ -299,7 +299,7 @@ object SchemaRoot {
         arguments = Argument("id", IntType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
+          ctx.ctx.authorised(Permissions.TrackVoteEventDel) { () => {
             val id = ctx.arg[Int]("id")
 
             val errors = {
@@ -307,7 +307,14 @@ object SchemaRoot {
               val idErrors = {
 
                 DataError("id", List[Option[String]](
-                  /**/
+                  ctx.ctx.repo.trackVoteEvent.getById(id) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
                 ) collect { case Some(s) => s })
               }
 
@@ -315,10 +322,10 @@ object SchemaRoot {
             }
 
             if (errors.isEmpty) {
-              val trackEvent = ctx.ctx.repo.trackVoteEvent.delete(id).get
-              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+              ctx.ctx.repo.trackVoteEvent.delete(id).get
+              DataPayload[Unit](Some(Unit), List())
             } else {
-              DataPayload[DataTrackVoteEvent](None, errors)
+              DataPayload[Unit](None, errors)
             }
           }
           }.get
@@ -740,7 +747,6 @@ object SchemaRoot {
           :: Nil,
         resolve = ctx ⇒ {
           ctx.ctx.authorised(Permissions.UserSignUp) { () => {
-            // TODO send email
             val userName = ctx.arg[String]("userName")
             val email = ctx.arg[String]("email")
             val pass = ctx.arg[String]("pass")
@@ -1323,6 +1329,90 @@ object SchemaRoot {
               DataPayload[DataPlaylistEditor](Some(user), List())
             } else {
               DataPayload[DataPlaylistEditor](None, errors)
+            }
+          }.get
+        }
+      ),
+
+      Field("PlayListEditorNew", PlayListEditorNewPayload,
+        arguments = Argument("userMasterId", IntType)
+          :: Argument("name", StringType)
+          :: Argument("public", BooleanType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorNew) { () =>
+            val userMasterId = ctx.arg[Int]("userMasterId")
+            val name = ctx.arg[String]("name")
+            val public = ctx.arg[Boolean]("public")
+
+            val errors = {
+
+              val userMasterIdErrors = {
+                DataError("userMasterId", List[Option[String]](
+                  ctx.ctx.repo.user.getById(userMasterId) match {
+                    case Success(_) => None
+                    case Failure(_) => Some("userIdMaster not found")
+                  },
+                  userMasterId == ctx.ctx.user.id match {
+                    case true => None
+                    case false => Some("userIdMaster isn't you")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val nameErrors = {
+                DataError("name", List[Option[String]](
+                  ctx.ctx.repo.playListEditor.getByName(name) match {
+                    case Success(_) => Some("name already exist")
+                    case Failure(_) => None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(userMasterIdErrors, nameErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val user = ctx.ctx.repo.playListEditor.`new`(userMasterId, name, public).get
+              DataPayload[DataPlaylistEditor](Some(user), List())
+            } else {
+              DataPayload[DataPlaylistEditor](None, errors)
+            }
+          }.get
+        }
+      ),
+
+      Field("PlayListEditorDel", PlayListEditorDelPayload,
+        arguments = Argument("id", IntType)
+          :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.PlayListEditorDel) { () =>
+            val id = ctx.arg[Int]("id")
+
+            val errors = {
+
+              val idErrors = {
+
+                DataError("id", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(id) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("PlayListEditorId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(idErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              ctx.ctx.repo.playListEditor.delete(id).get
+              DataPayload[Unit](Some(Unit), List())
+            } else {
+              DataPayload[Unit](None, errors)
             }
           }.get
         }
