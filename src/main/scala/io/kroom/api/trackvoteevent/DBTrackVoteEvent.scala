@@ -108,7 +108,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       ) += (userIdMaster, name, public)
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(id => getById(id))
+      .flatMap(id => addUser(id, userIdMaster))
   }
 
   def delete(id: Int): Try[Unit] = {

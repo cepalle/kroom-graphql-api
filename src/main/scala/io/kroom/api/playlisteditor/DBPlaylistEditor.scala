@@ -77,7 +77,7 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
       ) += (userMasterId, name, public, List[Int]().asJson.toString())
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(id => getById(id))
+      .flatMap(id => addUser(id, userMasterId))
   }
 
   def addUser(playlistId: Int, userId: Int): Try[DataPlaylistEditor] = {

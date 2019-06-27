@@ -69,7 +69,6 @@ class RepoTrackVoteEvent(
             public: Boolean,
            ): Try[DataTrackVoteEvent] = {
     dbh.`new`(userIdMaster, name, public)
-      .flatMap(trackEvent => dbh.addUser(trackEvent.id, userIdMaster))
   }
 
   def delete(id: Int): Try[Unit] = {

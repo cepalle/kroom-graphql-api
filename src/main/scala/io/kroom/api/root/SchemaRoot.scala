@@ -1685,7 +1685,8 @@ object SchemaRoot {
               }
             }
             }.get
-          }),
+          }
+        ),
       )
     )
   }
