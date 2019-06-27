@@ -73,6 +73,22 @@ object SchemaPlaylistEditor {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
+  lazy val PlayListEditorAddUserPayload: ObjectType[SecureContext, DataPayload[DataPlaylistEditor]] = ObjectType(
+    "PlayListEditorAddUserPayload",
+    "PlayListEditorAddUserPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataPlaylistEditor]](
+      Field("playListEditor", OptionType(PlayListEditorField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
+  lazy val PlayListEditorDelUserPayload: ObjectType[SecureContext, DataPayload[DataPlaylistEditor]] = ObjectType(
+    "PlayListEditorDelUserPayload",
+    "PlayListEditorDelUserPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataPlaylistEditor]](
+      Field("playListEditor", OptionType(PlayListEditorField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   /* FIELD */
 
   lazy val PlayListEditorField: ObjectType[SecureContext, DataPlaylistEditor] = ObjectType(

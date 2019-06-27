@@ -33,6 +33,8 @@ object Authorization {
     UserUpdatePrivacy,
     PlayListEditorNew,
     PlayListEditorDel,
+    PlayListEditorAddUser,
+    PlayListEditorDelUser,
     PlayListEditorAddTrack,
     PlayListEditorDelTrack,
     PlayListEditorMoveTrack = Value
@@ -77,6 +79,8 @@ object Authorization {
     Permissions.UserUpdatePrivacy,
     Permissions.PlayListEditorNew,
     Permissions.PlayListEditorDel,
+    Permissions.PlayListEditorAddUser,
+    Permissions.PlayListEditorDelUser,
     Permissions.PlayListEditorAddTrack,
     Permissions.PlayListEditorDelTrack,
     Permissions.PlayListEditorMoveTrack,
