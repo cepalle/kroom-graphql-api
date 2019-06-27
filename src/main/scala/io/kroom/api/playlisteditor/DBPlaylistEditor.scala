@@ -80,6 +80,22 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
       .flatMap(id => getById(id))
   }
 
+  def addUser(playlistId: Int, userId: Int): Try[DataPlaylistEditor] = {
+    val query = joinPlayListUser
+      .map(e => (e.idPLaylist, e.idUser)) += (playlistId, userId)
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getById(playlistId))
+  }
+
+  def delUser(playlistId: Int, userId: Int): Try[DataPlaylistEditor] = {
+    val query = joinPlayListUser
+      .filter(e => e.idPLaylist === playlistId && e.idUser === userId).delete
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .flatMap(_ => getById(playlistId))
+  }
+
   def addTrack(playListId: Int, trackId: Int): Try[DataPlaylistEditor] = {
     getById(playListId).flatMap(pl => {
       val newList = pl.tracks :+ trackId

@@ -1503,10 +1503,14 @@ object SchemaRoot {
               val playListIdErrors = {
                 DataError("playListId", List[Option[String]](
                   ctx.ctx.repo.playListEditor.getById(playListId) match {
-                    case Success(_) => None
-                    case Failure(_) => Some("playListId not found")
+                    case Success(p) => if (p.public) None else {
+                      if (ctx.ctx.repo.playListEditor.getInvitedUsers(playListId).get.map(e => e.id).contains(ctx.ctx.user.id))
+                        None
+                      else
+                        Some("playListId not found")
+                    }
+                    case Failure(_) => Some("you're not invited")
                   },
-                  // if not public need be invited TODO
                 ) collect { case Some(s) => s })
               }
 
@@ -1517,7 +1521,12 @@ object SchemaRoot {
                     case Success(_) => None
                     case Failure(_) => Some("trackId not found")
                   },
-                  // check if is alredy in playlist TODO
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(p) => if (p.tracks.contains(trackId)) {
+                      Some("Track already in playlist")
+                    } else None
+                    case Failure(_) => None
+                  }
                 ) collect { case Some(s) => s })
               }
 
@@ -1548,10 +1557,14 @@ object SchemaRoot {
               val playListIdErrors = {
                 DataError("playListId", List[Option[String]](
                   ctx.ctx.repo.playListEditor.getById(playListId) match {
-                    case Success(_) => None
+                    case Success(p) => if (p.public) None else {
+                      if (ctx.ctx.repo.playListEditor.getInvitedUsers(playListId).get.map(e => e.id).contains(ctx.ctx.user.id))
+                        None
+                      else
+                        Some("playListId not found")
+                    }
                     case Failure(_) => Some("playListId not found")
                   },
-                  // if not public need be invited TODO
                 ) collect { case Some(s) => s })
               }
 
@@ -1562,7 +1575,12 @@ object SchemaRoot {
                     case Success(_) => None
                     case Failure(_) => Some("trackId not found")
                   },
-                  // check if is in playlist TODO
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(p) => if (!p.tracks.contains(trackId)) {
+                      Some("Track not in playlist")
+                    } else None
+                    case Failure(_) => None
+                  }
                 ) collect { case Some(s) => s })
               }
 
@@ -1588,17 +1606,21 @@ object SchemaRoot {
           ctx.ctx.authorised(Permissions.PlayListEditorMoveTrack) { () =>
             val playListId = ctx.arg[Int]("playListId")
             val trackId = ctx.arg[Int]("trackId")
-            val up = ctx.arg[Boolean]("up") // check if is possible ? TODO
+            val up = ctx.arg[Boolean]("up")
 
             val errors = {
 
               val playListIdErrors = {
                 DataError("playListId", List[Option[String]](
                   ctx.ctx.repo.playListEditor.getById(playListId) match {
-                    case Success(_) => None
+                    case Success(p) => if (p.public) None else {
+                      if (ctx.ctx.repo.playListEditor.getInvitedUsers(playListId).get.map(e => e.id).contains(ctx.ctx.user.id))
+                        None
+                      else
+                        Some("playListId not found")
+                    }
                     case Failure(_) => Some("playListId not found")
                   },
-                  // if not public need be invited TODO
                 ) collect { case Some(s) => s })
               }
 
@@ -1609,7 +1631,12 @@ object SchemaRoot {
                     case Success(_) => None
                     case Failure(_) => Some("trackId not found")
                   },
-                  // check if is in playlist TODO
+                  ctx.ctx.repo.playListEditor.getById(playListId) match {
+                    case Success(p) => if (!p.tracks.contains(trackId)) {
+                      Some("Track not in playlist")
+                    } else None
+                    case Failure(_) => None
+                  }
                 ) collect { case Some(s) => s })
               }
 
