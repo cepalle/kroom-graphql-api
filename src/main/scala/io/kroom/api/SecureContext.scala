@@ -53,4 +53,14 @@ class SecureContext(val token: Option[String], val repo: RepoRoot) {
     }
   }
 
+  def checkPrivacyPlaylist[T](eventId: Int, public: Boolean)(fn: () ⇒ T): Option[T] = {
+    if (public) {
+      Some(fn())
+    } else if (repo.playListEditor.getInvitedUsers(eventId).get.map(_.id).contains(user.id)) {
+      Some(fn())
+    } else {
+      None
+    }
+  }
+
 }

@@ -40,9 +40,8 @@ class DBPlaylistEditor(private val db: H2Profile.backend.Database) {
 
   def getByUserId(userId: Int): Try[List[DataPlaylistEditor]] = {
     val query = for {
-      ((u, j), e) <- tabUser join joinPlayListUser on
-        (_.id === _.idUser) join tabPlayList on (_._2.idPLaylist === _.id)
-      if u.id === userId
+      (j, e) <- joinPlayListUser join tabPlayList on (_.idPLaylist === _.id)
+      if j.idUser === userId
     } yield e
 
     Await.ready(db.run(query.result), Duration.Inf).value.get

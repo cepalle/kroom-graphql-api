@@ -98,7 +98,7 @@ object SchemaPlaylistEditor {
       Field("id", IntType, resolve = _.value.id),
 
       Field("userMaster", OptionType(SchemaUser.UserField), resolve = ctx => Future {
-        ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
+        ctx.ctx.checkPrivacyPlaylist(ctx.value.id, ctx.value.public) { () =>
           ctx.ctx.repo.user.getById(ctx.value.userMasterId).get
         }
       }),
