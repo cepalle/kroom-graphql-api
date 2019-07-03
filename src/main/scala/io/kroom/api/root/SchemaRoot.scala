@@ -1315,8 +1315,19 @@ object SchemaRoot {
                 ) collect { case Some(s) => s })
               }
 
+              val charValid = """^([a-zA-Z0-9_-]*)$""".r
+              val length4 = """(?=.{4,})""".r
+
               val nameErrors = {
                 DataError("name", List[Option[String]](
+                  length4.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name need 4 character")
+                  },
+                  charValid.findFirstMatchIn(name) match {
+                    case Some(_) => None
+                    case None => Some("name can only contain lowercase, uppercase, underscore and hyphen")
+                  },
                   ctx.ctx.repo.playListEditor.getByName(name) match {
                     case Success(_) => Some("name already exist")
                     case Failure(_) => None
