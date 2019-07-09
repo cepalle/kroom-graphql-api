@@ -91,7 +91,7 @@ case class Query(
                 )
 
 case class OpMsgCSInit(
-                        payload: KroomTokenId,
+                        payload: Option[KroomTokenId],
                         `type`: String,
                       )
 
@@ -182,7 +182,7 @@ class SubscriptionActor(ctxInit: SecureContext) extends Actor with StrictLogging
         tpe.`type` match {
           case ApolloProtocol.GQL_CONNECTION_INIT =>
             parser.decode[OpMsgCSInit](content).toTry.map(init => {
-              clientsState(actorId) = clientsState(actorId).copy(token = init.payload.`Kroom-token-id`)
+              clientsState(actorId) = clientsState(actorId).copy(token = init.payload.getOrElse(KroomTokenId(None)).`Kroom-token-id`)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_ACK)
               clientsState(actorId).actorRef ! WSEventSCOpMsgType(ApolloProtocol.GQL_CONNECTION_KEEP_ALIVE)
               self ! subActorEventKeepAlive(actorId)
@@ -286,16 +286,16 @@ class WebSocketSubscription(val subActorHandler: ActorRef)
 
         val msgToWs = builder.add(Flow[Message].collect {
           case TextMessage.Strict(str) =>
-            logger.debug("Received: ", str)
+            logger.info(s"Received: $str")
             WSEventCSMessage(actorClientId, str)
         })
 
         val wsToMsg = builder.add(Flow[WSEventSC].map {
           case op: WSEventSCOpMsgType =>
-            logger.debug("Send: ", op.asJson.toString())
+            logger.debug(s"Send: ${op.asJson.toString()}")
             TextMessage(op.asJson.toString())
           case op: WSEventSCOpMsgString =>
-            logger.debug("Send: ", op.str)
+            logger.debug(s"Send: ${op.str}")
             TextMessage(op.str)
         })
 
