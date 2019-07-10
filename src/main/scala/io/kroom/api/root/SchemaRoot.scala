@@ -1360,7 +1360,7 @@ object SchemaRoot {
               val idErrors = {
 
                 DataError("id", List[Option[String]](
-                  ctx.ctx.repo.trackVoteEvent.getById(id) match {
+                  ctx.ctx.repo.playListEditor.getById(id) match {
                     case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
                       None
                     } else {
