@@ -103,7 +103,16 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val 
       .flatMap(tkInfo => {
         dbh.getByEmail(tkInfo.email) match {
           case Success(s) => Success(s)
-          case Failure(_) => dbh.addUserWithPass(tkInfo.name, tkInfo.email, None, None)
+          case Failure(_) =>
+            if (dbh.getByName(tkInfo.name).isFailure) {
+              dbh.addUserWithPass(tkInfo.name, tkInfo.email, None, None)
+            } else {
+              var i = 0
+              while (dbh.getByName(tkInfo.name + i.toString).isSuccess) {
+                i += 1
+              }
+              dbh.addUserWithPass(tkInfo.name + i.toString, tkInfo.email, None, None)
+            }
         }
       })
       .flatMap(user => dbh.updateToken(
