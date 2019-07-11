@@ -251,6 +251,7 @@ object SchemaDeezer {
       Field("preview", StringType, resolve = _.value.preview),
 
       Field("artist", OptionType(ArtistField), resolve = ctx => ArtistFetcherId.deferOpt(ctx.value.artist.id)),
+      Field("artistName", StringType, resolve = _.value.artist.name),
       Field("album", OptionType(AlbumField), resolve = ctx => AlbumFetcherId.deferOpt(ctx.value.album.id)),
     ))
 

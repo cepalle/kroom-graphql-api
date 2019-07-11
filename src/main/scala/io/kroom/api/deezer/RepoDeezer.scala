@@ -122,6 +122,11 @@ case class DataDeezerTrack(
                             album: Id,
                           )
 
+case class NameId(
+                 id: Int,
+                 name: String
+                 )
+
 case class DataDeezerSearch(
                              id: Int,
                              readable: Boolean,
@@ -134,7 +139,7 @@ case class DataDeezerSearch(
                              explicit_lyrics: Boolean,
                              // url,
                              preview: String,
-                             artist: Id,
+                             artist: NameId,
                              album: Id,
                            )
 
