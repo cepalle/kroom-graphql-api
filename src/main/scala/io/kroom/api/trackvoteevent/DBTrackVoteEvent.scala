@@ -205,7 +205,7 @@ object DBTrackVoteEvent {
 
     def public = column[Boolean]("PUBLIC")
 
-    def locAndSchRestriction = column[Boolean]("LOC_AND_SCH_RESTRICTION")
+    def locAndSchRestriction = column[Boolean]("LOC_AND_SCH_RESTRICTION", O.Default(false))
 
     def currentTrackId = column[Option[Int]]("CURRENT_TRACK_ID")
 
