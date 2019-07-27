@@ -16,8 +16,8 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 /**
-  * Defines a GraphQL schema for the current project
-  */
+ * Defines a GraphQL schema for the current project
+ */
 object SchemaRoot {
 
   import SchemaUser._
@@ -235,12 +235,22 @@ object SchemaRoot {
         arguments = Argument("userIdMaster", IntType)
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
+          :: Argument("locAndSchRestriction", BooleanType)
+          :: Argument("scheduleBegin", OptionInputType(LongType))
+          :: Argument("scheduleEnd", OptionInputType(LongType))
+          :: Argument("latitude", OptionInputType(FloatType))
+          :: Argument("longitude", OptionInputType(FloatType))
           :: Nil,
         resolve = ctx ⇒ Future {
           ctx.ctx.authorised(Permissions.TrackVoteEventNew) { () => {
             val userIdMaster = ctx.arg[Int]("userIdMaster")
             val name = ctx.arg[String]("name")
             val public = ctx.arg[Boolean]("public")
+            val locAndSchRestriction = ctx.arg[Boolean]("locAndSchRestriction")
+            val scheduleBegin = ctx.argOpt[Long]("scheduleBegin")
+            val scheduleEnd = ctx.argOpt[Long]("scheduleEnd")
+            val latitude = ctx.argOpt[Double]("latitude")
+            val longitude = ctx.argOpt[Double]("longitude")
 
             val errors = {
               val userIdMasterErrors = {
@@ -281,11 +291,66 @@ object SchemaRoot {
                 ) collect { case Some(s) => s })
               }
 
-              List(userIdMasterErrors, nameErrors).filter(e => e.errors.nonEmpty)
+              val latitudeError = {
+                DataError("latitude", List[Option[String]](
+                  if (latitude.exists(_ > 90.0)) {
+                    Some("latitude is =< 90")
+                  } else {
+                    None
+                  },
+                  if (latitude.exists(_ < -90.0)) {
+                    Some("latitude is => -90")
+                  } else {
+                    None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val longitudeError = {
+                DataError("longitude", List[Option[String]](
+                  if (longitude.exists(_ > 180.0)) {
+                    Some("longitude is =< 180")
+                  } else {
+                    None
+                  },
+                  if (longitude.exists(_ < -180.0)) {
+                    Some("longitude is => -180")
+                  } else {
+                    None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              val scheduleBeginError = {
+                DataError("scheduleBegin", List[Option[String]](
+                  if (scheduleBegin.exists(b => scheduleEnd.exists(_ < b))) {
+                    Some("scheduleBegin is before scheduleEnd")
+                  } else {
+                    None
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(
+                userIdMasterErrors,
+                nameErrors,
+                latitudeError,
+                longitudeError,
+                scheduleBeginError
+              ).filter(e => e.errors.nonEmpty)
             }
 
             if (errors.isEmpty) {
-              val trackEvent = ctx.ctx.repo.trackVoteEvent.`new`(userIdMaster, name, public).get
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.`new`(
+                userIdMaster,
+                name,
+                public,
+                locAndSchRestriction,
+                scheduleBegin,
+                scheduleEnd,
+                latitude,
+                longitude
+              ).get
               DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
             } else {
               DataPayload[DataTrackVoteEvent](None, errors)
@@ -459,7 +524,17 @@ object SchemaRoot {
             }
 
             if (errors.isEmpty) {
-              val trackEvent = ctx.ctx.repo.trackVoteEvent.update(eventId, userIdMaster, name, public, locAndSchRestriction, scheduleBegin, scheduleEnd, latitude, longitude).get
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.update(
+                eventId,
+                userIdMaster,
+                name,
+                public,
+                locAndSchRestriction,
+                scheduleBegin,
+                scheduleEnd,
+                latitude,
+                longitude
+              ).get
               DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
             } else {
               DataPayload[DataTrackVoteEvent](None, errors)

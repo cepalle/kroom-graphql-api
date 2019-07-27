@@ -67,8 +67,13 @@ class RepoTrackVoteEvent(
   def `new`(userIdMaster: Int,
             name: String,
             public: Boolean,
+            locAndSchRestriction: Boolean,
+            scheduleBegin: Option[Long],
+            scheduleEnd: Option[Long],
+            latitude: Option[Double],
+            longitude: Option[Double]
            ): Try[DataTrackVoteEvent] = {
-    dbh.`new`(userIdMaster, name, public)
+    dbh.`new`(userIdMaster, name, public, locAndSchRestriction, scheduleBegin, scheduleEnd, latitude, longitude)
   }
 
   def delete(id: Int): Try[Unit] = {
