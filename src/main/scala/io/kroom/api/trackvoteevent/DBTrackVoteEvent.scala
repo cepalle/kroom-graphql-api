@@ -110,7 +110,7 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
     val query = (tabTrackVoteEvent
       .map(e => (e.userMasterId, e.name, e.public, e.locAndSchRestriction, e.scheduleBegin, e.scheduleEnd, e.latitude, e.longitude))
       returning tabTrackVoteEvent.map(_.id)
-      ) += (userIdMaster, name, public, locAndSchRestriction, scheduleBegin, scheduleEnd, latitude, latitude)
+      ) += (userIdMaster, name, public, locAndSchRestriction, scheduleBegin, scheduleEnd, latitude, longitude)
 
     Await.ready(db.run(query), Duration.Inf).value.get
       .flatMap(id => addUser(id, userIdMaster))
