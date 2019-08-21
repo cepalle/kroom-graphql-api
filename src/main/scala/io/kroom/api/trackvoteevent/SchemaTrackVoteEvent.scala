@@ -121,15 +121,15 @@ object SchemaTrackVoteEvent {
         }
       }),
 
-      Field("scheduleBegin", OptionType(LongType), resolve = ctx => Future {
+      Field("scheduleBegin", OptionType(StringType), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.scheduleBegin
+          ctx.value.scheduleBegin.map(_.toString)
         }.flatten
       }),
 
-      Field("scheduleEnd", OptionType(LongType), resolve = ctx => Future {
+      Field("scheduleEnd", OptionType(StringType), resolve = ctx => Future {
         ctx.ctx.checkPrivacyTrackEvent(ctx.value.id, ctx.value.public) { () =>
-          ctx.value.scheduleEnd
+          ctx.value.scheduleEnd.map(_.toString)
         }.flatten
       }),
 

@@ -236,8 +236,8 @@ object SchemaRoot {
           :: Argument("name", StringType)
           :: Argument("public", BooleanType)
           :: Argument("locAndSchRestriction", BooleanType)
-          :: Argument("scheduleBegin", OptionInputType(LongType))
-          :: Argument("scheduleEnd", OptionInputType(LongType))
+          :: Argument("scheduleBegin", OptionInputType(StringType))
+          :: Argument("scheduleEnd", OptionInputType(StringType))
           :: Argument("latitude", OptionInputType(FloatType))
           :: Argument("longitude", OptionInputType(FloatType))
           :: Nil,
@@ -247,8 +247,8 @@ object SchemaRoot {
             val name = ctx.arg[String]("name")
             val public = ctx.arg[Boolean]("public")
             val locAndSchRestriction = ctx.arg[Boolean]("locAndSchRestriction")
-            val scheduleBegin = ctx.argOpt[Long]("scheduleBegin")
-            val scheduleEnd = ctx.argOpt[Long]("scheduleEnd")
+            val scheduleBegin = ctx.argOpt[String]("scheduleBegin").map(_.toLong)
+            val scheduleEnd = ctx.argOpt[String]("scheduleEnd").map(_.toLong)
             val latitude = ctx.argOpt[Double]("latitude")
             val longitude = ctx.argOpt[Double]("longitude")
 
