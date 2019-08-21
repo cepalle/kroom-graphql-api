@@ -174,9 +174,9 @@ class RepoUser(val dbh: DBUser, private val repoDeezer: RepoDeezer, private val 
     dbh.updateLocation(userId, latitude, longitude)
   }
 
-  def updateNewPassword(userId: Int, newPassword: String): Try[DataUser] = {
+  def updateNewPassword(email: String, newPassword: String): Try[DataUser] = {
     val token = TokenGenerator.generateToken()
-    dbh.updateNewPassword(userId, newPassword.bcrypt, token)
+    dbh.updateNewPassword(email, newPassword.bcrypt, token)
       .map(user => {
         emailActor ! Email(user.email, "Update password confirmation", s"http://localhost:8080/update-pass-confirmation?token=$token")
         user

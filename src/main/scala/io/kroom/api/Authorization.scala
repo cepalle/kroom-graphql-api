@@ -16,6 +16,8 @@ object Authorization {
     PlayListEditorByUserId,
     UserGetById,
     UserNameAutocompletion,
+    UserUpdateLocation,
+    UserUpdatePassword,
 
     TrackVoteEventNew,
     TrackVoteEventDel,
@@ -53,6 +55,7 @@ object Authorization {
 
     Permissions.UserSignUp,
     Permissions.UserSignIn,
+    Permissions.UserUpdatePassword,
   )
 
   val permissionsOfUser: Set[Permissions.Value] = permissionsOfPublic ++ Set[Permissions.Value](
@@ -77,6 +80,7 @@ object Authorization {
     Permissions.UserAddMusicalPreference,
     Permissions.UserDelMusicalPreference,
     Permissions.UserUpdatePrivacy,
+    Permissions.UserUpdateLocation,
     Permissions.PlayListEditorNew,
     Permissions.PlayListEditorDel,
     Permissions.PlayListEditorAddUser,

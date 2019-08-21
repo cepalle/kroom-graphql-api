@@ -188,13 +188,13 @@ class DBUser(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(userId))
   }
 
-  def updateNewPassword(userId: Int, newPassHash: String, token: String): Try[DataUser] = {
-    val query = tabUser.filter(e => e.id === userId)
+  def updateNewPassword(email: String, newPassHash: String, token: String): Try[DataUser] = {
+    val query = tabUser.filter(e => e.email === email)
       .map(e => (e.newPassHash, e.tokenConfirmationNewPass))
       .update((Some(newPassHash), Some(token)))
 
     Await.ready(db.run(query), Duration.Inf).value.get
-      .flatMap(_ => getById(userId))
+      .flatMap(_ => getByEmail(email))
   }
 
   def updatePass(token: String): Try[Unit] = {

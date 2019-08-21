@@ -16,8 +16,8 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 /**
- * Defines a GraphQL schema for the current project
- */
+  * Defines a GraphQL schema for the current project
+  */
 object SchemaRoot {
 
   import SchemaUser._
@@ -1236,7 +1236,7 @@ object SchemaRoot {
           :: Argument("longitude", FloatType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
+          ctx.ctx.authorised(Permissions.UserUpdateLocation) { () =>
             val userId = ctx.arg[Int]("userId")
             val latitude = ctx.arg[Double]("latitude")
             val longitude = ctx.arg[Double]("longitude")
@@ -1300,28 +1300,15 @@ object SchemaRoot {
       ),
 
       Field("UserUpdatePassword", UserUpdatePasswordPayload,
-        arguments = Argument("userId", IntType)
+        arguments = Argument("email", StringType)
           :: Argument("newPassword", StringType)
           :: Nil,
         resolve = ctx ⇒ Future {
-          ctx.ctx.authorised(Permissions.UserUpdatePrivacy) { () =>
-            val userId = ctx.arg[Int]("userId")
+          ctx.ctx.authorised(Permissions.UserUpdatePassword) { () =>
+            val email = ctx.arg[String]("email")
             val newPassword = ctx.arg[String]("newPassword")
 
             val errors = {
-
-              val userIdErrors = {
-                DataError("userId", List[Option[String]](
-                  ctx.ctx.repo.user.getById(userId) match {
-                    case Success(_) => None
-                    case Failure(_) => Some("userId not found")
-                  },
-                  userId == ctx.ctx.user.id match {
-                    case true => None
-                    case false => Some("userId isn't you")
-                  }
-                ) collect { case Some(s) => s })
-              }
 
               val passErrors = {
                 val lower1 = """(?=.*[a-z])""".r
@@ -1349,14 +1336,14 @@ object SchemaRoot {
                 ) collect { case Some(s) => s })
               }
 
-              List(userIdErrors, passErrors).filter(e => e.errors.nonEmpty)
+              List(passErrors).filter(e => e.errors.nonEmpty)
             }
 
             if (errors.isEmpty) {
-              val user = ctx.ctx.repo.user.updateNewPassword(userId, newPassword).get
-              DataPayload[DataUser](Some(user), List())
+              ctx.ctx.repo.user.updateNewPassword(email, newPassword)
+              DataPayload[Unit](None, List())
             } else {
-              DataPayload[DataUser](None, errors)
+              DataPayload[Unit](None, errors)
             }
           }.get
         }

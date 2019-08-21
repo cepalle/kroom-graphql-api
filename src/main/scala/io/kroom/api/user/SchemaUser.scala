@@ -100,11 +100,10 @@ object SchemaUser {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
-  lazy val UserUpdatePasswordPayload: ObjectType[SecureContext, DataPayload[DataUser]] = ObjectType(
+  lazy val UserUpdatePasswordPayload: ObjectType[SecureContext, DataPayload[Unit]] = ObjectType(
     "UserUpdatePasswordPayload",
     "UserUpdatePasswordPayload description.",
-    () ⇒ fields[SecureContext, DataPayload[DataUser]](
-      Field("user", OptionType(UserField), resolve = _.value.data),
+    () ⇒ fields[SecureContext, DataPayload[Unit]](
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
