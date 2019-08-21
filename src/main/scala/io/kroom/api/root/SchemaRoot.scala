@@ -13,7 +13,7 @@ import sangria.schema._
 import javax.mail.internet.{AddressException, InternetAddress}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Defines a GraphQL schema for the current project
@@ -247,8 +247,8 @@ object SchemaRoot {
             val name = ctx.arg[String]("name")
             val public = ctx.arg[Boolean]("public")
             val locAndSchRestriction = ctx.arg[Boolean]("locAndSchRestriction")
-            val scheduleBegin = ctx.argOpt[String]("scheduleBegin").map(_.toLong)
-            val scheduleEnd = ctx.argOpt[String]("scheduleEnd").map(_.toLong)
+            val scheduleBegin = ctx.argOpt[String]("scheduleBegin").flatMap(e => Try(e.toLong).toOption)
+            val scheduleEnd = ctx.argOpt[String]("scheduleEnd").flatMap(e => Try(e.toLong).toOption)
             val latitude = ctx.argOpt[Double]("latitude")
             val longitude = ctx.argOpt[Double]("longitude")
 
