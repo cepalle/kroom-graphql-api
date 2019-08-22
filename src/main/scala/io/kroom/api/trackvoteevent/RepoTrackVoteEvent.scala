@@ -140,6 +140,12 @@ class RepoTrackVoteEvent(
     res
   }
 
+  def nextTrack(eventId: Int): Try[DataTrackVoteEvent] = {
+    val res = dbh.nextTrack(eventId)
+    subActor ! WSEventCSUpdateQuery(SubQueryEnum.TrackVoteEventById, eventId)
+    res
+  }
+
   def hasVote(eventId: Int, userId: Int, musicId: Int): Try[Boolean] = {
     dbh.hasVote(eventId, userId, musicId)
   }

@@ -195,6 +195,37 @@ class DBTrackVoteEvent(private val db: H2Profile.backend.Database) {
       .flatMap(_ => getById(eventId))
   }
 
+  def nextTrack(eventId: Int): Try[DataTrackVoteEvent] = {
+    val query = tabTrackVoteEvent.filter(_.id === eventId).result.head
+
+    Await.ready(db.run(query), Duration.Inf).value.get
+      .map(tabToObjTrackVoteEvent)
+      .flatMap(e => {
+
+        if (e.currentTrackId.isDefined) {
+          val q2 = tabTrackVoteEvent.filter(_.id === eventId).map(e => e.currentTrackId).update(None)
+          Await.ready(db.run(q2), Duration.Inf).value.get
+        }
+
+        getTrackWithVote(eventId).map(eventVoteInfo => {
+          if (eventVoteInfo.nonEmpty) {
+            val max = if (eventVoteInfo.length == 1) {
+              eventVoteInfo.head
+            } else {
+              eventVoteInfo.reduce((a, b) => if (a.score >= b.score) a else b)
+            }
+
+            val q2 = tabTrackVoteEvent.filter(_.id === eventId).map(e => e.currentTrackId).update(Some(max.trackId))
+            Await.ready(db.run(q2), Duration.Inf).value.get
+
+            val q3 = joinTrackVoteEventUserVoteTrack.filter(e => e.idTrackVoteEvent === eventId && e.idDeezerTrack === max.trackId).delete
+            Await.ready(db.run(q3), Duration.Inf).value.get
+          }
+        })
+        return getById(eventId)
+      })
+  }
+
 }
 
 object DBTrackVoteEvent {

@@ -813,6 +813,40 @@ object SchemaRoot {
         }
       ),
 
+      Field("TrackVoteEventNextTrack", TrackVoteEventNextTrackPayload,
+        arguments = Argument("eventId", IntType) :: Nil,
+        resolve = ctx ⇒ Future {
+          ctx.ctx.authorised(Permissions.TrackVoteEventNextTrack) { () =>
+
+            val eventId = ctx.arg[Int]("eventId")
+
+            val errors = {
+              val eventIdErrors = {
+                DataError("eventId", List[Option[String]](
+                  ctx.ctx.repo.trackVoteEvent.getById(eventId) match {
+                    case Success(s) => if (s.userMasterId == ctx.ctx.user.id) {
+                      None
+                    } else {
+                      Some("You aren't the master")
+                    }
+                    case Failure(_) => Some("eventId not found")
+                  }
+                ) collect { case Some(s) => s })
+              }
+
+              List(eventIdErrors).filter(e => e.errors.nonEmpty)
+            }
+
+            if (errors.isEmpty) {
+              val trackEvent = ctx.ctx.repo.trackVoteEvent.nextTrack(eventId).get
+              DataPayload[DataTrackVoteEvent](Some(trackEvent), List())
+            } else {
+              DataPayload[DataTrackVoteEvent](None, errors)
+            }
+          }.get
+        }
+      ),
+
       /* USER */
 
       Field("UserSignUp", UserSignUpPayload,

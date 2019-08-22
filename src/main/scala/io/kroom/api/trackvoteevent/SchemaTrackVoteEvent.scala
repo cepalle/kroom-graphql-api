@@ -91,6 +91,14 @@ object SchemaTrackVoteEvent {
       Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
     ))
 
+  lazy val TrackVoteEventNextTrackPayload: ObjectType[SecureContext, DataPayload[DataTrackVoteEvent]] = ObjectType(
+    "TrackVoteEventNextTrackPayload",
+    "TrackVoteEventNextTrackPayload description.",
+    () ⇒ fields[SecureContext, DataPayload[DataTrackVoteEvent]](
+      Field("trackVoteEvent", OptionType(TrackVoteEventField), resolve = _.value.data),
+      Field("errors", ListType(SchemaRoot.ErrorField), resolve = _.value.errors),
+    ))
+
   /* FIELD */
 
   lazy val TrackVoteEventField: ObjectType[SecureContext, DataTrackVoteEvent] = ObjectType(
